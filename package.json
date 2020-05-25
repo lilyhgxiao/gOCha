@@ -1,0 +1,26 @@
+{
+    "name": "nov20",
+    "version": "1.0.0",
+    "description": "",
+    "main": "server.js",
+    "scripts": {
+        "build-run": "cd client && npm run build && cd .. && node server.js",
+        "start": "node server.js",
+        "heroku-postbuild": "cd client && npm install && npm run build",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "axios": "^0.19.0",
+        "bcryptjs": "^2.4.3",
+        "body-parser": "^1.18.3",
+        "crypto-js": "^3.1.9-1",
+        "express": "^4.16.4",
+        "express-session": "^1.15.6",
+        "mongodb": "^3.1.13",
+        "mongoose": "^5.4.19",
+        "validator": "^10.11.0",
+        "multer": "1.4.2"
+    }
+}
