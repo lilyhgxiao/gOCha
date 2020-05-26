@@ -50,5 +50,5 @@ const GachaSchema = new mongoose.Schema({
 
 
 // make a model using the Gacha schema
-const Gacha = mongoose.model('Gacha', GachaSchema)
+const Gacha = mongoose.model('Gacha', GachaSchema, 'Gachas')
 module.exports = { Gacha }

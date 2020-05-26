@@ -18,3 +18,6 @@ export const maxGachaDescLength = 240;
 export const minCharaNameLength = 1;
 export const maxCharaNameLength = 50;
 export const maxCharaDescLength = 50;
+
+//purpose strings
+export const displayPurpose = 'display';

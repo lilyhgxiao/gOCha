@@ -46,5 +46,5 @@ const CharaSchema = new mongoose.Schema({
 
 
 // make a model using the Chara schema
-const Chara = mongoose.model('Chara', CharaSchema)
+const Chara = mongoose.model('Chara', CharaSchema, 'Charas')
 module.exports = { Chara }

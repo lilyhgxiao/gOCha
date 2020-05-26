@@ -42,7 +42,7 @@ const UserSchema = new mongoose.Schema({
 		data: Buffer, 
         contentType: String
 	},
-	stars: { //gacha currency
+	starFrags: { //gacha currency
 		type: Number,
 		default: defaultStars
 	},
@@ -112,6 +112,6 @@ UserSchema.statics.findByUsernamePassword = function(username, password) {
 }
 
 // make a model using the User schema
-const User = mongoose.model('User', UserSchema)
+const User = mongoose.model('User', UserSchema, 'Users')
 module.exports = { User }
 
