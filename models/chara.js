@@ -2,7 +2,8 @@
 'use strict';
 const log = console.log
 
-const { minCharaNameLength, maxCharaNameLength, maxCharaDescLength, maxStatsLength } = require('./../constants');
+const { minCharaNameLength, maxCharaNameLength, maxCharaDescLength, 
+    maxStatsLength, maxWelcPhrLength, maxSummPhrLength } = require('./../constants');
 
 const user = require("./user");
 const gacha = require("./gacha");
@@ -38,6 +39,14 @@ const CharaSchema = new mongoose.Schema({
     stats: { //stats to compare the characters in gacha
 		type: Array,
 		default: [0] * maxStatsLength
+    },
+    welcomePhrase: {
+        type: String,
+        maxlength: maxWelcPhrLength
+    }, 
+    summonPhrase: {
+        type: String,
+        maxlength: maxSummPhrLength
     }, 
     gacha: { //gacha the chara can be summoned from
         type: ObjectID

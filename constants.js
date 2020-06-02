@@ -19,6 +19,9 @@ exports.maxStatsLength = 10;
 exports.minCharaNameLength = 1;
 exports.maxCharaNameLength = 50;
 exports.maxCharaDescLength = 50;
+exports.maxWelcPhrLength = 140;
+exports.maxSummPhrLength = 140;
+
 
 //purpose strings
 exports.displayPurpose = 'display';
