@@ -1,12 +1,18 @@
 /* User model */
 'use strict';
+const log = console.log
 
-import { minUserLength, maxUserLength, minPassLength, 
-	maxPassLength, defaultStars, defaultSilvers } from './../constants';
+const { minUserLength, maxUserLength, minPassLength, 
+	maxPassLength, defaultStars, defaultSilvers } = require('./../constants');
+
+const { Gacha } = require("./gacha");
+const { Chara } = require("./chara");
 
 const mongoose = require('mongoose')
+const { ObjectID } = require("mongodb");
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
+
 
 const UserSchema = new mongoose.Schema({
 	username: {
@@ -74,7 +80,7 @@ UserSchema.pre('save', function(next) {
 	const user = this; // binds this to User document instance
 
 	// checks to ensure we don't hash password more than once
-	if (user.isModified('password')) {
+	if (user.password) {
 		// generate salt and hash the password
 		bcrypt.genSalt(10, (err, salt) => {
 			bcrypt.hash(user.password, salt, (err, hash) => {
@@ -111,7 +117,171 @@ UserSchema.statics.findByUsernamePassword = function(username, password) {
 	})
 }
 
-// make a model using the User schema
 const User = mongoose.model('User', UserSchema, 'Users')
-module.exports = { User }
+exports.User = User;
 
+/* User resource API methods *****************/
+exports.createUser = function(req, res) {
+	const user = new User({
+        username: req.body.username,
+        email: req.body.email,
+        password: req.body.password,
+        isAdmin: req.body.isAdmin,
+        lastLoginDate: new Date()
+    });
+
+    // Save the user
+    user.save().then(
+        result => {
+            res.status(200).send(result);
+        },
+        err => {
+            res.status(400).send(err); // 400 for bad request
+        }
+    );
+};
+
+exports.getAllUsers = function(req, res) {
+    User.find().then(
+        result => {
+            res.status(200).send({ result }); // can wrap in object if want to add more properties
+        },
+        err => {
+            res.status(500).send(err); // server error
+        }
+    );
+};
+
+exports.getUserById = function(req, res) {
+    const id = req.params.id;
+
+    //check for a valid mongodb id
+    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+
+    User.findById(id).then((result) => {
+        if (!result) {
+            res.status(404).send();
+        } else {
+            res.status(200).send(result);
+        }
+    }).catch((err) => {
+        res.status(500).send(err);
+    });
+};
+
+exports.getUserByUsername = function(req, res) {
+    const username = req.params.username;
+
+    User.findOne({ username: username }).then((result) => {
+        if (!result) {
+            res.status(404).send();
+        } else {
+            res.status(200).send(result);
+        }
+    }).catch((err) => {
+        res.status(500).send(err);
+    });
+};
+
+exports.updateUserInfo = function(req, res) {
+    if (!req.session.user) {
+        res.status(401).send(); //send 401 unauthorized error if not logged in
+    }
+    //get id from the url
+    const id = req.params.id;
+
+    //check for a valid mongodb id
+    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+
+	const reqBody = cleanUserUpdateReq(req);
+
+    User.findByIdAndUpdate(id, { $set: reqBody }, { new: true }).then((result) => {
+        if (!result) {
+            res.status(404).send();
+        } else {
+			if (reqBody.password) {
+				result.password = reqBody.password;
+				result.save(function (err, user) {
+					if (err) res.status(400).send(err);
+					res.status(200).send(user);
+				});
+			} else {
+				res.status(200).send(result);
+			}
+        }
+    }).catch((err) => {
+        res.status(500).send(err);
+    });
+};
+
+exports.pushUserInfo = function(req, res) {
+	if (!req.session.user) {
+        res.status(401).send(); //send 401 unauthorized error if not logged in
+    }
+    //get id from the url
+    const id = req.params.id;
+
+    //check for a valid mongodb id
+    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+
+	const reqBody = cleanUserUpdateReq(req);
+
+	User.findByIdAndUpdate(id, { $push: reqBody}, { new: true }).then((result) => {
+        if (!result) {
+            res.status(404).send();
+        } else {
+            res.status(200).send(result);
+        }
+    }).catch((err) => {
+        res.status(500).send(err);
+    });
+};
+
+exports.deleteUser = function(req, res) {
+    //get id from the url
+    const id = req.params.id;
+
+    //check for a valid mongodb id
+    if (!ObjectID.isValid(id)) response.status(404).send(); //send 404 not found error if id is invalid
+    
+    // Attempt to remove the pet with the specefied id
+    User.findByIdAndRemove(id).then((result) => {
+        if (!result) {
+            res.status(404).send();
+        } else {
+			Gacha.deleteMany({creator: id}).then((gacha) => {
+				Chara.deleteMany({creator: id}).then((chara) => {
+					res.status(200).send({user: result, 
+						gachasDeleted: gacha, 
+						charasDeleted: chara});
+				});
+			});
+            res.status(200).send(result);
+        }
+    }).catch((err) => {
+        res.status(500).send(err);
+    })
+};
+
+/* Helpers */
+function cleanUserUpdateReq(req, push) {
+    const reqBody = {};
+
+    if (req.body) {
+		if (req.body.ownGachas) reqBody.ownGachas = req.body.ownGachas;
+        if (req.body.favGachas) reqBody.favGachas = req.body.favGachas;
+		if (req.body.inventory) reqBody.inventory = req.body.inventory;
+		
+		if (!push) {
+			if (req.body.username) reqBody.username = req.body.username;
+			if (req.body.email) reqBody.email = req.body.email;
+			if (req.body.password) reqBody.password = req.body.password;
+			if (req.body.isAdmin) reqBody.isAdmin = req.body.isAdmin;
+			if (req.body.profilePic) reqBody.profilePic = req.body.profilePic;
+			if (req.body.starFrags) reqBody.starFrags = req.body.starFrags;
+			if (req.body.silvers) reqBody.silvers = req.body.silvers;
+			if (req.body.lastLoginDate) reqBody.lastLoginDate = req.body.lastLoginDate;
+		} 
+    }
+    return reqBody;
+};

@@ -2,22 +2,23 @@
 'use strict';
 
 //userschema attribute requirements
-export const minUserLength = 4;
-export const maxUserLength = 16;
-export const minPassLength = 1;
-export const maxPassLength = 32;
-export const defaultStars = 100;
-export const defaultSilvers = 0;
+exports.minUserLength = 4;
+exports.maxUserLength = 16;
+exports.minPassLength = 1;
+exports.maxPassLength = 32;
+exports.defaultStars = 100;
+exports.defaultSilvers = 0;
 
 //gachaschema attribute requirements
-export const minGachaNameLength = 1;
-export const maxGachaNameLength = 50;
-export const maxGachaDescLength = 240;
+exports.minGachaNameLength = 1;
+exports.maxGachaNameLength = 50;
+exports.maxGachaDescLength = 240;
+exports.maxStatsLength = 10;
 
 //charaschema attribute requirements
-export const minCharaNameLength = 1;
-export const maxCharaNameLength = 50;
-export const maxCharaDescLength = 50;
+exports.minCharaNameLength = 1;
+exports.maxCharaNameLength = 50;
+exports.maxCharaDescLength = 50;
 
 //purpose strings
-export const displayPurpose = 'display';
+exports.displayPurpose = 'display';

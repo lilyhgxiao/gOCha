@@ -2,8 +2,7 @@
 "use strict";
 const log = console.log;
 
-import { displayPurpose } from './constants';
-import { cleanCharaUpdateReq, cleanGachaUpdateReq, cleanUserUpdateReq } from './serverHelpers';
+const constant = require("./constants");
 
 const express = require("express");
 // starting the express server
@@ -13,12 +12,14 @@ const app = express();
 const { mongoose } = require("./db/mongoose");
 
 // import the mongoose models
-const { User } = require("./models/user");
-const { Gacha } = require("./models/gacha");
-const { Chara } = require("./models/chara");
+const user = require("./models/user");
+const gacha = require("./models/gacha");
+const chara = require("./models/chara");
 
 // to validate object IDs
 const { ObjectID } = require("mongodb");
+
+mongoose.set('useFindAndModify', false);
 
 // body-parser: middleware for parsing HTTP JSON body into a usable object
 const bodyParser = require("body-parser");
@@ -50,12 +51,12 @@ app.post("/users/login", (req, res) => {
     log(username, password);
     // Use the static method on the User model to find a user
     // by their email and password
-    User.findByUsernamePassword(username, password)
+    user.User.findByUsernamePassword(username, password)
         .then(user => {
             // Add the user's id to the session cookie.
             // We can check later if this exists to ensure we are logged in.
-            req.session.username = user.username;
-            res.status(200).send({ currUser: user.username });
+            req.session.user = user.username;
+            res.status(200).send({ currUser: user._id });
         })
         .catch(error => {
             res.status(400).send()
@@ -77,7 +78,7 @@ app.get("/users/logout", (req, res) => {
 // A route to check if a use is logged in on the session cookie
 app.get("/users/check-session", (req, res) => {
     if (req.session.user) {
-        res.status(200).send({ currentUser: req.session.email });
+        res.status(200).send({ currUser: req.session.user });
     } else {
         res.status(401).send();
     }
@@ -89,318 +90,70 @@ app.get("/users/check-session", (req, res) => {
 
 /** User resource routes **/
 
+/** User routes below **/
+//a POST route to *create* a user
+app.post("/users", user.createUser);
+
+// a GET route to get all users
+app.get("/users", user.getAllUsers);
+
+//a GET route to retrieve details on a particular user's id
+app.get('/users/id/:id', user.getUserById);
+
+//a GET route to retrieve details on a particular user's username
+app.get('/users/username/:username', user.getUserByUsername);
+
+//a PATCH route to update user info
+app.patch('/users/:id', user.updateUserInfo);
+
+//a PATCH route to push new elements onto user info
+app.patch('/users/push/:id', user.pushUserInfo);
+
+//a DELETE route to remove a user from the database
+app.delete('/users/:id', user.deleteUser);
+
+
+
 /* Gacha routes */
 // a POST route to *create* a gacha
-app.post("/gachas", (req, res) => {
-    //create new gacha with Gacha model
-    const gacha = new Gacha({
-        name: req.body.name,
-        desc: req.body.desc,
-        coverPic: req.body.coverPic,
-        iconPic: req.body.iconPic,
-        stats: req.body.stats,
-        threeStars: req.body.threeStars,
-        fourStars: req.body.fourStars,
-        fiveStars: req.body.fiveStars,
-        creator: req.body.creator
-    });
-
-    // Save gacha to the database
-    gacha.save().then(
-        result => {
-            res.status(200).send(result);
-        },
-        err => {
-            res.status(400).send(err); // 400 for bad request
-        }
-    );
-});
+app.post("/gachas", gacha.createGacha);
 
 // a GET route to get all gachas
-app.get("/gachas", (req, res) => {
-    Gacha.find().then(
-        result => {
-            log();
-            res.status(200).send({ result }); // can wrap in object if want to add more properties
-        },
-        err => {
-            res.status(500).send(err); // server error
-        }
-    );
-});
+app.get("/gachas", gacha.getAllGachas);
 
 /// a GET route to get a gacha by its id.
-app.get("/gachas/:id", (req, res) => {
-    const id = req.params.id;
-
-    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
-
-    // Otherwise, findById
-    Gacha.findById(id)
-        .then(result => {
-            if (!result) {
-                res.status(404).send(); // could not find this gacha
-            } else {
-                if (req.body.purpose === displayPurpose) req.session.gachaDisplayed = id;
-                res.status(200).send(result);
-            }
-        })
-        .catch(err => {
-            res.status(500).send(err); // server error
-        });
-});
+app.get("/gachas/:id", gacha.getGachaById);
 
 //a PATCH route to update gacha info
-app.patch('/gachas/:id', (req, res) => {
-    if (!req.session.user) {
-        res.status(401).send(); //send 401 unauthorized error if not logged in
-    }
-    //get id from the url
-    const id = request.params.id;
+app.patch('/gachas/:id', gacha.updateGachaInfo);
 
-    //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
-
-    const reqBody = cleanGachaUpdateReq(req);
-
-    Gacha.findByIdAndUpdate(id, { $set: reqBody }, { new: true }).then((result) => {
-        if (!result) {
-            res.status(404).send();
-        } else {
-            res.status(200).send(result);
-        }
-    }).catch((err) => {
-        res.status(500).send(err);
-    });
-});
+//a PATCH route to push new elements onto gacha info
+app.patch('/gachas/push/:id', gacha.pushGachaInfo);
 
 /// a DELETE route to remove a gacha by its id.
-app.delete("/gachas/:id", (req, res) => {
-    const id = req.params.id;
+app.delete("/gachas/:id", gacha.deleteGacha);
 
-    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
-
-    // Delete a gacha by their id
-    Gacha.findByIdAndRemove(id)
-        .then(result => {
-            if (!result) {
-                res.status(404).send();
-            } else {
-                res.status(200).send(result);
-            }
-        })
-        .catch(err => {
-            res.status(500).send(err); // server error, could not delete.
-        });
-});
 
 
 /* Character routes */
 //a POST route to create a character in a specified gacha
-app.post("/charas/:id", (req, res) => {
-    const id = req.params.id;
-
-    //create a new Chara
-    const chara = new Chara({
-        name: req.body.username, 
-        rarity: req.body.rarity,
-        desc: req.body.desc,
-        mainPic: req.body.mainPic,
-        iconPic: req.body.iconPic,
-        stats: req.body.stats,
-        gacha: mongoose.Types.ObjectId(id),
-        creator: mongoose.Types.ObjectId(req.body.creator)
-    })
-
-    //Save the chara
-    chara.save().then(
-        result => {
-            res.status(200).send(result);
-        },
-        err => {
-            res.status(500).send(err);
-        }
-    )
-});
+app.post("/charas/:id", chara.createChara);
 
 //a GET route to get all characters that belong to a specified gacha
-app.get("/charas/ingacha/:id", (req, res) => {
-    const id = req.params.id; 
-    
-    //check for a valid mongodb id
-     if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
-
-     Chara.find({ gacha: id }).then(
-        result => {
-             res.status(200).send({ result });
-        },
-        err => {
-            res.status(400).send(err)
-        }
-     );
-
-});
+app.get("/charas/ingacha/:id", chara.getCharasByGacha);
 
 //a GET route to retrieve details on a particular chara
-app.get('/charas/:id', (req, res) => {
-    const id = req.params.id;
-
-    //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
-
-    Chara.findById(id).then((result) => {
-        if (!result) {
-            res.status(404).send();
-        } else {
-            res.status(200).send(result);
-        }
-    }).catch((err) => {
-        res.status(500).send(err);
-    });
-});
+app.get('/charas/:id', chara.getCharaById);
 
 //a PATCH route to change chara details
-app.patch("/charas/:id", (req, res) => {
-    if (!req.session.user) {
-        res.status(401).send(); //send 401 unauthorized error if not logged in
-    }
-    //get id from the url
-    const id = request.params.id;
+app.patch("/charas/:id", chara.updateCharaInfo);
 
-    //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
-
-    const reqBody = cleanCharaUpdateReq(req);
-
-    Chara.findByIdAndUpdate(id, { $set: reqBody }, { new: true }).then((result) => {
-        if (!result) {
-            res.status(404).send();
-        } else {
-            res.status(200).send(result);
-        }
-    }).catch((err) => {
-        res.status(500).send(err);
-    });
-});
+//a PATCH route to push new elements onto chara info
+app.patch('/charas/push/:id', chara.pushCharaInfo);
 
 /// a DELETE route to remove a chara by its id.
-app.delete("/gachas/:id", (req, res) => {
-    const id = req.params.id;
+app.delete("/charas/:id", chara.deleteChara);
 
-    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
-
-    // Delete a chara by their id
-    Chara.findByIdAndRemove(id)
-        .then(result => {
-            if (!result) {
-                res.status(404).send();
-            } else {
-                res.status(200).send(result);
-            }
-        })
-        .catch(err => {
-            res.status(500).send(err); // server error, could not delete.
-        });
-});
-
-
-/** User routes below **/
-//a POST route to *create* a user
-app.post("/users", (req, res) => {
-    // Create a new user
-    const user = new User({
-        username: req.body.username,
-        email: req.body.email,
-        password: req.body.password,
-        isAdmin: req.body.isAdmin,
-        lastLoginDate: new Date()
-    });
-
-    // Save the user
-    user.save().then(
-        result => {
-            res.status(200).send(result);
-        },
-        err => {
-            res.status(400).send(err); // 400 for bad request
-        }
-    );
-});
-
-// a GET route to get all users
-app.get("/users", (req, res) => {
-    User.find().then(
-        result => {
-            res.status(200).send({ result }); // can wrap in object if want to add more properties
-        },
-        err => {
-            res.status(500).send(err); // server error
-        }
-    );
-});
-
-//a GET route to retrieve details on a particular user
-app.get('users/:id', (req, res) => {
-    const id = req.params.id;
-
-    //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
-
-    User.findById(id).then((result) => {
-        if (!result) {
-            res.status(404).send();
-        } else {
-            res.status(200).send(result);
-        }
-    }).catch((err) => {
-        res.status(500).send(err);
-    });
-})
-
-//a PATCH route to update user info
-app.patch('/users/:id', (req, res) => {
-    if (!req.session.user) {
-        res.status(401).send(); //send 401 unauthorized error if not logged in
-    }
-    //get id from the url
-    const id = request.params.id;
-
-    //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
-
-    const reqBody = cleanUserUpdateReq(req);
-
-    User.findByIdAndUpdate(id, { $set: reqBody }, { new: true }).then((result) => {
-        if (!result) {
-            res.status(404).send();
-        } else {
-            res.status(200).send(result);
-        }
-    }).catch((err) => {
-        res.status(500).send(err);
-    });
-});
-
-//a DELETE route to remove a user from the database
-app.delete('/users/:id', (req, res) => {
-    //get id from the url
-    const id = request.params.id;
-
-    //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) response.status(404).send(); //send 404 not found error if id is invalid
-    
-
-    // Attempt to remove the pet with the specefied id
-    User.findByIdAndRemove(id).then((result) => {
-        if (!result) {
-            res.status(404).send();
-        } else {
-            res.status(200).send(result);
-        }
-    }).catch((err) => {
-        res.status(500).send(err);
-    })
-})
 
 /*** Webpage routes below **********************************/
 // Serve the build
