@@ -2,7 +2,7 @@
 "use strict";
 const log = console.log;
 
-const constant = require("./constants");
+const constant = require("./client/src/constants");
 
 const express = require("express");
 // starting the express server
@@ -18,6 +18,9 @@ const chara = require("./models/chara");
 
 // to validate object IDs
 const { ObjectID } = require("mongodb");
+
+var cors = require('cors')
+app.use(cors())
 
 mongoose.set('useFindAndModify', false);
 
@@ -50,13 +53,13 @@ app.post("/users/login", (req, res) => {
 
     log(username, password);
     // Use the static method on the User model to find a user
-    // by their email and password
     user.User.findByUsernamePassword(username, password)
         .then(user => {
             // Add the user's id to the session cookie.
             // We can check later if this exists to ensure we are logged in.
-            req.session.user = user.username;
-            res.status(200).send({ currUser: user._id });
+            req.session.user = user._id;
+            log(user)
+            res.status(200).send({ currUser: user });
         })
         .catch(error => {
             res.status(400).send()
@@ -102,6 +105,9 @@ app.get('/users/id/:id', user.getUserById);
 
 //a GET route to retrieve details on a particular user's username
 app.get('/users/username/:username', user.getUserByUsername);
+
+//a GET route to retrieve details on a particular user's email
+app.get('/users/email/:email', user.getUserByEmail);
 
 //a PATCH route to update user info
 app.patch('/users/:id', user.updateUserInfo);

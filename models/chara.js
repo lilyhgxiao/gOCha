@@ -3,7 +3,7 @@
 const log = console.log
 
 const { minCharaNameLength, maxCharaNameLength, maxCharaDescLength, 
-    maxStatsLength, maxWelcPhrLength, maxSummPhrLength } = require('./../constants');
+    maxStatsLength, maxWelcPhrLength, maxSummPhrLength } = require('../client/src/constants');
 
 const user = require("./user");
 const gacha = require("./gacha");

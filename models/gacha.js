@@ -2,7 +2,7 @@
 'use strict';
 const log = console.log
 
-const { minGachaNameLength, maxGachaNameLength, maxGachaDescLength, maxStatsLength } = require('./../constants');
+const { minGachaNameLength, maxGachaNameLength, maxGachaDescLength, maxStatsLength } = require('../client/src/constants');
 
 const user = require("./user");
 const { Chara } = require("./chara");

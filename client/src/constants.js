@@ -4,6 +4,7 @@
 //userschema attribute requirements
 exports.minUserLength = 4;
 exports.maxUserLength = 16;
+exports.minEmailLength = 1;
 exports.minPassLength = 1;
 exports.maxPassLength = 32;
 exports.defaultStars = 100;

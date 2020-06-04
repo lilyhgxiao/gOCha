@@ -1,10 +1,13 @@
 import React from "react";
+import { Route, Switch, BrowserRouter } from "react-router-dom";
 
-import MainView from "./MainView";
 import BaseReactComponent from "./react-components/BaseReactComponent";
-import Login from "./react-components/Login";
 
-import { readCookie } from "./actions/user";
+import Login from "./react-components/Login";
+import Signup from "./react-components/Signup";
+import Dashboard from "./react-components/Dashboard";
+
+import { readCookie } from "./actions/loginHelpers";
 
 import "./App.css";
 
@@ -14,8 +17,8 @@ class App extends BaseReactComponent {
     // this.state.
     // Note: all available global state paths are initialized in
     // setEmptyState() in actions/helpers.js
-    filterState({ currentUser }) {
-        return { currentUser };
+    filterState({ currUser }) {
+        return { currUser };
     }
 
     constructor(props) {
@@ -24,10 +27,14 @@ class App extends BaseReactComponent {
     }
 
     render() {
-        const { currentUser } = this.state;
-
         return (
-            <div className="app">{!currentUser ? <Login /> : <MainView />}</div>
+            <BrowserRouter>
+                <Switch>
+                    <Route path={["/", "/login"]} exact component={Login} />
+                    <Route path="/signup" exact component={Signup} />
+                    <Route path="/dashboard" exact component={Dashboard} />
+                </Switch>
+            </BrowserRouter>
         );
     }
 }

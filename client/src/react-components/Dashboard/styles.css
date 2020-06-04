@@ -1,0 +1,95 @@
+.dashboardMainPic {
+    width: 800px;
+    height: 800px;
+    z-index: 2;
+}
+
+.dashboardTopMenu {
+    z-index: 3;
+    top: 0px;
+    position: absolute;
+    width: 720px;
+    text-align: left;
+    padding: 20px 40px;
+    overflow: hidden;
+    color: white;
+}
+
+.dashboardBottomMenu {
+    z-index: 3;
+    top: 630px;
+    position: absolute;
+    width: 720px;
+    text-align: center;
+    padding: 20px 40px;
+    color: white;
+    font-size: 32px;
+}
+
+.currencyDisplay {
+    display: inline-block;  
+    margin-right: 40px;
+    padding: 20px 30px;
+    border-radius: 10px;
+    background-color: #608bbf;
+}
+  
+.mailContainer {
+    float: right;
+    position: relative;
+}
+  
+.mailNotif {
+    display: inline-block;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    right: 0;
+    height: 16px; 
+    min-width: 14px;
+    padding: 4px 3px 0 3px;
+    font: bold 15px/13px Helvetica, Verdana, Tahoma;
+    border: 2px solid white;
+    border-radius: 12px;
+    background-color: red;
+}
+  
+.mailIcon {
+    display: inline-block;
+    margin-right: 10px;
+    padding: 20px 20px;
+    border-radius: 50%;
+    background-color: #608bbf;
+}
+
+.dashboardInventory {
+    display: inline-block;  
+    margin-right: 40px;
+    padding: 30px 30px;
+    border-radius: 10px;
+    background-color: #608bbf;
+}
+
+.dashboardOwnGachas {
+    display: inline-block;  
+    padding: 30px 30px;
+    border-radius: 10px;
+    background-color: #608bbf;
+}
+
+.dashboardfavGachas {
+    display: inline-block; 
+    margin-left: 40px;
+    padding: 30px 30px;
+    border-radius: 10px;
+    background-color: #608bbf;
+}
+
+.newsBanner {
+    margin: -5px 0px;
+    width: 100%;
+    height: 150px;
+    background-color: #608bbf;
+    color: white;
+    font-size: 60px;
+}

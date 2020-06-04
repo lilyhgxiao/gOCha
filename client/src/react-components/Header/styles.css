@@ -1,5 +1,76 @@
 /* Styles for the Header React component */
+
+.headerContainer {
+  z-index: 4;
+  text-align: center;
+  background-color: #608bbf;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 120px;
+}
+
 .header {
-  margin-top: 40px;
-  margin-bottom: 40px;
+  display: inline-block;
+  margin-top: 0px;
+  color: white;
+  width: 800px;
+  border-style: none dotted none dotted;
+  border-width: 2px; 
+  border-color: #33475e;
+}
+
+.headerLinks {
+  text-align: center;
+}
+
+.headerLine1 {
+  padding: 10px;
+}
+
+.hdrLogo {
+  display: inline-block;
+  margin: 0px 20px 0px 20px;
+  vertical-align: middle;
+}
+
+.logo {
+  max-height: 50px;
+}
+
+.hdrSearch {
+  display: inline-block;
+  margin: 0px 20px 0px 20px;;
+  height: 50px;
+}
+
+.searchBar {
+  height: 50px;
+}
+
+.searchButton {
+  height: 50px;
+}
+
+.hdrProfile {
+  display: inline-block;
+  margin: 0px 20px;
+}
+
+.hdrSettings {
+  display: inline-block;
+  margin: 0px 20px;
+}
+
+.headerLine2 {
+  padding: 10px;
+}
+
+.hdr2Link {
+  margin: 0px 20px;
+}
+
+.overlapWithMain {
+  position: fixed;
+  width: 800px;
 }

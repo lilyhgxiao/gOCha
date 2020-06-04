@@ -2,8 +2,8 @@
 'use strict';
 const log = console.log
 
-const { minUserLength, maxUserLength, minPassLength, 
-	maxPassLength, defaultStars, defaultSilvers } = require('./../constants');
+const { minUserLength, maxUserLength, minEmailLength, minPassLength, 
+	maxPassLength, defaultStars, defaultSilvers } = require('../client/src/constants');
 
 const { Gacha } = require("./gacha");
 const { Chara } = require("./chara");
@@ -26,7 +26,7 @@ const UserSchema = new mongoose.Schema({
 	email: {
 		type: String,
 		required: true,
-		minlength: 1,
+		minlength: minEmailLength,
 		trim: true,
 		unique: true,
 		validate: {
@@ -60,7 +60,7 @@ const UserSchema = new mongoose.Schema({
 		type: Array,
 		default: []
 	},
-	favGaches: { //id list of user's favourited gachas
+	favGachas: { //id list of user's favourited gachas
 		type: Array,
 		default: []
 	},
@@ -173,6 +173,20 @@ exports.getUserByUsername = function(req, res) {
     const username = req.params.username;
 
     User.findOne({ username: username }).then((result) => {
+        if (!result) {
+            res.status(404).send();
+        } else {
+            res.status(200).send(result);
+        }
+    }).catch((err) => {
+        res.status(500).send(err);
+    });
+};
+
+exports.getUserByEmail = function(req, res) {
+    const email = req.params.email;
+
+    User.findOne({ email: email }).then((result) => {
         if (!result) {
             res.status(404).send();
         } else {

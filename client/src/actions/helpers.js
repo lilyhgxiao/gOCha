@@ -10,11 +10,7 @@ import { action } from "statezero";
 // - studentForm and message state paths are used by the StudentForm component
 // - studentList state path is used by the StudentList component
 export const setEmptyState = () => {
-    setState("currentUser", null);
-    setState("loginForm", {email: "", password: ""});
-    setState("studentForm", { name: "", year: "" });
-    setState("studentList", []);
-    setState("message", { type: "", body: "" });
+    setState("currUser", null);
 };
 
 // Helper method to set a state path.
@@ -23,3 +19,14 @@ export const setState = action(({ commit, state }, path, value) => {
     set(state, path, value);
     commit(state);
 });
+
+export const convertJSON = (obj) => {
+    let newObj = JSON.parse(JSON.stringify(obj));
+
+    for (const property in obj) {
+        if (typeof newObj[property] === 'number' || typeof newObj[property] === 'boolean') {
+            newObj[property] = `${newObj[property]}`;
+        }
+    }
+    return newObj;
+}
