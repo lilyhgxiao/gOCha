@@ -3,7 +3,7 @@
 .headerContainer {
   z-index: 4;
   text-align: center;
-  background-color: #608bbf;
+  background-color: #CD7687;
   position: fixed;
   top: 0;
   width: 100%;
@@ -17,7 +17,7 @@
   width: 800px;
   border-style: none dotted none dotted;
   border-width: 2px; 
-  border-color: #33475e;
+  border-color: #BD5367;
 }
 
 .headerLinks {
@@ -26,6 +26,11 @@
 
 .headerLine1 {
   padding: 10px;
+}
+
+.header a {
+  text-decoration: none;
+  color: white;
 }
 
 .hdrLogo {
@@ -46,6 +51,7 @@
 
 .searchBar {
   height: 50px;
+  width: 200px;
 }
 
 .searchButton {
@@ -68,9 +74,4 @@
 
 .hdr2Link {
   margin: 0px 20px;
-}
-
-.overlapWithMain {
-  position: fixed;
-  width: 800px;
 }

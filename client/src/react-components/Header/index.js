@@ -1,5 +1,5 @@
 import React from "react";
-import Button from "@material-ui/core/Button";
+import { Link } from 'react-router-dom';
 
 import { logout } from "../../actions/loginHelpers";
 
@@ -11,16 +11,17 @@ import logo from './../../images/logo_placeholder.png';
 
 /* The Header Component */
 class Header extends React.Component {
+
+    state = {
+        redirect: false
+    };
+
     logoutUser = () => {
         this.props.history.push("/");
         logout();
     };
 
     search = () => {
-
-    }
-
-    redirectTo = () => {
 
     }
 
@@ -32,23 +33,29 @@ class Header extends React.Component {
                 <div className="header">
                     <div className="headerLinks">
                         <div className="headerLine1">
-                            <div className="hdrLogo" onClick = { this.redirectTo } value="/dashboard">
-                                <img className='logo' src={logo} alt='logo'/>
-                                </div>
+                                <Link className="hdrLogo" to={'./dashboard'}>
+                                    <input
+                                        type='image'
+                                        className="logo"
+                                        src={logo}
+                                        alt={'Home'} 
+                                        />
+                                    </Link>
                             <div className="hdrSearch">
                                 <input className="searchBar"></input>
                                 <button className="searchButton" onClick={ this.search }>Search</button>
-                            </div>            
-                            <div className="hdrProfile" onClick = {this.redirectTo } value={"/profile/" + username}>Hello, {username}</div>
-                            <div className="hdrSettings" onClick = {this.redirectTo } value="/settings" >Settings</div>
+                            </div>
+                            <Link className="hdrProfile" to={'./profile/' + username}>Hello, {username}</Link>
+                            <Link className="hdrSettings" to={'./settings'}>Settings</Link>
+                            <Link className="hdrLogout" onClick={ this.logoutUser } to={'./login'}>Log Out</Link>        
                         </div>
 
                         <div className ="headerLine2"> 
-                            <span className="hdr2Link" onClick = { this.redirectTo } value="/dashboard" >Home</span>
-                            <span className="hdr2Link" onClick = { this.redirectTo } value="/inventory">Inventory</span>
-                            <span className="hdr2Link" onClick = { this.redirectTo } value="/yourGachas">Your Gachas</span>
-                            <span className="hdr2Link" onClick = { this.redirectTo } value="/favourites">Favourites</span>
-                            <span className="hdr2Link" onClick = { this.redirectTo } value="/news">News</span>
+                            <Link className="hdr2Link" to={'./dashboard'}>Home</Link>   
+                            <Link className="hdr2Link" to={'./inventory'}>Inventory</Link>  
+                            <Link className="hdr2Link" to={'./yourGachas'}>Your Gachas</Link>  
+                            <Link className="hdr2Link" to={'./favourites'}>Favourites</Link>  
+                            <Link className="hdr2Link" to={'./news'}>News</Link> 
                         </div>
                     </div>
                 </div>

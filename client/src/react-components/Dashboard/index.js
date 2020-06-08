@@ -11,6 +11,7 @@ import Header from "./../Header";
 import dashboard_placeholder from './../../images/dashboard_placeholder.jpg';
 
 class Dashboard extends React.Component {
+
     constructor(props) {
         super(props);
         this.props.history.push("/dashboard");

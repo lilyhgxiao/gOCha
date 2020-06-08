@@ -58,7 +58,6 @@ app.post("/users/login", (req, res) => {
             // Add the user's id to the session cookie.
             // We can check later if this exists to ensure we are logged in.
             req.session.user = user._id;
-            log(user)
             res.status(200).send({ currUser: user });
         })
         .catch(error => {

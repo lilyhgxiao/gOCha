@@ -31,7 +31,7 @@
     margin-right: 40px;
     padding: 20px 30px;
     border-radius: 10px;
-    background-color: #608bbf;
+    background-color: #CD7687;
 }
   
 .mailContainer {
@@ -51,7 +51,7 @@
     font: bold 15px/13px Helvetica, Verdana, Tahoma;
     border: 2px solid white;
     border-radius: 12px;
-    background-color: red;
+    background-color: #E53847;
 }
   
 .mailIcon {
@@ -59,7 +59,7 @@
     margin-right: 10px;
     padding: 20px 20px;
     border-radius: 50%;
-    background-color: #608bbf;
+    background-color: #235789;
 }
 
 .dashboardInventory {
@@ -67,14 +67,14 @@
     margin-right: 40px;
     padding: 30px 30px;
     border-radius: 10px;
-    background-color: #608bbf;
+    background-color: #E53847;
 }
 
 .dashboardOwnGachas {
     display: inline-block;  
     padding: 30px 30px;
     border-radius: 10px;
-    background-color: #608bbf;
+    background-color: #CC3E40;
 }
 
 .dashboardfavGachas {
@@ -82,14 +82,14 @@
     margin-left: 40px;
     padding: 30px 30px;
     border-radius: 10px;
-    background-color: #608bbf;
+    background-color: #E53847;
 }
 
 .newsBanner {
     margin: -5px 0px;
     width: 100%;
     height: 150px;
-    background-color: #608bbf;
+    background-color: #CD7687;
     color: white;
     font-size: 60px;
 }

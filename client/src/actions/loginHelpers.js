@@ -49,10 +49,12 @@ export const login = async function () {
                 setState("currUser", currUser);
                 return { isAdmin: currUser.isAdmin, loginSuccessful: true };
             }
+        } else {
+            return { isAdmin: null, loginSuccessful: false};
         }
     } catch (err) {
         console.log('fetch failed, ', err);
-        return { isAdmin: null, loginSuccessful: false}
+        return { isAdmin: null, loginSuccessful: false};
     }
 };
 
