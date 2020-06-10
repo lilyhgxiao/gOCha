@@ -15,7 +15,7 @@ export const setEmptyState = () => {
 
 // Helper method to set a state path.
 // Usage: setState(STATE_PATH_NAME, STATE_PATH_VALUE);
-export const setState = action(({ commit, state }, path, value) => {
+export const setState = action(async ({ commit, state }, path, value) => {
     set(state, path, value);
     commit(state);
 });

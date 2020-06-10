@@ -60,3 +60,9 @@ p {
   border-color: #BD5367;
 }
 
+.pageTitle {
+  padding: 10px 5px;
+  text-align: center;
+  font-size: 30px;
+  color: #235789;
+}

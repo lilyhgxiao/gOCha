@@ -6,8 +6,9 @@ import BaseReactComponent from "./react-components/BaseReactComponent";
 import Login from "./react-components/Login";
 import Signup from "./react-components/Signup";
 import Dashboard from "./react-components/Dashboard";
+import Inventory from "./react-components/Inventory";
 
-import { readCookie } from "./actions/loginHelpers";
+import { readSession } from "./actions/loginHelpers";
 
 import "./App.css";
 
@@ -23,7 +24,7 @@ class App extends BaseReactComponent {
 
     constructor(props) {
         super(props);
-        readCookie();
+        readSession();
     }
 
     render() {
@@ -33,6 +34,7 @@ class App extends BaseReactComponent {
                     <Route path={["/", "/login"]} exact component={Login} />
                     <Route path="/signup" exact component={Signup} />
                     <Route path="/dashboard" exact component={Dashboard} />
+                    <Route path="/inventory" exact component={Inventory} />
                 </Switch>
             </BrowserRouter>
         );

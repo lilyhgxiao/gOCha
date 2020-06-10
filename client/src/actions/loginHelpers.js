@@ -9,16 +9,26 @@ export const updateLoginForm = field => {
     setState(`loginForm.${name}`, value);
 };
 
-export const readCookie = async function () {
+export const readSession = async function () {
     //const url = "/users/check-session";
     const url = "http://localhost:3001/users/check-session";
 
     try {
-        const res = await fetch(url);
+        const res = await fetch(url, { 
+            method: 'GET',
+            headers: {
+                Accept: "application/json, text/plain, */*",
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+        });
+        console.log(res)
         if (res.status === 200) {
             const json = await res.json();
+            console.log(json)
             if (json && json.currUser) {
-                setState("currUser", json.currUser);
+                await setState("currUser", json.currUser);
+                return { currUser: json.currUser };
             }
         }
     } catch (err) {
@@ -39,14 +49,15 @@ export const login = async function () {
             headers: {
                 Accept: "application/json, text/plain, */*",
                 "Content-Type": "application/json"
-            }
+            },
+            credentials: "include",
         });
         if (res.status === 200) {
             console.log("login succeeded")
             const json = await res.json();
             const currUser = json.currUser;
             if (currUser !== undefined) {
-                setState("currUser", currUser);
+                await setState("currUser", currUser);
                 return { isAdmin: currUser.isAdmin, loginSuccessful: true };
             }
         } else {

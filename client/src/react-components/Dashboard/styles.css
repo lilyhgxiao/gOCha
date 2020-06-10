@@ -26,6 +26,11 @@
     font-size: 32px;
 }
 
+.dashboardBottomMenu a {
+    text-decoration: none;
+    color: #E8EBF7;
+}
+
 .currencyDisplay {
     display: inline-block;  
     margin-right: 40px;
@@ -77,7 +82,7 @@
     background-color: #CC3E40;
 }
 
-.dashboardfavGachas {
+.dashboardFavGachas {
     display: inline-block; 
     margin-left: 40px;
     padding: 30px 30px;
@@ -90,6 +95,10 @@
     width: 100%;
     height: 150px;
     background-color: #CD7687;
-    color: white;
     font-size: 60px;
+}
+
+.newsBanner a {
+    text-decoration: none;
+    color: #E8EBF7;
 }

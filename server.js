@@ -20,7 +20,6 @@ const chara = require("./models/chara");
 const { ObjectID } = require("mongodb");
 
 var cors = require('cors')
-app.use(cors())
 
 mongoose.set('useFindAndModify', false);
 
@@ -33,6 +32,20 @@ const session = require("express-session");
 app.use(bodyParser.urlencoded({ extended: true }));
 
 /*** Session handling **************************************/
+app.use(function(req, res, next) {
+    const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
+    const origin = req.headers.origin;
+    if(allowedOrigins.indexOf(origin) > -1){
+        console.log(origin);
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    //res.header('Access-Control-Allow-Origin', 'http://127.0.0.1:8020');
+    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', true);
+    return next();
+  });
+
 // Create a session cookie
 app.use(
     session({
@@ -40,7 +53,8 @@ app.use(
         resave: false,
         saveUninitialized: false,
         cookie: {
-            expires: 600000,
+            secure: false,
+            maxAge: 60000000,
             httpOnly: true
         }
     })
@@ -57,7 +71,9 @@ app.post("/users/login", (req, res) => {
         .then(user => {
             // Add the user's id to the session cookie.
             // We can check later if this exists to ensure we are logged in.
-            req.session.user = user._id;
+            req.session.user = user;
+            log(req.session)
+            log(user)
             res.status(200).send({ currUser: user });
         })
         .catch(error => {
@@ -79,6 +95,7 @@ app.get("/users/logout", (req, res) => {
 
 // A route to check if a use is logged in on the session cookie
 app.get("/users/check-session", (req, res) => {
+    log(req.session);
     if (req.session.user) {
         res.status(200).send({ currUser: req.session.user });
     } else {

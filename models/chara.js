@@ -42,11 +42,13 @@ const CharaSchema = new mongoose.Schema({
     },
     welcomePhrase: {
         type: String,
-        maxlength: maxWelcPhrLength
+        maxlength: maxWelcPhrLength,
+        default: ""
     }, 
     summonPhrase: {
         type: String,
-        maxlength: maxSummPhrLength
+        maxlength: maxSummPhrLength,
+        default: ""
     }, 
     gacha: { //gacha the chara can be summoned from
         type: ObjectID

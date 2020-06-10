@@ -1,20 +1,38 @@
 /*  Full Dashboard component */
 import React from "react";
+import { Link } from 'react-router-dom';
 
 import "./styles.css";
 import "./../../App.css"
 
 // Importing components
 import Header from "./../Header";
+import BaseReactComponent from "./../BaseReactComponent";
+
+// Importing actions/required methods
+import { readSession } from "../../actions/loginHelpers";
 
 //images
 import dashboard_placeholder from './../../images/dashboard_placeholder.jpg';
 
-class Dashboard extends React.Component {
+class Dashboard extends BaseReactComponent {
 
     constructor(props) {
         super(props);
         this.props.history.push("/dashboard");
+    }
+
+    filterState({ currUser }) {
+        return { currUser };
+    }
+
+    async componentDidMount() {
+        const readSessRes = await readSession();
+        if (readSessRes.currUser) {
+            this.setState({
+                currUser: readSessRes.currUser
+            }, this.fetchInv);
+        }
     }
 
     render() {
@@ -22,12 +40,9 @@ class Dashboard extends React.Component {
 
         return (
             <div className="App">
-                {/* Header component with text props. */}
-                <Header
-                    title="Dashboard"
-                    subtitle="You are logged in."
-                    history={history}
-                />
+                {/* Header component. */}
+                <Header/>
+
                 <div className="mainBodyContainer">
                     <div className="mainBody">
                         <img className="dashboardMainPic" src={dashboard_placeholder} alt='Dashboard Main'/>
@@ -42,18 +57,12 @@ class Dashboard extends React.Component {
                             </div>
                         </div>
                         <div className="dashboardBottomMenu">
-                            <div className="dashboardInventory">
-                                Inventory
-                            </div>
-                            <div className="dashboardOwnGachas">
-                                Your Gachas
-                            </div>
-                            <div className="dashboardfavGachas">
-                                Favourites
-                            </div>
+                            <Link className="dashboardInventory" to={'./inventory'}>Inventory</Link>
+                            <Link className="dashboardOwnGachas" to={'./yourGachas'}>Your Gachas</Link>
+                            <Link className="dashboardFavGachas" to={'./favourites'}>Favourites</Link>
                         </div>
                         <div className="newsBanner">
-                            News
+                        <Link className="dashboardNews" to={'./news'}>News</Link>
                         </div>
                     </div>
                 </div>
