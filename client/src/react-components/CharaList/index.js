@@ -12,15 +12,16 @@ class CharaList extends React.Component {
 
     render() {
         // the filtered states are now on this.state
-        const { charaList } = this.props;
+        const { charaList, handleCharaLinkClick } = this.props;
 
         return (
             <div className="charaListContainer">
-                <ul>
+                <ul className="charaListUL">
                     { charaList.map((chara) => {
                         return (
                             <CharaLink className="invCharaLink" key = { uid(chara) }
-                            chara={chara}/>
+                            chara={chara}
+                            handleCharaLinkClick={handleCharaLinkClick}/>
                         )
                     }) }
                 </ul>

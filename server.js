@@ -72,8 +72,6 @@ app.post("/users/login", (req, res) => {
             // Add the user's id to the session cookie.
             // We can check later if this exists to ensure we are logged in.
             req.session.user = user;
-            log(req.session)
-            log(user)
             res.status(200).send({ currUser: user });
         })
         .catch(error => {
@@ -95,7 +93,6 @@ app.get("/users/logout", (req, res) => {
 
 // A route to check if a use is logged in on the session cookie
 app.get("/users/check-session", (req, res) => {
-    log(req.session);
     if (req.session.user) {
         res.status(200).send({ currUser: req.session.user });
     } else {
@@ -151,6 +148,15 @@ app.patch('/gachas/:id', gacha.updateGachaInfo);
 
 //a PATCH route to push new elements onto gacha info
 app.patch('/gachas/push/:id', gacha.pushGachaInfo);
+
+//a PATCH route to add new stats to the gacha
+app.patch('/gachas/stats/new/:id', gacha.addStats);
+
+//a PATCH route to update stat names
+app.patch('/gachas/stats/update/:id', gacha.updateStat);
+
+//a PATCH route to delete stats from the gacha
+app.patch('/gachas/stats/delete/:id', gacha.deleteStats);
 
 /// a DELETE route to remove a gacha by its id.
 app.delete("/gachas/:id", gacha.deleteGacha);

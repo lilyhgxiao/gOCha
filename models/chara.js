@@ -11,6 +11,20 @@ const gacha = require("./gacha");
 const mongoose = require('mongoose')
 const { ObjectID } = require("mongodb");
 
+const CharaStatSchema = mongoose.Schema({
+    name: { 
+        type: String, 
+        req: true ,
+        default: "New Stat",
+    },
+    value: { 
+        type: Number, 
+        req: true,
+        enum: [ 0, 1, 2, 3, 4, 5 ],
+        default: 0
+    }
+});
+
 const CharaSchema = new mongoose.Schema({
 	name: {
 		type: String,
@@ -37,8 +51,8 @@ const CharaSchema = new mongoose.Schema({
         contentType: String
     },
     stats: { //stats to compare the characters in gacha
-		type: Array,
-		default: [0] * maxStatsLength
+		type: [ CharaStatSchema ],
+		default: []
     },
     welcomePhrase: {
         type: String,
@@ -102,7 +116,6 @@ exports.createChara = function(req, res) {
 			}).catch((err) => {
 				res.status(500).send(err);
 			});
-            res.status(200).send(result);
         },
         err => {
             res.status(500).send(err);
@@ -159,39 +172,44 @@ exports.updateCharaInfo = function (req, res) {
         if (!chara) {
             res.status(404).send();
         } else {
-            if (req.body.oldRarity !== chara.rarity) {
-                const toDelete = { threeStars: id, fourStars: id, fiveStars: id};
-                const update = {};
-                if (chara.rarity == 3) {
-                    update.threeStars = id;
-                } else if (chara.rarity == 4) {
-                    update.fourStars = id;
-                } else if (chara.rarity == 5) {
-                    update.fiveStars = id;
+            if (req.body.oldRarity) {
+                if (req.body.oldRarity !== chara.rarity) {
+                    const toDelete = { threeStars: id, fourStars: id, fiveStars: id};
+                    const update = {};
+                    if (chara.rarity == 3) {
+                        update.threeStars = id;
+                    } else if (chara.rarity == 4) {
+                        update.fourStars = id;
+                    } else if (chara.rarity == 5) {
+                        update.fiveStars = id;
+                    } else {
+                        res.status(400).send();
+                    }
+                    gacha.Gacha.findByIdAndUpdate(chara.gacha, { $pull: toDelete }, { new: true }).then((gacha1) => {
+                        if (!gacha1) {
+                            res.status(404).send();
+                        } else {
+                            gacha.Gacha.findByIdAndUpdate(chara.gacha, { $push: update }, { new: true }).then((gacha2) => {
+                                if (!gacha2) {
+                                    res.status(404).send();
+                                } else {
+                                    res.status(200).send({chara: chara, gacha: gacha2});
+                                }
+                            }).catch((err) => {
+                                res.status(500).send(err);
+                            });
+                        }
+                    }).catch((err) => {
+                        res.status(500).send(err);
+                    });
                 } else {
-                    res.status(400).send();
+                    res.status(200).send(chara);
                 }
-                gacha.Gacha.findByIdAndUpdate(chara.gacha, { $pull: toDelete }, { new: true }).then((gacha1) => {
-					if (!gacha1) {
-						res.status(404).send();
-					} else {
-                        gacha.Gacha.findByIdAndUpdate(chara.gacha, { $push: update }, { new: true }).then((gacha2) => {
-                            if (!gacha2) {
-                                res.status(404).send();
-                            } else {
-                                res.status(200).send({chara: chara, gacha: gacha2});
-                            }
-                        }).catch((err) => {
-                            res.status(500).send(err);
-                        });
-					}
-				}).catch((err) => {
-					res.status(500).send(err);
-				});
             } else {
                 res.status(200).send(chara);
             }
         }
+            
     }).catch((err) => {
         res.status(500).send(err);
     });

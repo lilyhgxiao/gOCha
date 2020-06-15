@@ -30,6 +30,24 @@ export const signup = async function (newUser) {
     }
 }
 
+export const getUserById = async function (id) {
+    const url = "http://localhost:3001/users/id/" + id;
+    //const url = "/users/id/" + id;
+
+    try {
+        const res = await fetch(url);
+        if (res.status === 200) {
+            const user = await res.json();
+            return user;
+        } else {
+            return null;
+        }
+    } catch (err) {
+        console.log('fetch failed, ', err);
+        return null;
+    }
+}
+
 export const getUserByUsername = async function (username) {
     const url = "http://localhost:3001/users/username/" + username
     //const url = "/users/username/" + username 

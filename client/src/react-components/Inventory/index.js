@@ -9,6 +9,7 @@ import "./../../App.css"
 import Header from "./../Header";
 import BaseReactComponent from "./../BaseReactComponent";
 import CharaList from "./../CharaList";
+import CharaProfile from "./../CharaProfile";
 
 // Importing actions/required methods
 import { getCharaById } from "../../actions/charaHelpers";
@@ -19,7 +20,9 @@ class Inventory extends BaseReactComponent {
     state = {
         isLoaded: false,
         currUser: null,
-        charaList: null
+        charaList: null,
+        charaProfile: null,
+        charaProfileVisible: false
     };
 
     constructor(props) {
@@ -55,13 +58,29 @@ class Inventory extends BaseReactComponent {
                 charaList: res,
                 isLoaded: true
             });
+        }).catch((err) => {
+            console.log("Error with Promise.all in fetchInv: " + err);
+        })
+    }
+    
+    handleCharaLinkClick = (charaData, event) => {
+        this.setState({
+            charaProfile: charaData,
+            charaProfileVisible: true
+        });
+    }
+
+    handleExitWindowClick = (event) => {
+        this.setState({
+            charaProfile: null,
+            charaProfileVisible: false
         });
     }
 
     render() {
         const { history } = this.props;
 
-        const { isLoaded } = this.state;
+        const { isLoaded, charaProfileVisible, charaProfile } = this.state;
 
         if (isLoaded) {
 
@@ -72,11 +91,20 @@ class Inventory extends BaseReactComponent {
                 <Header/>
 
                 <div className="mainBodyContainer">
+                    {  charaProfileVisible ?
+                                    <CharaProfile className="charaProf" 
+                                    chara={charaProfile} 
+                                    handleExitWindowClick={this.handleExitWindowClick}
+                                    /> : 
+                                    null
+                                }
                     <div className="mainBody">
-                        <div className="pageTitle">Inventory</div>
+                        <div className="pageTitle" onClick={() => {console.log("hi")}}>Inventory</div>
                         <div>
                             {   isLoaded ?
-                                <CharaList charaList={this.state.charaList}/> : 
+                                <CharaList 
+                                charaList={this.state.charaList} 
+                                handleCharaLinkClick={this.handleCharaLinkClick}/> : 
                                 null
                             }
                         </div>

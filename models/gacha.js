@@ -10,6 +10,14 @@ const { Chara } = require("./chara");
 const mongoose = require('mongoose');
 const { ObjectID } = require("mongodb");
 
+const GachaStatSchema = mongoose.Schema({
+    name: { 
+        type: String, 
+        req: true ,
+        default: "New Stat",
+    }
+});
+
 const GachaSchema = new mongoose.Schema({
 	name: {
 		type: String,
@@ -33,7 +41,7 @@ const GachaSchema = new mongoose.Schema({
         contentType: String
     },
     stats: { //stats to compare the characters in gacha
-		type: Array,
+		type: [ GachaStatSchema ],
 		default: [],
 		validate: [arrayLimit, '{PATH} exceeds the limit of ' + maxStatsLength]
     }, 
@@ -51,6 +59,10 @@ const GachaSchema = new mongoose.Schema({
 	},
 	creator: { //creator of gacha
         type: ObjectID
+    },
+    active: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -171,6 +183,104 @@ exports.pushGachaInfo = function(req, res) {
             res.status(404).send();
         } else {
             res.status(200).send(result);
+        }
+    }).catch((err) => {
+        res.status(500).send(err);
+    });
+};
+
+exports.addStats = function(req, res) {
+    if (!req.session.user) {
+        res.status(401).send(); //send 401 unauthorized error if not logged in
+    }
+    //get id from the url
+    const id = req.params.id;
+
+    //check for a valid mongodb id
+    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+
+    const reqBody = { stats: [] };
+    const newCharaStats = { stats: [] };
+    let i;
+    for (i = 0; i < req.body.stats.length; i++) {
+        let statId = mongoose.Types.ObjectId();
+        reqBody.stats.push({name: req.body.stats[i], _id: statId})
+        newCharaStats.stats.push({ name: req.body.stats[i], value: 0, _id: statId });
+    }
+
+    Gacha.findByIdAndUpdate(id, { $push: reqBody }, { new: true }).then((gacha) => {
+        if (!gacha) {
+            res.status(404).send();
+        } else {
+            Chara.updateMany({gacha: id}, {$push: newCharaStats}).then((writeResult) => {
+                if (writeResult.writeConcernError) {
+                    res.status(500).send(writeResult.writeConcernError);
+                } else {
+                    res.status(200).send({gacha: gacha, charaWriteResult: writeResult});
+                }
+            });
+        }
+    }).catch((err) => {
+        res.status(500).send(err);
+    });
+};
+
+exports.updateStat = function(req, res) {
+    if (!req.session.user) {
+        res.status(401).send(); //send 401 unauthorized error if not logged in
+    }
+    //get id from the url
+    const id = req.params.id;
+
+    //check for a valid mongodb id
+    if (!ObjectID.isValid(id) || !ObjectID.isValid(req.body._id)) res.status(404).send(); //send 404 not found error if id is invalid
+
+    const updateQuery = {"stats.$.name": req.body.name }
+
+    console.log("Gacha.findByIdAndUpdate")
+
+    Gacha.update({_id: id, "stats._id": req.body._id}, { $set: updateQuery }, { new: true }).then((gacha) => {
+        if (!gacha) {
+            res.status(404).send();
+        } else {
+            console.log("Chara.updateMany")
+            Chara.updateMany({gacha: id, "stats._id": req.body._id }, {$set: updateQuery }).then((writeResult) => {
+                if (writeResult.writeConcernError) {
+                    res.status(500).send(writeResult.writeConcernError);
+                } else {
+                    console.log("succeeded")
+                    res.status(200).send({gacha: gacha, charaWriteResult: writeResult});
+                }
+            });
+        }
+    }).catch((err) => {
+        res.status(500).send(err);
+    });
+};
+
+exports.deleteStats = function(req, res) {
+    if (!req.session.user) {
+        res.status(401).send(); //send 401 unauthorized error if not logged in
+    }
+    //get id from the url
+    const id = req.params.id;
+
+    //check for a valid mongodb id
+    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+
+    const reqBody = {"stats": {_id: {$in: req.body.stats}}}
+
+    Gacha.findByIdAndUpdate(id, { $pull: reqBody }, { new: true }).then((gacha) => {
+        if (!gacha) {
+            res.status(404).send();
+        } else {
+            Chara.updateMany({gacha: id}, {$pull: reqBody }).then((writeResult) => {
+                if (writeResult.writeConcernError) {
+                    res.status(500).send(writeResult.writeConcernError);
+                } else {
+                    res.status(200).send({gacha: gacha, charaWriteResult: writeResult});
+                }
+            });
         }
     }).catch((err) => {
         res.status(500).send(err);
