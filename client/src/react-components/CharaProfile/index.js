@@ -9,6 +9,7 @@ import StatDisplay from './../StatDisplay';
 //images
 import main_placeholder from './../../images/dashboard_placeholder.jpg';
 import exit_icon from './../../images/exit.png';
+import edit_icon from './../../images/edit.png';
 
 // Importing actions/required methods
 import { getUserById } from "../../actions/userhelpers";
@@ -25,13 +26,23 @@ class CharaProfile extends React.Component {
   };
 
   async componentDidMount() {
+    //adjusting height if mainBodyContainer is not tall enough
+    const mainBodyContainer = document.querySelector(".mainBodyContainer");
+    const charaProfStyle = window.getComputedStyle(document.querySelector(".charaProfWindow"));
+
+    const newHeight = parseInt(charaProfStyle.height) + parseInt(charaProfStyle.marginTop) * 2;
+    const origHeight = parseInt(window.getComputedStyle(mainBodyContainer).height);
+
+    if (newHeight > origHeight) {
+      mainBodyContainer.style.height = newHeight.toString() + "px";
+    }
+    
     const { chara } = this.props;
 
     const getGachaRes = getGachaById(chara.gacha);
     const getCreatorRes = getUserById(chara.creator);
     
     Promise.all([getGachaRes, getCreatorRes]).then(res => {
-      console.log(res);
       this.setState({
           gacha: res[0],
           creator: res[1],
@@ -42,8 +53,8 @@ class CharaProfile extends React.Component {
     })
   }
 
-  loadStats = () => {
-
+  handleLoad = () => {
+    
   }
 
   render() {
@@ -51,10 +62,13 @@ class CharaProfile extends React.Component {
     const { gachaCreatorLoaded } = this.state;
 
     return (
+      <div>
         <div className="darkBackground">
-            <div className="charaProfWindow">
-                <div className="exitWindow">
-                  <img className="exitWindowButton" src={exit_icon} onClick={handleExitWindowClick}/>
+        </div>
+        <div className="charaProfWindow">
+                <div className="iconBar">
+                  <img className="exitButton" src={exit_icon} onClick={handleExitWindowClick}/>
+                  <img className="editButton" src={edit_icon} onClick={handleExitWindowClick}/>
                 </div>
                 <div className="charaInfoSection">
                   <div className="charaProfName">{chara.name}</div>
@@ -92,7 +106,7 @@ class CharaProfile extends React.Component {
                   <br/>
                 </div>
             </div>
-        </div>
+      </div>
     );
   }
 }

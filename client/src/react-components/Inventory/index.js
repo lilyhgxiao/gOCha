@@ -41,6 +41,9 @@ class Inventory extends BaseReactComponent {
                 currUser: readSessRes.currUser
             }, this.fetchInv);
         }
+
+        const mainBodyContainer = document.querySelector(".mainBodyContainer");
+
     }
 
     fetchInv = async () => {
@@ -74,6 +77,9 @@ class Inventory extends BaseReactComponent {
         this.setState({
             charaProfile: null,
             charaProfileVisible: false
+        }, () => {
+            const mainBodyContainer = document.querySelector(".mainBodyContainer");
+            mainBodyContainer.style.height = "";
         });
     }
 
@@ -99,7 +105,7 @@ class Inventory extends BaseReactComponent {
                                     null
                                 }
                     <div className="mainBody">
-                        <div className="pageTitle" onClick={() => {console.log("hi")}}>Inventory</div>
+                        <div className="pageTitle">Inventory</div>
                         <div>
                             {   isLoaded ?
                                 <CharaList 

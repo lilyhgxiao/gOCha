@@ -1,5 +1,5 @@
 .darkBackground {
-    position: absolute;
+    position: fixed;
     text-align: center;
     height: 100%;
     width: 100%;
@@ -7,21 +7,35 @@
     z-index: 2;
 }
 
+.charaProf {
+    visibility: hidden;
+}
+
 .charaProfWindow {
+    position: absolute;
+    left: 50%;
     display: inline-block;
     opacity: 1;
     margin-top: 40px;
+    margin-left: -350px;
     width: 700px;
     background-color: #E8EBF7;
     border-color: #F1939B;
     border-width: 4px;
+    z-index: 3;
 }
 
-.exitWindow {
+.iconBar {
     height: 30px;
 }
 
-.exitWindowButton {
+.exitButton {
+    float: right;
+    height: 30px;
+    width: 30px;
+}
+
+.editButton {
     float: right;
     height: 30px;
     width: 30px;

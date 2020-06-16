@@ -2,7 +2,8 @@
 /* You can keep styles that are shared by different components here */
 
 html {
-  height: 100%;
+  min-height: 100% !important;
+  height: 100vh;
 }
 
 html ul {
@@ -10,6 +11,7 @@ html ul {
 }
 
 body {
+  position: relative;
   height: 100%;
   color: darkslategrey;
   background-color: #E8EBF7;
