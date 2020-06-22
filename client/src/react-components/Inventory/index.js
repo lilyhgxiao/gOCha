@@ -1,6 +1,5 @@
-/*  Full Dashboard component */
+/*  Inventory component */
 import React from "react";
-import { Link } from 'react-router-dom';
 
 import "./styles.css";
 import "./../../App.css"
@@ -41,9 +40,6 @@ class Inventory extends BaseReactComponent {
                 currUser: readSessRes.currUser
             }, this.fetchInv);
         }
-
-        const mainBodyContainer = document.querySelector(".mainBodyContainer");
-
     }
 
     fetchInv = async () => {
@@ -52,7 +48,7 @@ class Inventory extends BaseReactComponent {
         console.log(this.state);
         let i;
         for (i = 0; i < currUser.inventory.length; i++) {
-            charaReqs.push(getCharaById(currUser.inventory[i]));
+            charaReqs.push(getCharaById(currUser.inventory[i]._id));
         }
 
         Promise.all(charaReqs).then(res => {
@@ -84,13 +80,8 @@ class Inventory extends BaseReactComponent {
     }
 
     render() {
-        const { history } = this.props;
 
-        const { isLoaded, charaProfileVisible, charaProfile } = this.state;
-
-        if (isLoaded) {
-
-        }
+        const { isLoaded, charaList, charaProfileVisible, charaProfile } = this.state;
 
         return (
             <div className="App">
@@ -109,7 +100,7 @@ class Inventory extends BaseReactComponent {
                         <div>
                             {   isLoaded ?
                                 <CharaList 
-                                charaList={this.state.charaList} 
+                                charaList={charaList} 
                                 handleCharaLinkClick={this.handleCharaLinkClick}/> : 
                                 null
                             }

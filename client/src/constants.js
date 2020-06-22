@@ -1,5 +1,4 @@
 /* Constants are kept in this file for easy access and changes. */
-'use strict';
 
 //userschema attribute requirements
 exports.minUserLength = 4;

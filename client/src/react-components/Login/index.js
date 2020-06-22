@@ -71,7 +71,6 @@ class Login extends React.Component {
     }
 
     render() {
-        const currUser = getState("currUser");
 
         /*Redirect */
         if (this.state.loginSuccessful) {

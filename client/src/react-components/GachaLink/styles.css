@@ -1,0 +1,16 @@
+.gachaLinkContainer {
+    position: relative;
+    display: inline-block;
+    padding: 5px 10px;
+}
+
+.gachaLinkIcon {
+    height: 100px;
+    width: 100px;
+}
+
+.editButton {
+    position: absolute;
+    top: -5;
+    left: -5;
+}

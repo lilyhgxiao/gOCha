@@ -7,6 +7,8 @@ import Login from "./react-components/Login";
 import Signup from "./react-components/Signup";
 import Dashboard from "./react-components/Dashboard";
 import Inventory from "./react-components/Inventory";
+import YourGachas from "./react-components/YourGachas";
+import FavGachas from "./react-components/FavGachas";
 
 import { readSession } from "./actions/loginHelpers";
 
@@ -35,6 +37,8 @@ class App extends BaseReactComponent {
                     <Route path="/signup" exact component={Signup} />
                     <Route path="/dashboard" exact component={Dashboard} />
                     <Route path="/inventory" exact component={Inventory} />
+                    <Route path="/yourGachas" exact component={YourGachas} />
+                    <Route path="/favourites" exact component={FavGachas} />
                 </Switch>
             </BrowserRouter>
         );

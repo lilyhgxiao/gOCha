@@ -14,7 +14,7 @@ class StarRarityDisplay extends React.Component {
     let stars = [];
     let i;
     for (i = 0; i < rarity; i++) {
-        stars.push(<img className="starRarityImg" src={star} key={ uid(i)}/>)
+        stars.push(<img className="starRarityImg" src={star} key={ uid(i)} alt={'Rarity Star'}/>)
     }
 
     return (

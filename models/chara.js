@@ -263,7 +263,9 @@ exports.deleteChara = function(req, res) {
 					if (!gacha1) {
 						res.status(404).send();
 					} else {
-						res.status(200).send({chara: chara, gacha: gacha1});
+                        user.User.updateMany({"inventory._id": id }, { $pull: {"inventory": { "_id": id }} }).then((users) => {
+                            res.status(200).send({chara: chara, gacha: gacha1, usersUpdated: users});
+                        });
 					}
 				}).catch((err) => {
 					res.status(500).send(err);

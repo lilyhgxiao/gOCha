@@ -1,7 +1,6 @@
 import React from "react";
 import { uid } from "react-uid";
 
-import BaseReactComponent from "./../BaseReactComponent";
 import CharaLink from "./../CharaLink";
 
 /* Component for the List of Students */

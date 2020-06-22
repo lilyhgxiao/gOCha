@@ -13,6 +13,17 @@ const { ObjectID } = require("mongodb");
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
 
+const CharaMiniSchema = mongoose.Schema({
+    _id: { 
+        type: ObjectID, 
+        req: true
+    },
+    gacha: { 
+        type: ObjectID, 
+        req: true
+    }
+});
+
 
 const UserSchema = new mongoose.Schema({
 	username: {
@@ -65,7 +76,7 @@ const UserSchema = new mongoose.Schema({
 		default: []
 	},
 	inventory: { //id list of user's owned characters
-		type: Array,
+		type: [ CharaMiniSchema ],
 		default: []
 	},
 	lastLoginDate: { //last login date used to calculate login bonuses

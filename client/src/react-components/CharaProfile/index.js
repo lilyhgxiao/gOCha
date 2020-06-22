@@ -1,10 +1,12 @@
 import React from "react";
+import { Link } from 'react-router-dom';
 
 import "./styles.css";
 
 // Importing components
 import StarRarityDisplay from './../StarRarityDisplay';
 import StatDisplay from './../StatDisplay';
+import BaseReactComponent from "./../BaseReactComponent";
 
 //images
 import main_placeholder from './../../images/dashboard_placeholder.jpg';
@@ -17,13 +19,17 @@ import { getGachaById } from "../../actions/gachaHelpers";
 import { uid } from "react-uid";
 
 
-class CharaProfile extends React.Component {
+class CharaProfile extends BaseReactComponent {
 
   state = {
     gachaCreatorLoaded: false,
     gacha: null,
     creator: null
   };
+
+  filterState({ currUser }) {
+    return { currUser };
+  }
 
   async componentDidMount() {
     //adjusting height if mainBodyContainer is not tall enough
@@ -53,13 +59,9 @@ class CharaProfile extends React.Component {
     })
   }
 
-  handleLoad = () => {
-    
-  }
-
   render() {
     const { chara, handleExitWindowClick } = this.props;
-    const { gachaCreatorLoaded } = this.state;
+    const { gachaCreatorLoaded, currUser } = this.state;
 
     return (
       <div>
@@ -67,12 +69,24 @@ class CharaProfile extends React.Component {
         </div>
         <div className="charaProfWindow">
                 <div className="iconBar">
-                  <img className="exitButton" src={exit_icon} onClick={handleExitWindowClick}/>
-                  <img className="editButton" src={edit_icon} onClick={handleExitWindowClick}/>
+                  <img className="exitButton" src={exit_icon} onClick={handleExitWindowClick} alt={'Exit Profile'}/>
+                  {
+                    chara.creator === currUser._id ?
+                    <Link to={'/edit'}>
+                        <input
+                            className="editButton"
+                            type='image'
+                            src={edit_icon}
+                            alt={'Go To Edit Page'}
+                        />
+                    </Link> :
+                    null
+                  }
+                  
                 </div>
                 <div className="charaInfoSection">
                   <div className="charaProfName">{chara.name}</div>
-                  <img className="charaProfMainPic" src={main_placeholder} />
+                  <img className="charaProfMainPic" src={main_placeholder} alt={chara.name + ' Picture'}/>
                   <StarRarityDisplay rarity={chara.rarity}/>
                   <div className="charaProfDesc">{chara.desc}</div>
                   <br/>

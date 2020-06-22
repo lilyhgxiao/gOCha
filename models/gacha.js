@@ -299,15 +299,19 @@ exports.deleteGacha = function(req, res) {
                 res.status(404).send();
             } else {
 				const update = { ownGachas: gacha._id }
-				user.User.findByIdAndUpdate(gacha.creator, { $pull: update }, { new: true }).then((user) => {
-					if (!user) {
+				user.User.findByIdAndUpdate(gacha.creator, { $pull: update }, { new: true }).then((creator) => {
+					if (!creator) {
 						res.status(404).send();
 					} else {
-						Chara.deleteMany({gacha: id}).then((chara) => {
-							res.status(200).send({gacha: gacha, 
-								user: user, 
-								charasDeleted: chara});
-						});
+                        user.User.updateMany({"inventory.gacha": id }, { $pull: {"inventory": { "gacha": id }} }).then((users) => {
+                            Chara.deleteMany({gacha: id}).then((chara) => {
+                                res.status(200).send({gacha: gacha, 
+                                    creator: user, 
+                                    users: users,
+                                    charasDeleted: chara});
+                            });
+                        });
+						
 					}
 				}).catch((err) => {
 					res.status(500).send(err);
@@ -329,6 +333,7 @@ function cleanGachaUpdateReq(req, push) {
 		if (req.body.fiveStars) reqBody.fiveStars = req.body.fiveStars;
 		
 		if (!push) {
+            if (req.body.active) reqBody.active = req.body.active;
 			if (req.body.name) reqBody.name = req.body.name;
 			if (req.body.desc) reqBody.desc = req.body.desc;
 			if (req.body.coverPic) reqBody.coverPic = req.body.coverPic;
