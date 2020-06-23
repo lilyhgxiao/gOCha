@@ -5,7 +5,7 @@ exports.minUserLength = 4;
 exports.maxUserLength = 16;
 exports.minEmailLength = 1;
 exports.minPassLength = 1;
-exports.maxPassLength = 32;
+exports.maxPassLength = 60;
 exports.defaultStars = 100;
 exports.defaultSilvers = 0;
 

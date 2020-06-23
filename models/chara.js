@@ -94,33 +94,37 @@ exports.createChara = function(req, res) {
         creator: mongoose.Types.ObjectId(req.body.creator)
     })
 
-    //Save the chara
-    chara.save().then(
-        chara => {
-            const update = {};
-            if (chara.rarity == 3) {
-                update.threeStars = chara._id;
-            } else if (chara.rarity == 4) {
-                update.fourStars = chara._id;
-            } else if (chara.rarity == 5) {
-                update.fiveStars = chara._id;
-            } else {
-                res.status(400).send();
-            }
-			gacha.Gacha.findByIdAndUpdate(id, { $push: update }, { new: true }).then((gacha) => {
-				if (!gacha) {
-					res.status(404).send();
-				} else {
-					res.status(200).send({chara: chara, gacha: gacha});
-				}
-			}).catch((err) => {
-				res.status(500).send(err);
-			});
-        },
-        err => {
-            res.status(500).send(err);
+    gacha.Gacha.findById(id).then(gacha => {
+        if (!gacha) {
+            res.status(404).send();
+        } else {
+            chara.save().then(
+                chara => {
+                    if (chara.rarity == 3) {
+                        gacha.threeStars.push(chara._id);
+                    } else if (chara.rarity == 4) {
+                        gacha.fourStars.push(chara._id);
+                    } else if (chara.rarity == 5) {
+                        gacha.fiveStars.push(chara._id);
+                    } else {
+                        res.status(400).send();
+                    }
+                    gacha.save().then(result => {
+                        res.status(200).send({chara: chara, gacha: result});
+                    }).catch((err) => {
+                        res.status(400).send(err);
+                    })
+                },
+                err => {
+                    res.status(500).send(err);
+                }
+            )
         }
-    )
+    })
+
+
+    //Save the chara
+    
 };
 
 exports.getCharasByGacha = function(req, res) {
@@ -166,8 +170,69 @@ exports.updateCharaInfo = function (req, res) {
     //check for a valid mongodb id
     if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
 
-    const reqBody = cleanCharaUpdateReq(req, false);
+    Chara.findById(id).then(chara => {
+        if (!chara) {
+            res.status(404).send();
+        } else {
+            if (chara.creator != req.session.user._id && !req.session.user.isAdmin) {
+                res.status(401).send(); // unauthorized
+            } else {
+                const oldRarity = chara.rarity;
 
+                //clean request body
+                if (req.body.name) chara.name = req.body.name;
+                if (req.body.rarity) chara.rarity = req.body.rarity;
+                if (req.body.desc) chara.desc = req.body.desc;
+                if (req.body.stats) chara.stats = req.body.stats;
+                if (req.body.mainPic) chara.mainPic = req.body.mainPic;
+                if (req.body.iconPic) chara.iconPic = req.body.iconPic;
+                if (req.body.gacha) chara.gacha = req.body.gacha;
+                if (req.body.creator) chara.creator = req.body.creator;
+
+                chara.save().then(newChara => {
+                    if (oldRarity != newChara.rarity) {
+                        gacha.Gacha.findById(newChara.gacha).then(gacha => {
+                            //remove old rarity
+                            if (oldRarity == 3) {
+                                gacha.threeStars = gacha.threeStars.filter(charas => charas != chara._id.toString());
+                            } else if (oldRarity == 4) {
+                                gacha.fourStars = gacha.fourStars.filter(charas => charas != chara._id.toString())
+                            } else if (oldRarity == 5) {
+                                gacha.fiveStars = gacha.fiveStars.filter(charas => charas != chara._id.toString())
+                            } else {
+                                console.log("Error. Character has invalid rarity");
+                            }
+                            //add new rarity
+                            if (newChara.rarity == 3) {
+                                gacha.threeStars.push(chara._id);
+                            } else if (newChara.rarity == 4) {
+                                gacha.fourStars.push(chara._id);
+                            } else if (newChara.rarity == 5) {
+                                gacha.fiveStars.push(chara._id);
+                            } else {
+                                console.log("Error. Character has invalid rarity");
+                            }
+
+                            gacha.save().then(newGacha => {
+                                res.status(200).send({chara: newChara, gacha: newGacha});
+                            }).catch((err) => {
+                                res.status(500).send(err);
+                            })
+                        }).catch((err) => {
+                            res.status(500).send(err);
+                        });
+                    } else {
+                        res.status(200).send(newChara);
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    res.status(400).send(err);
+                })
+            }
+        }
+    });
+/*
+    const reqBody = cleanCharaUpdateReq(req, false);
     Chara.findByIdAndUpdate(id, { $set: reqBody }, { new: true }).then((chara) => {
         if (!chara) {
             res.status(404).send();
@@ -212,7 +277,7 @@ exports.updateCharaInfo = function (req, res) {
             
     }).catch((err) => {
         res.status(500).send(err);
-    });
+    }); */
 };
 
 exports.pushCharaInfo = function (req, res) {
@@ -225,6 +290,26 @@ exports.pushCharaInfo = function (req, res) {
     //check for a valid mongodb id
     if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
 
+    Chara.findById(id).then(chara => {
+        if (!chara) {
+            res.status(404).send();
+        } else {
+            if (chara.creator != req.session.user._id && !req.session.user.isAdmin) {
+                res.status(401).send(); // unauthorized
+            } else {
+                //clean request body
+                if (req.body.stats) chara.stats,push(req.body.stats);
+
+                chara.save().then(result => {
+                    res.status(200).send(result);
+                }).catch((err) => {
+                    res.status(400).send(err);
+                })
+            }
+        }
+    });
+    /*
+
     const reqBody = cleanCharaUpdateReq(req, true);
 
     Chara.findByIdAndUpdate(id, { $push: reqBody }, { new: true }).then((result) => {
@@ -235,7 +320,7 @@ exports.pushCharaInfo = function (req, res) {
         }
     }).catch((err) => {
         res.status(500).send(err);
-    });
+    });*/
 };
 
 exports.deleteChara = function(req, res) {
@@ -243,6 +328,44 @@ exports.deleteChara = function(req, res) {
 
     if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
 
+    // Delete a chara by their id
+    Chara.findById(id).then(chara => {
+        if (!chara) {
+            res.status(404).send();
+        } else {
+            if (chara.creator != req.session.user._id && !req.session.user.isAdmin) {
+                res.status(401).send(); // unauthorized
+            } else {
+                chara.remove().then(chara => {
+                    gacha.Gacha.findById(chara.gacha).then(gacha => {
+                        //remove old rarity
+                        if (chara.rarity == 3) {
+                            gacha.threeStars = gacha.threeStars.filter(charas => charas != chara._id.toString());
+                        } else if (chara.rarity == 4) {
+                            gacha.fourStars = gacha.fourStars.filter(charas => charas != chara._id.toString())
+                        } else if (chara.rarity == 5) {
+                            gacha.fiveStars = gacha.fiveStars.filter(charas => charas != chara._id.toString())
+                        } else {
+                            console.log("Error. Character has invalid rarity");
+                        }
+                        console.log(gacha);
+                        gacha.save().then(newGacha => {
+                            user.User.updateMany({"inventory._id": chara._id }, { $pull: {"inventory": { "_id": chara._id }} }).then((users) => {
+                                res.status(200).send({chara: chara, gacha: newGacha, usersUpdated: users});
+                            });
+                        }).catch((err) => {
+                            res.status(500).send(err);
+                        })
+                    }).catch((err) => {
+                        res.status(500).send(err);
+                    });
+                }).catch((err) => {
+                    res.status(400).send(err);
+                })
+            }
+        }
+    });
+    /*
     // Delete a chara by their id
     Chara.findByIdAndRemove(id)
         .then(chara => {
@@ -274,7 +397,7 @@ exports.deleteChara = function(req, res) {
         })
         .catch(err => {
             res.status(500).send(err); // server error, could not delete.
-        });
+        });*/
 };
 
 /* Helpers */

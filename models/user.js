@@ -21,7 +21,11 @@ const CharaMiniSchema = mongoose.Schema({
     gacha: { 
         type: ObjectID, 
         req: true
-    }
+	},
+	creator: { 
+        type: ObjectID, 
+        req: true
+	}
 });
 
 
@@ -91,7 +95,7 @@ UserSchema.pre('save', function(next) {
 	const user = this; // binds this to User document instance
 
 	// checks to ensure we don't hash password more than once
-	if (user.password) {
+	if (user.isModified('password')) {
 		// generate salt and hash the password
 		bcrypt.genSalt(10, (err, salt) => {
 			bcrypt.hash(user.password, salt, (err, hash) => {
@@ -132,7 +136,7 @@ const User = mongoose.model('User', UserSchema, 'Users')
 exports.User = User;
 
 /* User resource API methods *****************/
-exports.createUser = function(req, res) {
+exports.createUser = async function(req, res) {
 	const user = new User({
         username: req.body.username,
         email: req.body.email,
@@ -141,57 +145,55 @@ exports.createUser = function(req, res) {
         lastLoginDate: new Date()
     });
 
-    // Save the user
-    user.save().then(
-        result => {
-            res.status(200).send(result);
-        },
-        err => {
-            res.status(400).send(err); // 400 for bad request
-        }
-    );
+	// Save the user
+	try {
+		const saveUser = await user.save();
+		res.status(200).send(saveUser);
+	} catch (err) {
+		res.status(400).send(err)
+	}
 };
 
-exports.getAllUsers = function(req, res) {
-    User.find().then(
-        result => {
-            res.status(200).send({ result }); // can wrap in object if want to add more properties
-        },
-        err => {
-            res.status(500).send(err); // server error
-        }
-    );
+exports.getAllUsers = async function(req, res) {
+	try {
+		const findUsers = await User.find().exec();
+		res.status(200).send({ findUsers });
+	} catch (err) {
+		res.status(500).send(err);
+	}
 };
 
-exports.getUserById = function(req, res) {
+exports.getUserById = async function(req, res) {
     const id = req.params.id;
 
     //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
-
-    User.findById(id).then((result) => {
-        if (!result) {
+	if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+	
+	try {
+		const result = await User.findById(id).exec();
+		if (!result) {
             res.status(404).send();
         } else {
             res.status(200).send(result);
         }
-    }).catch((err) => {
-        res.status(500).send(err);
-    });
+	} catch (err) {
+		res.status(500).send(err);
+	}
 };
 
 exports.getUserByUsername = function(req, res) {
-    const username = req.params.username;
-
-    User.findOne({ username: username }).then((result) => {
-        if (!result) {
+	const username = req.params.username;
+	
+	try {
+		const result = await User.findOne({ username: username }).exec();
+		if (!result) {
             res.status(404).send();
         } else {
             res.status(200).send(result);
         }
-    }).catch((err) => {
-        res.status(500).send(err);
-    });
+	} catch (err) {
+
+	}
 };
 
 exports.getUserByEmail = function(req, res) {
@@ -218,25 +220,37 @@ exports.updateUserInfo = function(req, res) {
     //check for a valid mongodb id
     if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
 
-	const reqBody = cleanUserUpdateReq(req);
-
-    User.findByIdAndUpdate(id, { $set: reqBody }, { new: true }).then((result) => {
-        if (!result) {
-            res.status(404).send();
-        } else {
-			if (reqBody.password) {
-				result.password = reqBody.password;
-				result.save(function (err, user) {
-					if (err) res.status(400).send(err);
-					res.status(200).send(user);
-				});
+	User.findById(id).then(user => {
+		if (!user) {
+			res.status(404).send();
+		} else {
+			if (user._id != req.session.user._id && !req.session.user.isAdmin) {
+				res.status(401).send();
 			} else {
-				res.status(200).send(result);
+
+				if (req.body.username) user.username = req.body.username;
+				if (req.body.email) user.email = req.body.email;
+				if (req.body.password) user.password = req.body.password;
+				if (req.body.isAdmin) user.isAdmin = req.body.isAdmin;
+				if (req.body.profilePic) user.profilePic = req.body.profilePic;
+				if (req.body.starFrags) user.starFrags = req.body.starFrags;
+				if (req.body.silvers) user.silvers = req.body.silvers;
+				if (req.body.lastLoginDate) user.lastLoginDate = req.body.lastLoginDate;
+				if (req.body.ownGachas) user.ownGachas = req.body.ownGachas;
+				if (req.body.favGachas) user.favGachas = req.body.favGachas;
+				if (req.body.inventory) user.inventory = req.body.inventory;
+
+				user.save().then(result => {
+					res.status(200).send(result);
+				}).catch((err) => {
+					res.status(400).send(err);
+				})
 			}
-        }
-    }).catch((err) => {
-        res.status(500).send(err);
-    });
+		}
+	}).catch((err) => {
+		console.log(err);
+		res.status(500).send(err);
+	})
 };
 
 exports.pushUserInfo = function(req, res) {
@@ -249,17 +263,30 @@ exports.pushUserInfo = function(req, res) {
     //check for a valid mongodb id
     if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
 
-	const reqBody = cleanUserUpdateReq(req);
+	User.findById(id).then(user => {
+		if (!user) {
+			res.status(404).send();
+		} else {
+			if (user._id != req.session.user._id && !req.session.user.isAdmin) {
+				res.status(401).send();
+			} else {
+			
+				//clean request body
+				const updateQuery = {};
+				if (req.body.ownGachas) updateQuery.ownGachas = req.body.ownGachas;
+				if (req.body.favGachas) updateQuery.favGachas = req.body.favGachas;
+				if (req.body.inventory) updateQuery.inventory = req.body.inventory;
 
-	User.findByIdAndUpdate(id, { $push: reqBody}, { new: true }).then((result) => {
-        if (!result) {
-            res.status(404).send();
-        } else {
-            res.status(200).send(result);
-        }
-    }).catch((err) => {
-        res.status(500).send(err);
-    });
+				User.findByIdAndUpdate(id, {$push: updateQuery}, {new: true}).then(result => {
+					res.status(200).send(result);
+				}).catch((err) => {
+					res.status(400).send(err);
+				});
+			}
+		}
+	}).catch((err) => {
+		res.status(500).send(err);
+	})
 };
 
 exports.deleteUser = function(req, res) {
@@ -268,24 +295,34 @@ exports.deleteUser = function(req, res) {
 
     //check for a valid mongodb id
     if (!ObjectID.isValid(id)) response.status(404).send(); //send 404 not found error if id is invalid
-    
-    // Attempt to remove the pet with the specefied id
-    User.findByIdAndRemove(id).then((result) => {
-        if (!result) {
-            res.status(404).send();
-        } else {
-			Gacha.deleteMany({creator: id}).then((gacha) => {
-				Chara.deleteMany({creator: id}).then((chara) => {
-					res.status(200).send({user: result, 
-						gachasDeleted: gacha, 
-						charasDeleted: chara});
-				});
-			});
-            res.status(200).send(result);
-        }
-    }).catch((err) => {
-        res.status(500).send(err);
-    })
+	
+	
+	User.findById(id).then(user => {
+		if (!user) {
+			res.status(404).send();
+		} else {
+			if (user._id != req.session.user._id && !req.session.user.isAdmin) {
+				res.status(401).send();
+			} else {
+				user.remove().then(result => {
+					Gacha.deleteMany({creator: id}).then((gacha) => {
+						Chara.deleteMany({creator: id}).then((chara) => {
+							User.updateMany({"inventory.creator": id }, { $pull: {"inventory": { "creator": id }} }).then((users) => {
+								res.status(200).send({user: result, 
+									gachasDeleted: gacha, 
+									charasDeleted: chara,
+									usersUpdated: users});
+							});
+						});
+					});
+				}).catch((err) => {
+					res.status(400).send(err);
+				})
+			}
+		}
+	}).catch((err) => {
+		res.status(500).send(err);
+	});
 };
 
 /* Helpers */
