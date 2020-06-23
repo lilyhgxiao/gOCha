@@ -5,8 +5,8 @@ const log = console.log
 const { minUserLength, maxUserLength, minEmailLength, minPassLength, 
 	maxPassLength, defaultStars, defaultSilvers } = require('../client/src/constants');
 
-const { Gacha } = require("./gacha");
-const { Chara } = require("./chara");
+const gachaModel = require("./gacha");
+const charaModel = require("./chara");
 
 const mongoose = require('mongoose')
 const { ObjectID } = require("mongodb");
@@ -133,7 +133,6 @@ UserSchema.statics.findByUsernamePassword = function(username, password) {
 }
 
 const User = mongoose.model('User', UserSchema, 'Users')
-exports.User = User;
 
 /* User resource API methods *****************/
 exports.createUser = async function(req, res) {
@@ -147,8 +146,8 @@ exports.createUser = async function(req, res) {
 
 	// Save the user
 	try {
-		const saveUser = await user.save();
-		res.status(200).send(saveUser);
+		const result = await user.save();
+		res.status(200).send(result);
 	} catch (err) {
 		res.status(400).send(err)
 	}
@@ -156,8 +155,8 @@ exports.createUser = async function(req, res) {
 
 exports.getAllUsers = async function(req, res) {
 	try {
-		const findUsers = await User.find().exec();
-		res.status(200).send({ findUsers });
+		const result = await User.find().exec();
+		res.status(200).send({ result });
 	} catch (err) {
 		res.status(500).send(err);
 	}
@@ -181,7 +180,7 @@ exports.getUserById = async function(req, res) {
 	}
 };
 
-exports.getUserByUsername = function(req, res) {
+exports.getUserByUsername = async function(req, res) {
 	const username = req.params.username;
 	
 	try {
@@ -192,25 +191,26 @@ exports.getUserByUsername = function(req, res) {
             res.status(200).send(result);
         }
 	} catch (err) {
-
+		res.status(500).send(err);
 	}
 };
 
-exports.getUserByEmail = function(req, res) {
-    const email = req.params.email;
-
-    User.findOne({ email: email }).then((result) => {
-        if (!result) {
+exports.getUserByEmail = async function(req, res) {
+	const email = req.params.email;
+	
+	try {
+		const result = await User.findOne({ email: email }).exec();
+		if (!result) {
             res.status(404).send();
         } else {
             res.status(200).send(result);
         }
-    }).catch((err) => {
-        res.status(500).send(err);
-    });
+	} catch (err) {
+		res.status(500).send(err);
+	}
 };
 
-exports.updateUserInfo = function(req, res) {
+exports.updateUserInfo = async function(req, res) {
     if (!req.session.user) {
         res.status(401).send(); //send 401 unauthorized error if not logged in
     }
@@ -218,42 +218,45 @@ exports.updateUserInfo = function(req, res) {
     const id = req.params.id;
 
     //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
-
-	User.findById(id).then(user => {
+	if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+	
+	try {
+		//find user by id
+		const user = await User.findById(id).exec();
+		//if user doesn't exist, return 404
 		if (!user) {
 			res.status(404).send();
-		} else {
-			if (user._id != req.session.user._id && !req.session.user.isAdmin) {
-				res.status(401).send();
-			} else {
-
-				if (req.body.username) user.username = req.body.username;
-				if (req.body.email) user.email = req.body.email;
-				if (req.body.password) user.password = req.body.password;
-				if (req.body.isAdmin) user.isAdmin = req.body.isAdmin;
-				if (req.body.profilePic) user.profilePic = req.body.profilePic;
-				if (req.body.starFrags) user.starFrags = req.body.starFrags;
-				if (req.body.silvers) user.silvers = req.body.silvers;
-				if (req.body.lastLoginDate) user.lastLoginDate = req.body.lastLoginDate;
-				if (req.body.ownGachas) user.ownGachas = req.body.ownGachas;
-				if (req.body.favGachas) user.favGachas = req.body.favGachas;
-				if (req.body.inventory) user.inventory = req.body.inventory;
-
-				user.save().then(result => {
-					res.status(200).send(result);
-				}).catch((err) => {
-					res.status(400).send(err);
-				})
-			}
+			return;
 		}
-	}).catch((err) => {
-		console.log(err);
+		//if current user on session does not match user to be edited, AND the user is not an admin
+		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
+			res.status(401).send();
+			return;
+		}
+
+		//clean request body
+		if (req.body.username) user.username = req.body.username;
+		if (req.body.email) user.email = req.body.email;
+		if (req.body.password) user.password = req.body.password;
+		if (req.body.isAdmin) user.isAdmin = req.body.isAdmin;
+		if (req.body.profilePic) user.profilePic = req.body.profilePic;
+		if (req.body.starFrags) user.starFrags = req.body.starFrags;
+		if (req.body.silvers) user.silvers = req.body.silvers;
+		if (req.body.lastLoginDate) user.lastLoginDate = req.body.lastLoginDate;
+		if (req.body.ownGachas) user.ownGachas = req.body.ownGachas;
+		if (req.body.favGachas) user.favGachas = req.body.favGachas;
+		if (req.body.inventory) user.inventory = req.body.inventory;
+
+		//save the user
+		const result = await user.save();
+		res.status(200).send(result);
+	} catch (err) {
 		res.status(500).send(err);
-	})
+	}
+
 };
 
-exports.pushUserInfo = function(req, res) {
+exports.pushUserInfo = async function(req, res) {
 	if (!req.session.user) {
         res.status(401).send(); //send 401 unauthorized error if not logged in
     }
@@ -261,89 +264,82 @@ exports.pushUserInfo = function(req, res) {
     const id = req.params.id;
 
     //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
-
-	User.findById(id).then(user => {
+	if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+	
+	try {
+		//find user by id
+		const user = await User.findById(id).exec();
+		//if user doesn't exist, return 404
 		if (!user) {
 			res.status(404).send();
-		} else {
-			if (user._id != req.session.user._id && !req.session.user.isAdmin) {
-				res.status(401).send();
-			} else {
-			
-				//clean request body
-				const updateQuery = {};
-				if (req.body.ownGachas) updateQuery.ownGachas = req.body.ownGachas;
-				if (req.body.favGachas) updateQuery.favGachas = req.body.favGachas;
-				if (req.body.inventory) updateQuery.inventory = req.body.inventory;
-
-				User.findByIdAndUpdate(id, {$push: updateQuery}, {new: true}).then(result => {
-					res.status(200).send(result);
-				}).catch((err) => {
-					res.status(400).send(err);
-				});
-			}
+			return;
 		}
-	}).catch((err) => {
+		//if current user on session does not match user to be edited, AND the user is not an admin
+		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
+			res.status(401).send();
+			return;
+		}
+
+		//clean request body
+		const updateQuery = {};
+		if (req.body.ownGachas) updateQuery.ownGachas = req.body.ownGachas;
+		if (req.body.favGachas) updateQuery.favGachas = req.body.favGachas;
+		if (req.body.inventory) updateQuery.inventory = req.body.inventory;
+
+		//update user
+		const result = await User.findByIdAndUpdate(id, {$push: updateQuery}, {new: true}).exec();
+		res.status(200).send(result);
+
+	} catch(err) {
 		res.status(500).send(err);
-	})
+	}
 };
 
-exports.deleteUser = function(req, res) {
+exports.deleteUser = async function(req, res) {
     //get id from the url
     const id = req.params.id;
 
     //check for a valid mongodb id
     if (!ObjectID.isValid(id)) response.status(404).send(); //send 404 not found error if id is invalid
 	
-	
-	User.findById(id).then(user => {
+	try {
+		//find user by id
+		const user = await User.findById(id).exec();
+		//if user doesn't exist, return 404
 		if (!user) {
 			res.status(404).send();
-		} else {
-			if (user._id != req.session.user._id && !req.session.user.isAdmin) {
-				res.status(401).send();
-			} else {
-				user.remove().then(result => {
-					Gacha.deleteMany({creator: id}).then((gacha) => {
-						Chara.deleteMany({creator: id}).then((chara) => {
-							User.updateMany({"inventory.creator": id }, { $pull: {"inventory": { "creator": id }} }).then((users) => {
-								res.status(200).send({user: result, 
-									gachasDeleted: gacha, 
-									charasDeleted: chara,
-									usersUpdated: users});
-							});
-						});
-					});
-				}).catch((err) => {
-					res.status(400).send(err);
-				})
-			}
+			return;
 		}
-	}).catch((err) => {
+		//if current user on session does not match user to be edited, AND the user is not an admin
+		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
+			res.status(401).send();
+			return;
+		}
+
+		//remove user
+		const result = await user.remove();
+		//remove all gachas this user created
+		const gacha = await gachaModel.Gacha.deleteMany({creator: id}).exec();
+		//remove all characters this user created
+		const chara = await charaModel.Chara.deleteMany({creator: id}).exec();
+		//remove all characters this user created in the inventory of all users
+		const usersInventory = await User.updateMany({"inventory.creator": id }, { $pull: {"inventory": { "creator": id }} }).exec();
+		//remove all gachas this user created in the favourite gachas of all users
+		const usersFavGachas = await User.updateMany({"favGachas.creator": id }, { $pull: {"favGachas": { "creator": id }} }).exec();
+
+		//send result
+		res.status(200).send({user: result, 
+			gachasDeleted: gacha, 
+			charasDeleted: chara,
+			usersUpdated: {
+				inventory: usersInventory, 
+				favGachas: usersFavGachas}
+			});
+
+	} catch(err) {
 		res.status(500).send(err);
-	});
+	}
+	
 };
 
-/* Helpers */
-function cleanUserUpdateReq(req, push) {
-    const reqBody = {};
-
-    if (req.body) {
-		if (req.body.ownGachas) reqBody.ownGachas = req.body.ownGachas;
-        if (req.body.favGachas) reqBody.favGachas = req.body.favGachas;
-		if (req.body.inventory) reqBody.inventory = req.body.inventory;
-		
-		if (!push) {
-			if (req.body.username) reqBody.username = req.body.username;
-			if (req.body.email) reqBody.email = req.body.email;
-			if (req.body.password) reqBody.password = req.body.password;
-			if (req.body.isAdmin) reqBody.isAdmin = req.body.isAdmin;
-			if (req.body.profilePic) reqBody.profilePic = req.body.profilePic;
-			if (req.body.starFrags) reqBody.starFrags = req.body.starFrags;
-			if (req.body.silvers) reqBody.silvers = req.body.silvers;
-			if (req.body.lastLoginDate) reqBody.lastLoginDate = req.body.lastLoginDate;
-		} 
-    }
-    return reqBody;
-};
+exports.User = User;

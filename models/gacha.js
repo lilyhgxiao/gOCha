@@ -4,8 +4,8 @@ const log = console.log
 
 const { minGachaNameLength, maxGachaNameLength, maxGachaDescLength, maxStatsLength } = require('../client/src/constants');
 
-const user = require("./user");
-const { Chara } = require("./chara");
+const userModel = require("./user.js");
+const charaModel = require("./chara");
 
 const mongoose = require('mongoose');
 const { ObjectID } = require("mongodb");
@@ -71,10 +71,9 @@ function arrayLimit(val) {
 
 // make a model using the Gacha schema
 const Gacha = mongoose.model('Gacha', GachaSchema, 'Gachas')
-exports.Gacha = Gacha;
 
 /* Gacha resource API methods *****************/
-exports.createGacha = function(req, res) {
+exports.createGacha = async function(req, res) {
     //create new gacha with Gacha model
     const gacha = new Gacha({
         name: req.body.name,
@@ -88,22 +87,28 @@ exports.createGacha = function(req, res) {
         creator: req.body.creator
     });
 
-    // Save gacha to the database
-    user.User.findById(req.body.creator).then(user => {
+    try {
+        //check if the creator exists
+        const user = await userModel.User.findById(req.body.creator).exec();
         if (!user) {
             res.status(404).send();
-        } else {
-            gacha.save().then(gacha => {
-                user.ownGachas.push(gacha._id);
-                delete user.password;
-                user.save().then(result => {
-                    res.status(200).send({gacha: gacha, user: result});
-                })
-            });
-        }         
-    }).catch(err => {
+            return;
+        } 
+        //save the gacha
+        const newGacha = await gacha.save();
+        
+        //push the gacha onto user's own gachas
+        user.ownGachas.push(newGacha._id);
+        const result = await user.save();
+
+        //send result
+        res.status(200).send({gacha: newGacha, user: result});
+
+    } catch(err) {
+        console.log(err);
         res.status(500).send(err); // server error
-    });
+    }
+
 };
 
 exports.getAllGachas = function(req, res) {
@@ -129,6 +134,7 @@ exports.getGachaById = function(req, res) {
             if (!result) {
                 res.status(404).send(); // could not find this gacha
             } else {
+                //send result
                 res.status(200).send(result);
             }
         })
@@ -137,7 +143,7 @@ exports.getGachaById = function(req, res) {
         });
 };
 
-exports.updateGachaInfo = function(req, res) {
+exports.updateGachaInfo = async function(req, res) {
     if (!req.session.user) {
         res.status(401).send(); //send 401 unauthorized error if not logged in
     }
@@ -147,59 +153,42 @@ exports.updateGachaInfo = function(req, res) {
     //check for a valid mongodb id
     if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
 
-    Gacha.findById(id)
-        .then(gacha => {
-            if (!gacha) {
-                res.status(404).send(); // could not find this gacha
-            } else {
-                if (gacha.creator != req.session.user._id && !req.session.user.isAdmin) {
-                    res.status(401).send(); // unauthorized
-                } else {
-                    
-                    //clean request body
-                    if (req.body.threeStars) gacha.threeStars = req.body.threeStars;
-                    if (req.body.fourStars) gacha.fourStars = req.body.fourStars;
-                    if (req.body.fiveStars) gacha.fiveStars = req.body.fiveStars;
-                    if (req.body.active) gacha.active = req.body.active;
-                    if (req.body.name) gacha.name = req.body.name;
-                    if (req.body.desc) gacha.desc = req.body.desc;
-                    if (req.body.coverPic) gacha.coverPic = req.body.coverPic;
-                    if (req.body.iconPic) gacha.iconPic = req.body.iconPic;
-                    if (req.body.creator) gacha.creator = req.body.creator;
-
-                    gacha.save().then(result => {
-                        res.status(200).send(result);
-                    }).catch((err) => {
-                        res.status(400).send(err);
-                    })
-                }
-            }
-        })
-        .catch(err => {
-            res.status(500).send(err); // server error
-        });
-
-    /* Elegant but incomplete solution
-    const updateQuery = cleanGachaUpdateReq(req, false);
-    const searchQuery = { _id: id };
-    if (!req.session.user.isAdmin) {
-        searchQuery.creator = req.session.user;
-    } 
-
-    Gacha.findOneAndUpdate(searchQuery, { $set: updateQuery }, { new: true }).then((result) => {
-        if (!result) {
-            res.status(404).send();
-        } else {
-            res.status(200).send(result);
+    try {
+        //find gacha by id
+        const gacha = await Gacha.findById(id).exec();
+        if (!gacha) {
+            res.status(404).send(); // could not find this gacha
+            return;
         }
-    }).catch((err) => {
+
+        //if current user on session does not match creator on gacha to be edited, AND the user is not an admin
+        if (gacha.creator != req.session.user._id && !req.session.user.isAdmin) {
+            res.status(401).send(); // unauthorized
+            return;
+        }
+
+        //edit gacha
+        if (req.body.threeStars) gacha.threeStars = req.body.threeStars;
+        if (req.body.fourStars) gacha.fourStars = req.body.fourStars;
+        if (req.body.fiveStars) gacha.fiveStars = req.body.fiveStars;
+        if (req.body.active) gacha.active = req.body.active;
+        if (req.body.name) gacha.name = req.body.name;
+        if (req.body.desc) gacha.desc = req.body.desc;
+        if (req.body.coverPic) gacha.coverPic = req.body.coverPic;
+        if (req.body.iconPic) gacha.iconPic = req.body.iconPic;
+        if (req.body.creator) gacha.creator = req.body.creator;
+
+        //save gacha to database
+        const result = await gacha.save();
+        //send result
+        res.status(200).send(result);
+
+    } catch(err) {
         res.status(500).send(err);
-    });
-     */
-    
+    }
 };
 
-exports.pushGachaInfo = function(req, res) {
+exports.pushGachaInfo = async function(req, res) {
 	if (!req.session.user) {
         res.status(401).send(); //send 401 unauthorized error if not logged in
     }
@@ -209,52 +198,37 @@ exports.pushGachaInfo = function(req, res) {
     //check for a valid mongodb id
     if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
 
-    Gacha.findById(id)
-        .then(gacha => {
-            if (!gacha) {
-                res.status(404).send(); // could not find this gacha
-            } else {
-                if (gacha.creator != req.session.user._id && !req.session.user.isAdmin) {
-                    res.status(401).send(); // unauthorized
-                } else {
-                    //clean request body
-                    if (req.body.stats) gacha.stats.push(req.body.stats);
-                    if (req.body.threeStars) gacha.threeStars.push(req.body.threeStars);
-                    if (req.body.fourStars) gacha.fourStars.push(req.body.fourStars);
-                    if (req.body.fiveStars) gacha.fiveStars.push(req.body.fiveStars);
-
-                    gacha.save().then(result => {
-                        res.status(200).send(result);
-                    }).catch((err) => {
-                        res.status(400).send(err);
-                    })
-                }
-            }
-        })
-        .catch(err => {
-            res.status(500).send(err); // server error
-        });
-    
-    /* Elegant but incomplete solution
-    const updateQuery = cleanGachaUpdateReq(req, true);
-    const searchQuery = { _id: id };
-    if (!req.session.user.isAdmin) {
-        searchQuery.creator = req.session.user;
-    } 
-
-    Gacha.findOneAndUpdate(searchQuery, { $push: updateQuery }, { new: true }).then((result) => {
-        if (!result) {
-            res.status(404).send();
-        } else {
-            res.status(200).send(result);
+    try {
+        //find gacha by id
+        const gacha = await Gacha.findById(id).exec();
+        if (!gacha) {
+            res.status(404).send(); // could not find this gacha
+            return;
         }
-    }).catch((err) => {
+
+        //if current user on session does not match creator on gacha to be edited, AND the user is not an admin
+        if (gacha.creator != req.session.user._id && !req.session.user.isAdmin) {
+            res.status(401).send(); // unauthorized
+            return;
+        }
+
+        //edit gacha
+        if (req.body.stats) gacha.stats.push(req.body.stats);
+        if (req.body.threeStars) gacha.threeStars.push(req.body.threeStars);
+        if (req.body.fourStars) gacha.fourStars.push(req.body.fourStars);
+        if (req.body.fiveStars) gacha.fiveStars.push(req.body.fiveStars);
+
+        //save gacha to database
+        const result = await gacha.save();
+        //send result
+        res.status(200).send(result);
+
+    } catch (err) {
         res.status(500).send(err);
-    });
-    */
+    }
 };
 
-exports.addStats = function(req, res) {
+exports.addStats = async function(req, res) {
     if (!req.session.user) {
         res.status(401).send(); //send 401 unauthorized error if not logged in
     }
@@ -264,75 +238,48 @@ exports.addStats = function(req, res) {
     //check for a valid mongodb id
     if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
 
-    Gacha.findById(id)
-        .then(gacha => {
-            if (!gacha) {
-                res.status(404).send(); // could not find this gacha
-            } else {
-                if (gacha.creator != req.session.user._id && !req.session.user.isAdmin) {
-                    res.status(401).send(); // unauthorized
-                } else {
-                    const charaUpdateQuery = { stats: [] };
-                    if (req.body.stats) {
-                        let i;
-                        for (i = 0; i < req.body.stats.length; i++) {
-                            let statId = mongoose.Types.ObjectId();
-                            gacha.stats.push({name: req.body.stats[i], _id: statId})
-                            charaUpdateQuery.stats.push({ name: req.body.stats[i], value: 0, _id: statId });
-                        }
-                    }
-                    
-                    gacha.save().then(result => {
-                        Chara.updateMany({gacha: id}, {$push: charaUpdateQuery}).then((writeResult) => {
-                            if (writeResult.writeConcernError) {
-                                res.status(500).send(writeResult.writeConcernError);
-                            } else {
-                                res.status(200).send({gacha: result, charaWriteResult: writeResult});
-                            }
-                        });
-                    }).catch((err) => {
-                        res.status(400).send(err);
-                    })
-                }
-            }
-        })
-        .catch(err => {
-            res.status(500).send(err); // server error
-        });
-
-    /* Elegant but incomplete solution
-    const updateQuery = { stats: [] };
-    const newCharaStats = { stats: [] };
-    let i;
-    for (i = 0; i < req.body.stats.length; i++) {
-        let statId = mongoose.Types.ObjectId();
-        updateQuery.stats.push({name: req.body.stats[i], _id: statId})
-        newCharaStats.stats.push({ name: req.body.stats[i], value: 0, _id: statId });
-    }
-    const searchQuery = { _id: id };
-    if (!req.session.user.isAdmin) {
-        searchQuery.creator = req.session.user;
-    } 
-
-    Gacha.findOneAndUpdate(searchQuery, { $push: updateQuery }, { new: true }).then((gacha) => {
+    try {
+        //find gacha by id
+        const gacha = await Gacha.findById(id).exec();
         if (!gacha) {
-            res.status(404).send();
-        } else {
-            Chara.updateMany({gacha: id}, {$push: newCharaStats}).then((writeResult) => {
-                if (writeResult.writeConcernError) {
-                    res.status(500).send(writeResult.writeConcernError);
-                } else {
-                    res.status(200).send({gacha: gacha, charaWriteResult: writeResult});
-                }
-            });
+            res.status(404).send(); // could not find this gacha
+            return;
         }
-    }).catch((err) => {
+
+        //if current user on session does not match creator on gacha to be edited, AND the user is not an admin
+        if (gacha.creator != req.session.user._id && !req.session.user.isAdmin) {
+            res.status(401).send(); // unauthorized
+            return;
+        }
+
+        //prepare to add new stat to characters and gacha
+        const charaUpdateQuery = { stats: [] };
+        if (req.body.stats) {
+            let i;
+            for (i = 0; i < req.body.stats.length; i++) {
+                let statId = mongoose.Types.ObjectId();
+                gacha.stats.push({ name: req.body.stats[i], _id: statId })
+                charaUpdateQuery.stats.push({ name: req.body.stats[i], value: 0, _id: statId });
+            }
+        }
+
+        //save stat to gacha
+        const result = await gacha.save();
+        //save stat to all characters in gacha
+        const writeResult = await charaModel.Chara.updateMany({gacha: id}, {$push: charaUpdateQuery}).exec();
+        if (writeResult.writeConcernError) {
+            res.status(500).send(writeResult.writeConcernError);
+        } else {
+            //send result
+            res.status(200).send({gacha: result, charaWriteResult: writeResult});
+        }
+    } catch (err) {
         res.status(500).send(err);
-    });
-    */
+    }
+
 };
 
-exports.updateStat = function(req, res) {
+exports.updateStat = async function(req, res) {
     if (!req.session.user) {
         res.status(401).send(); //send 401 unauthorized error if not logged in
     }
@@ -342,67 +289,44 @@ exports.updateStat = function(req, res) {
     //check for a valid mongodb id
     if (!ObjectID.isValid(id) || !ObjectID.isValid(req.body._id)) res.status(404).send(); //send 404 not found error if id is invalid
 
-    Gacha.findById(id)
-        .then(gacha => {
-            if (!gacha) {
-                res.status(404).send(); // could not find this gacha
-            } else {
-                if (gacha.creator != req.session.user._id && !req.session.user.isAdmin) {
-                    res.status(401).send(); // unauthorized
-                } else {
-                    const charaUpdateQuery = {"stats.$.name": "" };
-                    if (req.body) {
-                        charaUpdateQuery["stats.$.name"] = req.body.name;
-                        const statIndex = gacha.stats.findIndex(stat => stat._id == req.body._id);
-                        gacha.stats[statIndex].name = req.body.name;
-                    }
-                    
-                    gacha.save().then(result => {
-                        Chara.updateMany({gacha: id, "stats._id": req.body._id }, {$set: charaUpdateQuery }).then((writeResult) => {
-                            if (writeResult.writeConcernError) {
-                                res.status(500).send(writeResult.writeConcernError);
-                            } else {
-                                res.status(200).send({gacha: result, charaWriteResult: writeResult});
-                            }
-                        });
-                    }).catch((err) => {
-                        res.status(400).send(err);
-                    })
-                }
-            }
-        })
-        .catch(err => {
-            res.status(500).send(err); // server error
-        });
-
-    /* Elegant but incomplete solution
-    const updateQuery = {"stats.$.name": req.body.name }
-    const searchQuery = { _id: id, "stats._id": req.body._id };
-    if (!req.session.user.isAdmin) {
-        searchQuery.creator = req.session.user;
-    } 
-
-    Gacha.update(searchQuery, { $set: updateQuery }, { new: true }).then((gacha) => {
+    try {
+        //find gacha by id
+        const gacha = await Gacha.findById(id).exec();
         if (!gacha) {
-            res.status(404).send();
-        } else {
-            console.log("Chara.updateMany")
-            Chara.updateMany({gacha: id, "stats._id": req.body._id }, {$set: updateQuery }).then((writeResult) => {
-                if (writeResult.writeConcernError) {
-                    res.status(500).send(writeResult.writeConcernError);
-                } else {
-                    console.log("succeeded")
-                    res.status(200).send({gacha: gacha, charaWriteResult: writeResult});
-                }
-            });
+            res.status(404).send(); // could not find this gacha
+            return;
         }
-    }).catch((err) => {
+
+        //if current user on session does not match creator on gacha to be edited, AND the user is not an admin
+        if (gacha.creator != req.session.user._id && !req.session.user.isAdmin) {
+            res.status(401).send(); // unauthorized
+            return;
+        }
+
+        //prepare to update stat for characters and gacha
+        const charaUpdateQuery = { "stats.$.name": "" };
+        if (req.body) {
+            charaUpdateQuery["stats.$.name"] = req.body.name;
+            const statIndex = gacha.stats.findIndex(stat => stat._id == req.body._id);
+            gacha.stats[statIndex].name = req.body.name;
+        }
+
+        //save stat to gacha
+        const result = await gacha.save();
+        //save stat to all characters in gacha
+        const writeResult = await charaModel.Chara.updateMany({gacha: id, "stats._id": req.body._id }, {$set: charaUpdateQuery }).exec();
+        if (writeResult.writeConcernError) {
+            res.status(500).send(writeResult.writeConcernError);
+        } else {
+            //send result
+            res.status(200).send({gacha: result, charaWriteResult: writeResult});
+        }
+    } catch (err) {
         res.status(500).send(err);
-    });
-    */
+    }
 };
 
-exports.deleteStats = function(req, res) {
+exports.deleteStats = async function(req, res) {
     if (!req.session.user) {
         res.status(401).send(); //send 401 unauthorized error if not logged in
     }
@@ -412,161 +336,97 @@ exports.deleteStats = function(req, res) {
     //check for a valid mongodb id
     if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
 
-    Gacha.findById(id)
-        .then(gacha => {
-            if (!gacha) {
-                res.status(404).send(); // could not find this gacha
-            } else {
-                if (gacha.creator != req.session.user._id && !req.session.user.isAdmin) {
-                    res.status(401).send(); // unauthorized
-                } else {
-                    const charaUpdateQuery = {};
-                    if (req.body.stats) {
-                        charaUpdateQuery["stats"] = {_id: {$in: req.body.stats}};
-                        req.body.stats.forEach(statToDelete => { gacha.stats = gacha.stats.filter(stat => statToDelete._id != stat._id) })
-                    }
-                    
-                    gacha.save().then(result => {
-                        Chara.updateMany({gacha: id}, {$pull: charaUpdateQuery }).then((writeResult) => {
-                            if (writeResult.writeConcernError) {
-                                res.status(500).send(writeResult.writeConcernError);
-                            } else {
-                                res.status(200).send({gacha: result, charaWriteResult: writeResult});
-                            }
-                        });
-                    }).catch((err) => {
-                        res.status(400).send(err);
-                    })
-                }
-            }
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).send(err); // server error
-        });
-
-    /*
-    const updateQuery = {"stats": {_id: {$in: req.body.stats}}}
-    const searchQuery = { _id: id };
-    if (!req.session.user.isAdmin) {
-        searchQuery.creator = req.session.user;
-    } 
-
-    Gacha.findOneAndUpdate(searchQuery, { $pull: updateQuery }, { new: true }).then((gacha) => {
+    try {
+        //find gacha by id
+        const gacha = await Gacha.findById(id).exec();
         if (!gacha) {
-            res.status(404).send();
-        } else {
-            Chara.updateMany({gacha: id}, {$pull: updateQuery }).then((writeResult) => {
-                if (writeResult.writeConcernError) {
-                    res.status(500).send(writeResult.writeConcernError);
-                } else {
-                    res.status(200).send({gacha: gacha, charaWriteResult: writeResult});
-                }
-            });
+            res.status(404).send(); // could not find this gacha
+            return;
         }
-    }).catch((err) => {
+
+        //if current user on session does not match creator on gacha to be edited, AND the user is not an admin
+        if (gacha.creator != req.session.user._id && !req.session.user.isAdmin) {
+            res.status(401).send(); // unauthorized
+            return;
+        }
+
+        //prepare to delete stat from characters and gacha
+        const charaUpdateQuery = {};
+        if (req.body.stats) {
+            charaUpdateQuery["stats"] = { _id: { $in: req.body.stats } };
+            req.body.stats.forEach(statToDelete => { gacha.stats = gacha.stats.filter(stat => statToDelete._id != stat._id) })
+        }
+
+        //save gacha
+        const result = await gacha.save();
+        //pull stat to all characters in gacha
+        const writeResult = await charaModel.Chara.updateMany({gacha: id}, {$pull: charaUpdateQuery }).exec();
+        if (writeResult.writeConcernError) {
+            res.status(500).send(writeResult.writeConcernError);
+        } else {
+            //send result
+            res.status(200).send({gacha: result, charaWriteResult: writeResult});
+        }
+
+    } catch (err) {
         res.status(500).send(err);
-    });
-    */
+    }
+
 };
 
-exports.deleteGacha = function(req, res) {
+exports.deleteGacha = async function(req, res) {
+    if (!req.session.user) {
+        res.status(401).send(); //send 401 unauthorized error if not logged in
+    }
+    //get id from the url
     const id = req.params.id;
 
     if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
 
-    Gacha.findById(id)
-        .then(gacha => {
-            if (!gacha) {
-                res.status(404).send(); // could not find this gacha
-            } else {
-                if (gacha.creator != req.session.user._id && !req.session.user.isAdmin) {
-                    res.status(401).send(); // unauthorized
-                } else {
-                    gacha.remove().then(result => {
-                        const update = { ownGachas: gacha._id }
-                        user.User.findByIdAndUpdate(gacha.creator, { $pull: update }, { new: true }).then((creator) => {
-                            if (!creator) {
-                                res.status(404).send();
-                            } else {
-                                user.User.updateMany({"inventory.gacha": id }, { $pull: {"inventory": { "gacha": id }} }).then((users) => {
-                                    Chara.deleteMany({gacha: id}).then((chara) => {
-                                        res.status(200).send({gacha: gacha, 
-                                            creator: user, 
-                                            users: users,
-                                            charasDeleted: chara});
-                                    });
-                                });
-                                
-                            }
-                        }).catch((err) => {
-                            res.status(500).send(err);
-                        });
-                    }).catch((err) => {
-                        res.status(400).send(err);
-                    })
-                }
-            }
-        })
-        .catch(err => {
-            res.status(500).send(err); // server error
-        });
+    try {
+        //find gacha by id
+        const gacha = await Gacha.findById(id).exec();
+        if (!gacha) {
+            res.status(404).send(); // could not find this gacha
+            return;
+        }
 
-    /* Elegant but incomplete solution
-    const searchQuery = { _id: id };
-    if (!req.session.user.isAdmin) {
-        searchQuery.creator = req.session.user;
-    } 
+        //if current user on session does not match creator on gacha to be edited, AND the user is not an admin
+        if (gacha.creator != req.session.user._id && !req.session.user.isAdmin) {
+            res.status(401).send(); // unauthorized
+            return;
+        }
 
-    // Delete a gacha by their id
-    Gacha.findOneAndRemove(searchQuery)
-        .then(gacha => {
-            if (!gacha) {
-                res.status(404).send();
-            } else {
-				const update = { ownGachas: gacha._id }
-				user.User.findByIdAndUpdate(gacha.creator, { $pull: update }, { new: true }).then((creator) => {
-					if (!creator) {
-						res.status(404).send();
-					} else {
-                        user.User.updateMany({"inventory.gacha": id }, { $pull: {"inventory": { "gacha": id }} }).then((users) => {
-                            Chara.deleteMany({gacha: id}).then((chara) => {
-                                res.status(200).send({gacha: gacha, 
-                                    creator: user, 
-                                    users: users,
-                                    charasDeleted: chara});
-                            });
-                        });
-						
-					}
-				}).catch((err) => {
-					res.status(500).send(err);
-				});
-            }
-        })
-        .catch(err => {
-            res.status(500).send(err); // server error, could not delete.
-        });
-        */
-};
+        //remove gacha
+        const result = await gacha.remove();
+        //pull gacha from ownGachas of the user
+        const update = { ownGachas: gacha._id }
+        const creator = await userModel.User.findByIdAndUpdate(gacha.creator, { $pull: update }, { new: true }).exec();
 
-/*Helpers */
-function cleanGachaUpdateReq(req, push) {
-    const updateQuery = {};
-    if (req.body) {
-		if (req.body.stats) updateQuery.stats = req.body.stats;
-        if (req.body.threeStars) updateQuery.threeStars = req.body.threeStars;
-        if (req.body.fourStars) updateQuery.fourStars = req.body.fourStars;
-		if (req.body.fiveStars) updateQuery.fiveStars = req.body.fiveStars;
-		
-		if (!push) {
-            if (req.body.active) updateQuery.active = req.body.active;
-			if (req.body.name) updateQuery.name = req.body.name;
-			if (req.body.desc) updateQuery.desc = req.body.desc;
-			if (req.body.coverPic) updateQuery.coverPic = req.body.coverPic;
-			if (req.body.iconPic) updateQuery.iconPic = req.body.iconPic;
-			if (req.body.creator) updateQuery.creator = req.body.creator;
-		}
+        //delete all characters belonging to the gacha
+        const chara = await charaModel.Chara.deleteMany({gacha: id}).exec();
+        //pull all characters belonging to the gacha from the inventories of users
+        const usersInventory = await userModel.User.updateMany({"inventory.gacha": id }, { $pull: {"inventory": { "gacha": id }} }).exec();
+        //pull gacha from all favGacha lists of users
+        const usersFavGachas = await userModel.User.updateMany({"favGachas._id": id }, { $pull: {"favGachas": { "_id": id }} }).exec();
+        
+        if (!creator) { //if creator doesn't exist for some reason
+            res.status(404).send();
+            return;
+        }
+
+        //send result
+        res.status(200).send({gacha: result, 
+            creator: creator, 
+            charasDeleted: chara, 
+            usersUpdated: {
+				inventory: usersInventory, 
+                favGachas: usersFavGachas
+            }});
+
+    } catch (err) {
+        res.status(500).send(err);
     }
-    return updateQuery;
 };
+
+exports.Gacha = Gacha;
