@@ -18,6 +18,22 @@ export const signup = async function (newUser) {
             const user = await res.json();
             if (user !== undefined) {
                 setState("currUser", user);
+
+                const loginBody = {username: newUser.username, password: newUser.password}
+
+                const loginRes = await fetch("http://localhost:3001/users/login", {
+                    method: 'POST',
+                    body: JSON.stringify(convertJSON(loginBody)),
+                    headers: {
+                        'Accept': 'application/json, text/plain, */*',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (loginRes.status === 200) {
+                    console.log("login succeeded")
+                } else {
+                    console.log("login unsuccessful")
+                }
                 return { signupSuccess: true, msg: "Successful signup" };
             }
         } else if (res.status === 400) {

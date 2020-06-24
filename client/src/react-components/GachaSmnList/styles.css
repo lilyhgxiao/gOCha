@@ -7,11 +7,12 @@
     z-index: 2;
 }
 
-.charaProf {
+.gachaSmnListContainer {
     visibility: hidden;
 }
 
-.charaProfWindow {
+.gachaSmnListWindow {
+    text-align: center;
     position: absolute;
     left: 50%;
     display: inline-block;
@@ -35,33 +36,25 @@
     width: 30px;
 }
 
-.editButton {
-    float: right;
-    height: 30px;
-    width: 30px;
-}
-
-.charaProfName {
-    font-size: 30px;
-}
-
-.charaProfMainPic {
-    height: 600px;
+.gachaSmnListContent {
+    display: inline-block;
+    height: 700px;
     width: 600px;
+    overflow-y: scroll;
+    margin-bottom: 40px;
+
 }
 
-.charaProfOrigin {
-    margin-left: auto;
-    margin-right: auto;
+.gachaSmnListTitle {
+    font-size: 25px;
+    font-weight: bold;
+    margin-bottom: 20px;
 }
 
-.charaProfStats {
-    margin-left: auto;
-    margin-right: auto;
-    border: 1px solid black;
-    border-collapse: collapse;
+.gachaSmnListTableTitle {
+    font-size: 20px;
 }
 
-th.charaProfStats, td.charaProfStats {
-    padding: 5px 10px;
-}
+
+
+

@@ -45,7 +45,7 @@ class FavGachas extends BaseReactComponent {
         console.log(this.state);
         let i;
         for (i = 0; i < currUser.favGachas.length; i++) {
-            gachaReqs.push(getGachaById(currUser.favGachas[i]));
+            gachaReqs.push(getGachaById(currUser.favGachas[i]._id));
         }
 
         Promise.all(gachaReqs).then(res => {

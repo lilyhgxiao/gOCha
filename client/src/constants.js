@@ -22,6 +22,7 @@ exports.maxCharaDescLength = 50;
 exports.maxWelcPhrLength = 140;
 exports.maxSummPhrLength = 140;
 
-
-//purpose strings
-exports.displayPurpose = 'display';
+//chara summon percentages
+exports.fiveStarChance = 0.1;
+exports.fourStarChance = 0.3;
+exports.threeStarChance = 0.6;

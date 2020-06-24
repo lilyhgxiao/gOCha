@@ -9,6 +9,7 @@ import Dashboard from "./react-components/Dashboard";
 import Inventory from "./react-components/Inventory";
 import YourGachas from "./react-components/YourGachas";
 import FavGachas from "./react-components/FavGachas";
+import GachaSummon from "./react-components/GachaSummon"
 
 import { readSession } from "./actions/loginHelpers";
 
@@ -39,6 +40,7 @@ class App extends BaseReactComponent {
                     <Route path="/inventory" exact component={Inventory} />
                     <Route path="/yourGachas" exact component={YourGachas} />
                     <Route path="/favourites" exact component={FavGachas} />
+                    <Route path="/gachaSummon/:id" exact component={GachaSummon} />
                 </Switch>
             </BrowserRouter>
         );

@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from 'react-router-dom';
+import { uid } from "react-uid";
 
 import "./styles.css";
 
@@ -16,7 +17,7 @@ import edit_icon from './../../images/edit.png';
 // Importing actions/required methods
 import { getUserById } from "../../actions/userhelpers";
 import { getGachaById } from "../../actions/gachaHelpers";
-import { uid } from "react-uid";
+
 
 
 class CharaProfile extends BaseReactComponent {
