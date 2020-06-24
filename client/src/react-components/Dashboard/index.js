@@ -8,6 +8,7 @@ import "./../../App.css"
 // Importing components
 import Header from "./../Header";
 import BaseReactComponent from "./../BaseReactComponent";
+import AlertDialogue from "./../AlertDialogue";
 
 // Importing actions/required methods
 import { readSession } from "../../actions/loginHelpers";
@@ -16,6 +17,10 @@ import { readSession } from "../../actions/loginHelpers";
 import dashboard_placeholder from './../../images/dashboard_placeholder.jpg';
 
 class Dashboard extends BaseReactComponent {
+
+    state = {
+        alert: null
+    }
 
     constructor(props) {
         super(props);
@@ -35,9 +40,18 @@ class Dashboard extends BaseReactComponent {
         }
     }
 
+    createAlertDialogue = () => {
+        this.setState({
+            alert: {
+                title: "Yep",
+                yesNo: true
+            }
+        })
+    }
+
     render() {
         const { history } = this.props;
-        const { currUser } = this.state;
+        const { currUser, alert } = this.state;
 
         return (
             <div className="App">
@@ -47,12 +61,18 @@ class Dashboard extends BaseReactComponent {
                     silvers={currUser ? currUser.silvers : 0}/>
 
                 <div className="mainBodyContainer">
+                    { alert ? 
+                        <AlertDialogue parent={this} title={alert.title} text={alert.text} yesNo={alert.yesNo} 
+                        handleYes={alert.handleYes} handleNo={alert.handleNo} handleOk={alert.handleOk} 
+                        yesText={alert.yesText} noText={alert.noText} okText={alert.okText} image={alert.image}/> :
+                        null
+                    }
                     <div className="mainBody">
                         <img className="dashboardMainPic" src={dashboard_placeholder} alt='Dashboard Main'/>
                         <div className="dashboardTopMenu">
                             <div className="currencyDisplay">Star Fragments: {currUser ? currUser.starFrags: 0}</div>
                             <div className="currencyDisplay">Silvers: {currUser ? currUser.silvers : 0}</div>
-                            <div className="mailContainer"> 
+                            <div className="mailContainer" onClick={this.createAlertDialogue}> 
                                 <div className="mailNotif">3</div>
                                 <div className="mailIcon"> 
                                     Mail

@@ -1,0 +1,63 @@
+.alertDarkBackground {
+    position: fixed;
+    text-align: center;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0,0,0, 0.4);
+    z-index: 9;
+}
+
+.alertDialogueWindow {
+    text-align: center;
+    position: fixed;
+    left: 50%;
+    display: inline-block;
+    opacity: 1;
+    margin-top: 40px;
+    margin-left: -225px;
+    width: 450px;
+    background-color: #E8EBF7;
+    border: 5px solid #F1939B;
+    border-radius: 20px;
+    z-index: 10;
+}
+
+.iconBar {
+    padding: 5px;
+    height: 30px;
+}
+
+.exitButton {
+    float: right;
+    height: 30px;
+    width: 30px;
+}
+
+.alertDialogueTitle {
+    font-size: 25px;
+}
+
+.alertDialogueContent {
+    padding: 20px;
+    text-align: center;
+}
+
+.alertDialogueImage {
+    display: inline-block;
+    max-height: 300px;
+    max-width: 300px;
+    margin-bottom: 20px;
+}
+
+.alertDialogueText {
+    
+}
+
+.alertDialogueButtonContainer {
+    margin-bottom: 20px;
+}
+
+.alertDialogueButton {
+    margin: 0px 20px;
+    padding: 10px 20px;
+}

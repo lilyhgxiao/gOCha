@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from 'react-router-dom';
 
 import "./styles.css";
 
@@ -22,66 +21,66 @@ import { fiveStarChance, fourStarChance, threeStarChance } from "./../../constan
 
 class GachaSmnList extends BaseReactComponent {
 
-  state = {
-    threeStarsList: [],
-    fourStarsList: [],
-    fiveStarsList: [],
-    isLoaded: false
-  };
+    state = {
+        threeStarsList: [],
+        fourStarsList: [],
+        fiveStarsList: [],
+        isLoaded: false
+    };
 
-  filterState({ currUser }) {
-    return { currUser };
-  }
-
-  async componentDidMount() {
-    const { gacha } = this.props;
-
-    const getAllCharasRes = await getAllCharasInGacha(gacha._id);
-    if (!getAllCharasRes) {
-      console.log("Failed to get charas of gacha.")
-      return;
+    filterState({ currUser }) {
+        return { currUser };
     }
 
-    this.setState({
-      threeStarsList: getAllCharasRes.filter(chara => chara.rarity == 3),
-      fourStarsList: getAllCharasRes.filter(chara => chara.rarity == 4),
-      fiveStarsList: getAllCharasRes.filter(chara => chara.rarity == 5),
-      isLoaded: true
-    });
-    
-  }
+    async componentDidMount() {
+        const { gacha } = this.props;
 
-  render() {
-    const { gacha, handleExitWindowClick } = this.props;
-    const { isLoaded, threeStarsList, fourStarsList, fiveStarsList } = this.state;
+        const getAllCharasRes = await getAllCharasInGacha(gacha._id);
+        if (!getAllCharasRes) {
+            console.log("Failed to get charas of gacha.")
+            return;
+        }
 
-    return (
-      <div className="gachaSmnListContainer">
-        <div className="darkBackground">
-        </div>
-        <div className="gachaSmnListWindow">
-          <div className="iconBar">
-            <img className="exitButton" src={exit_icon} onClick={handleExitWindowClick} alt={'Exit Profile'} />
-          </div>
-          <div className="gachaSmnListTitle">{gacha.name + " Character List"}</div>
+        this.setState({
+            threeStarsList: getAllCharasRes.filter(chara => chara.rarity == 3),
+            fourStarsList: getAllCharasRes.filter(chara => chara.rarity == 4),
+            fiveStarsList: getAllCharasRes.filter(chara => chara.rarity == 5),
+            isLoaded: true
+        });
+      
+    }
 
-          <div className="gachaSmnListContent">
-            <div className="gachaSmnListTableTitle">5 Stars</div>
-            <GachaSmnListTable isLoaded={isLoaded} charaList={fiveStarsList} chance={fiveStarChance}/>
-            <br/>
+    render() {
+        const { gacha, handleExitWindowClick } = this.props;
+        const { isLoaded, threeStarsList, fourStarsList, fiveStarsList } = this.state;
 
-            <div className="gachaSmnListTableTitle">4 Stars</div>
-            <GachaSmnListTable isLoaded={isLoaded} charaList={fourStarsList} chance={fourStarChance}/>
-            <br/>
+        return (
+            <div className="gachaSmnListContainer">
+                <div className="darkBackground">
+                </div>
+                <div className="gachaSmnListWindow">
+                    <div className="iconBar">
+                        <img className="exitButton" src={exit_icon} onClick={handleExitWindowClick} alt={'Exit Profile'} />
+                    </div>
+                    <div className="gachaSmnListTitle">{gacha.name + " Character List"}</div>
 
-            <div className="gachaSmnListTableTitle">3 Stars</div>
-            <GachaSmnListTable isLoaded={isLoaded} charaList={threeStarsList} chance={threeStarChance}/>
-            <br/>
-          </div>
-        </div>
-      </div>
-    );
-  }
+                    <div className="gachaSmnListContent">
+                        <div className="gachaSmnListTableTitle">5 Stars</div>
+                        <GachaSmnListTable isLoaded={isLoaded} charaList={fiveStarsList} chance={fiveStarChance}/>
+                        <br/>
+
+                        <div className="gachaSmnListTableTitle">4 Stars</div>
+                        <GachaSmnListTable isLoaded={isLoaded} charaList={fourStarsList} chance={fourStarChance}/>
+                        <br/>
+
+                        <div className="gachaSmnListTableTitle">3 Stars</div>
+                        <GachaSmnListTable isLoaded={isLoaded} charaList={threeStarsList} chance={threeStarChance}/>
+                        <br/>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 }
 
 export default GachaSmnList;
