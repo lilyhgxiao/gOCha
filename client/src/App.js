@@ -10,6 +10,7 @@ import Inventory from "./react-components/Inventory";
 import YourGachas from "./react-components/YourGachas";
 import FavGachas from "./react-components/FavGachas";
 import GachaSummon from "./react-components/GachaSummon"
+import GachaSmnResult from "./react-components/GachaSmnResult"
 
 import { readSession } from "./actions/loginHelpers";
 
@@ -41,6 +42,7 @@ class App extends BaseReactComponent {
                     <Route path="/yourGachas" exact component={YourGachas} />
                     <Route path="/favourites" exact component={FavGachas} />
                     <Route path="/gachaSummon/:id" exact component={GachaSummon} />
+                    <Route path="/summon/:id" exact component={GachaSmnResult} />
                 </Switch>
             </BrowserRouter>
         );

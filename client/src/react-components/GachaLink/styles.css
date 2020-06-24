@@ -9,8 +9,8 @@
     width: 100px;
 }
 
-.editButton {
+.gachaLinkEditButton {
     position: absolute;
-    top: -5;
-    left: -5;
+    height: 30px;
+    width: 30px;
 }

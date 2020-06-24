@@ -34,12 +34,27 @@ class Inventory extends BaseReactComponent {
     }
 
     async componentDidMount() {
+        const locationState = this.props.location.state;
+        console.log(locationState);
         const readSessRes = await readSession();
         if (readSessRes.currUser) {
             this.setState({
                 currUser: readSessRes.currUser
             }, this.fetchInv);
+            if (locationState) {
+                if (locationState.showChara) {
+                    this.showCharaImmediately(locationState);
+                }
+            }
         }
+    }
+
+    showCharaImmediately = (locationState) => {
+        console.log("hey")
+        this.setState({
+            charaProfileVisible: true,
+            charaProfile: locationState.showChara
+        })
     }
 
     fetchInv = async () => {

@@ -70,12 +70,12 @@ class CharaProfile extends BaseReactComponent {
         </div>
         <div className="charaProfWindow">
                 <div className="iconBar">
-                  <img className="exitButton" src={exit_icon} onClick={handleExitWindowClick} alt={'Exit Profile'}/>
+                  <img className="charaProfExitButton" src={exit_icon} onClick={handleExitWindowClick} alt={'Exit Profile'}/>
                   {
                     chara.creator === currUser._id ?
                     <Link to={'/edit'}>
                         <input
-                            className="editButton"
+                            className="charaProfEditButton"
                             type='image'
                             src={edit_icon}
                             alt={'Go To Edit Page'}

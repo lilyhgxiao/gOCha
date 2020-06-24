@@ -26,3 +26,6 @@ exports.maxSummPhrLength = 140;
 exports.fiveStarChance = 0.1;
 exports.fourStarChance = 0.3;
 exports.threeStarChance = 0.6;
+
+//costs
+exports.summonCost = 100;

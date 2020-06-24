@@ -34,7 +34,10 @@ class AlertDialogue extends React.Component {
                             <img className="alertDialogueImage" src={image.src} alt={image.alt}/> :
                             null
                         }
-                        <div className="alertDialogueText">{text ? text: "Alert dialogue text goes here"}</div>
+                        <div className="alertDialogueText">{text ? 
+                            text.map((textOrHTML, index) => <span key={index}>{textOrHTML}</span>)
+                            : "Alert dialogue text goes here" }
+                        </div>
                     </div>
                     { yesNo ?
                         <div className="alertDialogueButtonContainer">

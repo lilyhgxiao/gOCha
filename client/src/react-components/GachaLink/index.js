@@ -39,7 +39,7 @@ class GachaLink extends BaseReactComponent {
                 { isHovering && currUser._id == gacha.creator ?
                     <Link to={'/edit/'}>
                         <input
-                            className="editButton"
+                            className="gachaLinkEditButton"
                             type='image'
                             src={edit_icon}
                             alt={'Go To Edit Page'}
