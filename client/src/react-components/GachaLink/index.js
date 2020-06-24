@@ -47,7 +47,7 @@ class GachaLink extends BaseReactComponent {
                     </Link> :
                     null
                 }
-                <Link to={'/gachaSummon/' + gacha._id}>
+                <Link to={'/summon/' + gacha._id}>
                     <img className="gachaLinkIcon" src={icon_placeholder} alt={gacha.name + " Icon"}/>
                     <div className="gachaLinkName">{gacha.name}</div>
                 </Link>

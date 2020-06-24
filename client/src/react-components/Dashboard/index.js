@@ -33,10 +33,12 @@ class Dashboard extends BaseReactComponent {
 
     async componentDidMount() {
         const readSessRes = await readSession();
-        if (readSessRes.currUser) {
-            this.setState({
-                currUser: readSessRes.currUser
-            }, this.fetchInv);
+        if (readSessRes) {
+            if (readSessRes.currUser) {
+                this.setState({
+                    currUser: readSessRes.currUser
+                }, this.fetchInv);
+            }
         }
     }
 
@@ -44,7 +46,8 @@ class Dashboard extends BaseReactComponent {
         this.setState({
             alert: {
                 title: "Yep",
-                yesNo: true
+                yesNo: true,
+                image: {src: dashboard_placeholder, alt:"Dashboard Placeholder"}
             }
         })
     }

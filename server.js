@@ -128,6 +128,12 @@ app.patch('/users/:id', user.updateUserInfo);
 //a PATCH route to push new elements onto user info
 app.patch('/users/push/:id', user.pushUserInfo);
 
+//a PATCH route to change user currency
+app.patch('/users/incCurrency/:id', user.incCurrency);
+
+//a PATCH route to summon a character by deducting star frags and pushing a new character onto the inventory
+app.patch('/users/summonChara/:id', user.summonChara);
+
 //a DELETE route to remove a user from the database
 app.delete('/users/:id', user.deleteUser);
 

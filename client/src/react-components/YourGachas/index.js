@@ -32,10 +32,12 @@ class YourGachas extends BaseReactComponent {
 
     async componentDidMount() {
         const readSessRes = await readSession();
-        if (readSessRes.currUser) {
-            this.setState({
-                currUser: readSessRes.currUser
-            }, this.fetchYrGachas);
+        if (readSessRes) {
+            if (readSessRes.currUser) {
+                this.setState({
+                    currUser: readSessRes.currUser
+                }, this.fetchYrGachas);
+            }
         }
     }
 

@@ -212,7 +212,8 @@ exports.getUserByEmail = async function(req, res) {
 
 exports.updateUserInfo = async function(req, res) {
     if (!req.session.user) {
-        res.status(401).send(); //send 401 unauthorized error if not logged in
+		res.status(401).send(); //send 401 unauthorized error if not logged in
+		return;
     }
     //get id from the url
     const id = req.params.id;
@@ -256,9 +257,126 @@ exports.updateUserInfo = async function(req, res) {
 
 };
 
+exports.incCurrency = async function(req, res) {
+	if (!req.session.user) {
+		res.status(401).send(); //send 401 unauthorized error if not logged in
+		return;
+    }
+    //get id from the url
+    const id = req.params.id;
+
+    //check for a valid mongodb id
+	if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+	
+	try {
+		//find user by id
+		const user = await User.findById(id).exec();
+		//if user doesn't exist, return 404
+		if (!user) {
+			res.status(404).send();
+			return;
+		}
+		//if current user on session does not match user to be edited, AND the user is not an admin
+		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
+			res.status(401).send();
+			return;
+		}
+
+		//clean request body
+		const updateQuery = { "$inc": {} };
+		if (req.body.starFrags) updateQuery.$inc.starFrags = req.body.starFrags;
+		if (req.body.silvers) updateQuery.$inc.silvers = req.body.silvers;
+
+		//update user
+		const result = await User.findByIdAndUpdate(id, updateQuery, {new: true}).exec();
+		res.status(200).send(result);
+
+	} catch(err) {
+		res.status(500).send(err);
+	}
+};
+
+exports.summonChara = async function(req, res) {	
+	if (!req.session.user) {
+		res.status(401).send(); //send 401 unauthorized error if not logged in
+		return;
+    }
+    //get id from the url
+    const id = req.params.id;
+
+    //check for a valid mongodb id
+	if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+	
+	try {
+		//find user by id
+		const user = await User.findById(id).exec();
+		//if user doesn't exist, return 404
+		if (!user) {
+			res.status(404).send();
+			return;
+		}
+		//if current user on session does not match user to be edited, AND the user is not an admin
+		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
+			res.status(401).send();
+			return;
+		}
+
+		//clean request body
+		const updateQuery = { "$inc": {}, "$push": {} };
+		let requestValid = true;
+		if (req.body.starFrags) {
+			updateQuery.$inc.starFrags = req.body.starFrags;
+		} else {
+			requestValid = false; //not valid request, there is no price on the character
+		}
+		if (req.body.chara) {
+			const inventory = [];
+			if (typeof req.body.chara[0] !== 'undefined') {
+				let i;
+				for (i = 0; i < req.body.chara.length; i++) {
+					if (req.body.chara[i]._id && req.body.chara[i].creator && req.body.chara[i].gacha) {
+						inventory.push({_id: req.body.chara[i]._id, 
+							creator: req.body.chara[i].creator, 
+							gacha: req.body.chara[i].gacha});
+					} else {
+						requestValid = false; //not valid request, chara does not have the required fields
+						break;
+					}
+
+				}
+			} else {
+				if (req.body.chara.creator && req.body.chara.gacha && req.body.chara._id) {
+					inventory.push({_id: req.body.chara._id, 
+						creator: req.body.chara.creator, 
+						gacha: req.body.chara.gacha});
+				} else {
+					requestValid = false; //not valid request, chara does not have the required fields
+				}
+			}
+			updateQuery.$push.inventory = inventory;
+		} else {
+			requestValid = false;
+		}
+		
+		if (!requestValid) {
+			res.status(400).send(); //bad request
+			return;
+		}
+
+		//update user
+		const result = await User.findByIdAndUpdate(id, updateQuery, {new: true}).exec();
+		res.status(200).send(result);
+
+	} catch(err) {
+		console.log(err);
+		res.status(500).send(err);
+	}
+};
+
 exports.pushUserInfo = async function(req, res) {
 	if (!req.session.user) {
-        res.status(401).send(); //send 401 unauthorized error if not logged in
+		res.status(401).send(); //send 401 unauthorized error if not logged in
+		return;
     }
     //get id from the url
     const id = req.params.id;
@@ -296,6 +414,11 @@ exports.pushUserInfo = async function(req, res) {
 };
 
 exports.deleteUser = async function(req, res) {
+	if (!req.session.user) {
+		res.status(401).send(); //send 401 unauthorized error if not logged in
+		return;
+	}
+	
     //get id from the url
     const id = req.params.id;
 

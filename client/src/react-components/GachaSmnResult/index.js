@@ -29,7 +29,7 @@ class GachaSmnResult extends BaseReactComponent {
 
     constructor(props) {
         super(props);
-        this.props.history.push("/summon/" + props.match.params.id);
+        this.props.history.push("/summonResult/" + props.match.params.id);
     }
 
     filterState({ currUser }) {
@@ -39,10 +39,12 @@ class GachaSmnResult extends BaseReactComponent {
     async componentDidMount() {
         const locationState = this.props.location.state;
         const readSessRes = await readSession();
-        if (readSessRes.currUser) {
-            this.setState({
-                currUser: readSessRes.currUser
-            }, this.addCharaToInv.bind(this, locationState));
+        if (readSessRes) {
+            if (readSessRes.currUser) {
+                this.setState({
+                    currUser: readSessRes.currUser
+                }, this.addCharaToInv.bind(this, locationState));
+            }
         }
     }
 
@@ -52,6 +54,7 @@ class GachaSmnResult extends BaseReactComponent {
                 this.setState({
                     chara: locationState.rolledCharacter
                 }, async function () {
+                    const subtractFrags = 
                     this.setState({
                         isLoaded: true
                     });

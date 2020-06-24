@@ -39,7 +39,7 @@ class GachaSummon extends BaseReactComponent {
 
     constructor(props) {
         super(props);
-        this.props.history.push("/gachaSummon/" + props.match.params.id);
+        this.props.history.push("/summon/" + props.match.params.id);
     }
 
     filterState({ currUser }) {
@@ -48,10 +48,12 @@ class GachaSummon extends BaseReactComponent {
 
     async componentDidMount() {
         const readSessRes = await readSession();
-        if (readSessRes.currUser) {
-            this.setState({
-                currUser: readSessRes.currUser
-            }, this.fetchGachaInfo);
+        if (readSessRes) {
+            if (readSessRes.currUser) {
+                this.setState({
+                    currUser: readSessRes.currUser
+                }, this.fetchGachaInfo);
+            }
         }
     }
 
@@ -229,7 +231,7 @@ class GachaSummon extends BaseReactComponent {
         if (rolledCharacter) {
             return (
                 <Redirect push to={{
-                    pathname: "/summon/" + gacha._id,
+                    pathname: "/summonResult/" + gacha._id,
                     state: { rolledCharacter: rolledCharacter }
                 }} />
             );

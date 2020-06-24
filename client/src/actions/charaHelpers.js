@@ -1,6 +1,3 @@
-import { setState, convertJSON } from "./helpers";
-import { getState } from "statezero";
-
 export const getCharaById = async (id) => {
     const url = "http://localhost:3001/charas/" + id
     //const url = "/charas/" + id 

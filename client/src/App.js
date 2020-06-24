@@ -41,8 +41,8 @@ class App extends BaseReactComponent {
                     <Route path="/inventory" exact component={Inventory} />
                     <Route path="/yourGachas" exact component={YourGachas} />
                     <Route path="/favourites" exact component={FavGachas} />
-                    <Route path="/gachaSummon/:id" exact component={GachaSummon} />
-                    <Route path="/summon/:id" exact component={GachaSmnResult} />
+                    <Route path="/summon/:id" exact component={GachaSummon} />
+                    <Route path="/summonResult/:id" exact component={GachaSmnResult} />
                 </Switch>
             </BrowserRouter>
         );
