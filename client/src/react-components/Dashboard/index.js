@@ -37,18 +37,21 @@ class Dashboard extends BaseReactComponent {
 
     render() {
         const { history } = this.props;
+        const { currUser } = this.state;
 
         return (
             <div className="App">
                 {/* Header component. */}
-                <Header/>
+                <Header username={currUser ? currUser.username: ""} 
+                    starFrags={currUser ? currUser.starFrags: 0} 
+                    silvers={currUser ? currUser.silvers : 0}/>
 
                 <div className="mainBodyContainer">
                     <div className="mainBody">
                         <img className="dashboardMainPic" src={dashboard_placeholder} alt='Dashboard Main'/>
                         <div className="dashboardTopMenu">
-                            <div className="currencyDisplay">Star Fragments: 200</div>
-                            <div className="currencyDisplay">Silvers: 50</div>
+                            <div className="currencyDisplay">Star Fragments: {currUser ? currUser.starFrags: 0}</div>
+                            <div className="currencyDisplay">Silvers: {currUser ? currUser.silvers : 0}</div>
                             <div className="mailContainer"> 
                                 <div className="mailNotif">3</div>
                                 <div className="mailIcon"> 

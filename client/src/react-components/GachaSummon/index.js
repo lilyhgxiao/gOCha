@@ -110,11 +110,14 @@ class GachaSummon extends BaseReactComponent {
     }
 
     render() {
-        const { isGachaLoaded, isCreatorLoaded, gacha, creator, charaListVisible } = this.state;
+        const { isGachaLoaded, isCreatorLoaded, gacha, creator, charaListVisible, currUser } = this.state;
 
         return (
             <div className="App">
-                <Header/>
+                <Header username={currUser ? currUser.username : ""}
+                    starFrags={currUser ? currUser.starFrags : 0}
+                    silvers={currUser ? currUser.silvers : 0} />
+
                 <div className="mainBodyContainer">
                     { isGachaLoaded ?
                         <GachaSmnList

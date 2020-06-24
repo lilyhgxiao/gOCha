@@ -81,11 +81,13 @@ class Inventory extends BaseReactComponent {
 
     render() {
 
-        const { isLoaded, charaList, charaProfileVisible, charaProfile } = this.state;
+        const { isLoaded, charaList, charaProfileVisible, charaProfile, currUser } = this.state;
 
         return (
             <div className="App">
-                <Header/>
+                <Header username={currUser ? currUser.username : ""}
+                    starFrags={currUser ? currUser.starFrags : 0}
+                    silvers={currUser ? currUser.silvers : 0} />
 
                 <div className="mainBodyContainer">
                     {  charaProfileVisible ?

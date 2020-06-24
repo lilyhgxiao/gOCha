@@ -33,19 +33,22 @@ class Header extends React.Component {
                 <div className="header">
                     <div className="headerLinks">
                         <div className="headerLine1">
-                                <Link className="hdrLogo" to={'/dashboard'}>
-                                    <input
-                                        type='image'
-                                        className="logo"
-                                        src={logo}
-                                        alt={'Home'} 
-                                        />
-                                    </Link>
+                            <Link className="hdrLogo" to={'/dashboard'}>
+                                <input
+                                    type='image'
+                                    className="logo"
+                                    src={logo}
+                                    alt={'Home'}
+                                />
+                            </Link>
+                            {/* Search function to be coming?
                             <div className="hdrSearch">
                                 <input className="searchBar"></input>
                                 <button className="searchButton" onClick={ this.search }>Search</button>
-                            </div>
-                            <Link className="hdrProfile" to={'/profile/' + username}>Hello, {username}</Link>
+                            </div> */}
+                            <div className="hdrCurrency">Star Fragments: {starFrags}</div>
+                            <div className="hdrCurrency">Silvers: {silvers}</div>
+                            <Link className="hdrProfile" to={'/profile/' + username}>{username}</Link>
                             <Link className="hdrSettings" to={'/settings'}>Settings</Link>
                             <Link className="hdrLogout" onClick={ this.logoutUser } to={'/login'}>Log Out</Link>        
                         </div>
