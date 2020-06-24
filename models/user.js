@@ -330,27 +330,42 @@ exports.summonChara = async function(req, res) {
 			requestValid = false; //not valid request, there is no price on the character
 		}
 		if (req.body.chara) {
+			//check if the user already has the character or not.
 			const inventory = [];
+			let validCharaCheck;
 			if (typeof req.body.chara[0] !== 'undefined') {
 				let i;
 				for (i = 0; i < req.body.chara.length; i++) {
-					if (req.body.chara[i]._id && req.body.chara[i].creator && req.body.chara[i].gacha) {
-						inventory.push({_id: req.body.chara[i]._id, 
-							creator: req.body.chara[i].creator, 
-							gacha: req.body.chara[i].gacha});
+					validCharaCheck = await checkIfCharaValid(req.body.chara[i]);
+					if (validCharaCheck.valid === true) {
+						if (user.inventory.findIndex(charaInInv => JSON.stringify(charaInInv) === JSON.stringify(req.body.chara[i])) === -1) {
+							inventory.push({_id: req.body.chara[i]._id, 
+								creator: req.body.chara[i].creator, 
+								gacha: req.body.chara[i].gacha});
+						} else {
+							console.log("The user already has this character.")
+						}
 					} else {
 						requestValid = false; //not valid request, chara does not have the required fields
+						console.log(validCharaCheck.msg)
 						break;
 					}
 
 				}
 			} else {
-				if (req.body.chara.creator && req.body.chara.gacha && req.body.chara._id) {
-					inventory.push({_id: req.body.chara._id, 
-						creator: req.body.chara.creator, 
-						gacha: req.body.chara.gacha});
+				if (user.inventory.findIndex(charaInInv => JSON.stringify(charaInInv) === JSON.stringify(req.body.chara)) === -1) {
+					validCharaCheck = await checkIfCharaValid(req.body.chara);
+					if (validCharaCheck.valid === true) {
+						inventory.push({_id: req.body.chara._id, 
+							creator: req.body.chara.creator, 
+							gacha: req.body.chara.gacha});
+					} else {
+						requestValid = false; //not valid request, chara does not have the required fields
+						console.log(validCharaCheck.msg)
+					}
 				} else {
-					requestValid = false; //not valid request, chara does not have the required fields
+					console.log("The user already has this character.");
+					requestValid = false;
 				}
 			}
 			updateQuery.$push.inventory = inventory;
@@ -464,5 +479,35 @@ exports.deleteUser = async function(req, res) {
 	}
 	
 };
+
+/*Helpers */
+async function checkIfCharaValid(chara) {
+	if (!(chara._id && chara.creator && chara.gacha)) {
+		return { valid: false, msg: "The character does not contain all of its required fields."};
+	}
+	if (!(ObjectID.isValid(chara._id) && ObjectID.isValid(chara.creator) && ObjectID.isValid(chara.gacha))) {
+		return { valid: false, msg: "One or more ids on the character are not valid."};
+	}
+
+	const charaExists = charaModel.Chara.findById(chara._id);
+	const gachaExists = gachaModel.Gacha.findById(chara.gacha);
+	const creatorExists = User.findById(chara.creator);
+
+	return Promise.all([charaExists, gachaExists, creatorExists]).then(res => {
+		if (res[0] === null || res[1] === null || res[2] === null) {
+			return { valid: false, msg: "Either the character, gacha or creator does not exist." };
+		}
+		if (res[0].gacha != chara.gacha) {
+			return { valid: false, msg: "The gacha on the rolled character does not match the actual character." };
+		}
+		if (res[0].creator != chara.creator) {
+			return { valid: false, msg: "The creator on the rolled character does not match the actual character." };
+		}
+		return { valid: true, msg: "The character is valid." };
+	}).catch((err) => {
+		console.log("Error with Promise.all in checkIfCharaValid: " + err);
+		return { valid: false, msg: "Error with Promise.all in checkIfCharaValid: " + err };
+	});
+}
 
 exports.User = User;
