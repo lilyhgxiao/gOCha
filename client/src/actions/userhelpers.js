@@ -1,6 +1,8 @@
 import { setState, setEmptyState, convertJSON } from "./helpers";
 import { getState } from "statezero";
 
+const fetch = require('node-fetch');
+
 export const signup = async function (newUser) {
     const url = "http://localhost:3001/users"
     //const url = "/users"
@@ -99,3 +101,79 @@ export const getUserByEmail = async function (email) {
         return null;
     }
 }
+
+export const summonChara = async function (id, chara, cost) {
+    const url = "http://localhost:3001/users/summonChara/" + id;
+    //const url = "/users/summonChara/" + id
+
+    const body = {starFrags: cost * (-1), chara: {_id: chara._id, gacha: chara.gacha, creator: chara.creator}};
+
+    try {
+        const res = await fetch(url, {
+            method: 'PATCH',
+            body: JSON.stringify(body),
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            credentials: "include",
+        });
+        if (res.status === 200) {
+            const user = await res.json();
+            if (user !== undefined) {
+                console.log(user)
+                setState("currUser", user);
+                return true;
+            }
+        } else if (res.status === 400) {
+            //do something else if bad request
+            return null;
+        } else if (res.status === 401) {
+            //do something else if bad request
+            return null;
+        }else {
+            //status is 500
+            return null;
+        }
+    } catch (err) {
+        console.log('fetch failed, ', err);
+        return null;
+    }
+}
+
+export const incCurrency = async function (id, starFrags, silvers) {
+    const url = "http://localhost:3001/users/incCurrency/" + id;
+    //const url = "/users/incCurrency/" + id
+
+    const body = {starFrags: starFrags, silvers: silvers};
+    try {
+        const res = await fetch(url, {
+            method: 'PATCH',
+            body: JSON.stringify(body),
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            credentials: "include",
+        });
+        if (res.status === 200) {
+            const user = await res.json();
+            if (user !== undefined) {
+                console.log(user)
+                setState("currUser", user);
+                return true;
+            }
+        } else if (res.status === 400) {
+            //do something else if bad request
+            return null;
+        } else if (res.status === 401) {
+            //do something else if bad request
+            return null;
+        }else {
+            //status is 500
+            return null;
+        }
+    } catch (err) {
+
+    }
+} 

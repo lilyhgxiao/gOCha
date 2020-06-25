@@ -22,10 +22,8 @@ export const readSession = async function () {
             },
             credentials: "include",
         });
-        console.log(res)
         if (res.status === 200) {
             const json = await res.json();
-            console.log(json)
             if (json && json.currUser) {
                 await setState("currUser", json.currUser);
                 return { currUser: json.currUser };
@@ -35,6 +33,32 @@ export const readSession = async function () {
         console.log('fetch failed, ', err);
     }
 };
+
+export const updateSession = async function () {
+    //const url = "/users/update-session";
+    const url = "http://localhost:3001/users/update-session";
+
+    try {
+        const res = await fetch(url, { 
+            method: 'GET',
+            headers: {
+                Accept: "application/json, text/plain, */*",
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+        });
+        if (res.status === 200) {
+            const json = await res.json();
+            console.log(json);
+            if (json && json.currUser) {
+                setState("currUser", json.currUser);
+                return { currUser: json.currUser };
+            }
+        }
+    } catch (err) {
+        console.log('fetch failed, ', err);
+    }
+}
 
 export const login = async function () {
     //const url = "/users/login";

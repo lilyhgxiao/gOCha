@@ -12,7 +12,7 @@ import GachaSmnList from "./../GachaSmnList";
 import AlertDialogue from "./../AlertDialogue";
 
 // Importing actions/required methods
-import { readSession } from "../../actions/loginHelpers";
+import { updateSession } from "../../actions/loginHelpers";
 import { getGachaById } from "../../actions/gachaHelpers";
 import { getUserById } from "../../actions/userhelpers";
 import { getCharaById } from "../../actions/charaHelpers";
@@ -47,7 +47,7 @@ class GachaSummon extends BaseReactComponent {
     }
 
     async componentDidMount() {
-        const readSessRes = await readSession();
+        const readSessRes = await updateSession();
         if (readSessRes) {
             if (readSessRes.currUser) {
                 this.setState({
@@ -90,79 +90,99 @@ class GachaSummon extends BaseReactComponent {
             alert: null 
         });
 
-        let { gacha } = this.state;
+        const readSessRes = await updateSession();
+        if (readSessRes) {
+            if (readSessRes.currUser) {
+                this.setState({
+                    currUser: readSessRes.currUser
+                }, async function () {
+                    if (this.state.currUser.starFrags >= summonCost) {
+                        let { gacha } = this.state;
+                        //roll to see which tier character to get
+                        const roll = Math.random();
+                        let rolledCharacter = null;
+                        let retries = 5;
 
-        //roll to see which tier character to get
-        const roll = Math.random();
-        let rolledCharacter = null;
-        let retries = 5;
-
-        let rarityToPickFrom;
-        if (roll < threeStarChance) { //rolled a three star
-            rarityToPickFrom = gacha.threeStars;
-        } else if (roll >= threeStarChance && roll < threeStarChance + fourStarChance) { // rolled a four star
-            rarityToPickFrom = gacha.fourStars;
-        } else { //rolled a five star
-            rarityToPickFrom = gacha.fiveStars;
-        }
-
-        //try multiple times in case the gacha is changed during the summon
-        while (retries > 0) {
-            try {
-                //pick a random character from the rarity list
-                const rolledCharacterId = rarityToPickFrom[Math.floor(Math.random() * rarityToPickFrom.length)];
-                //get the character by id
-                rolledCharacter = await getCharaById(rolledCharacterId);
-                //if it exists, stop and set the state
-                if (rolledCharacter) {
-                    this.setState({
-                        rolledCharacter: rolledCharacter
-                    });
-                    retries = 0;
-                } else { //if it doesn't exist, reload the gacha information
-                    const reloadGacha = await getGachaById(gacha._id);
-                    //if the gacha no longer exists, redirect back to dashboard
-                    if (!reloadGacha) {
-                        this.setState({
-                            alert: {
-                                title: "Oh no!",
-                                text: ["This gacha can't be found anymore..."],
-                                okText: "Go Back to the Dashboard",
-                                handleOk: this.redirectToDashboard
+                        let rarityToPickFrom;
+                        if (roll < threeStarChance) { //rolled a three star
+                            rarityToPickFrom = gacha.threeStars;
+                        } else if (roll >= threeStarChance && roll < threeStarChance + fourStarChance) { // rolled a four star
+                            rarityToPickFrom = gacha.fourStars;
+                        } else { //rolled a five star
+                            rarityToPickFrom = gacha.fiveStars;
+                        }
+                        
+                        //try multiple times in case the gacha is changed during the summon
+                        while (retries > 0) {
+                            try {
+                                //pick a random character from the rarity list
+                                const rolledCharacterId = rarityToPickFrom[Math.floor(Math.random() * rarityToPickFrom.length)];
+                                //get the character by id
+                                rolledCharacter = await getCharaById(rolledCharacterId);
+                                //if it exists, stop and set the state
+                                if (rolledCharacter) {
+                                    this.setState({
+                                        rolledCharacter: rolledCharacter
+                                    });
+                                    retries = 0;
+                                } else { //if it doesn't exist, reload the gacha information
+                                    const reloadGacha = await getGachaById(gacha._id);
+                                    //if the gacha no longer exists, redirect back to dashboard
+                                    if (!reloadGacha) {
+                                        this.setState({
+                                            alert: {
+                                                title: "Oh no!",
+                                                text: ["This gacha can't be found anymore..."],
+                                                okText: "Go Back to the Dashboard",
+                                                handleOk: this.redirectToDashboard
+                                            }
+                                        });
+                                        retries = 0;
+                                    } else {
+                                        //if the gacha is no longer active, stop and reload gacha information
+                                        if (!reloadGacha.active) {
+                                            this.setState({
+                                                alert: {
+                                                    title: "Oh no!",
+                                                    text: ["This gacha has been set to inactive..."],
+                                                    handleOk: this.refreshPage
+                                                }
+                                            });
+                                            retries = 0;
+                                        } else {
+                                            //if the gacha exists, reroll from the newly retrieved gacha
+                                            gacha = reloadGacha;
+                                        }
+                                    }
+                                }
+                                retries--;
+                            } catch (err) {
+                                console.log("Could not summon: " + err);
                             }
-                        });
-                        retries = 0;
-                    } else {
-                        //if the gacha is no longer active, stop and reload gacha information
-                        if (!reloadGacha.active) {
+                        }
+                        //if all retries used up, reload gacha information
+                        if (retries == 0 && !rolledCharacter) {
                             this.setState({
                                 alert: {
                                     title: "Oh no!",
-                                    text: ["This gacha has been set to inactive..."],
+                                    text: ["Something went wrong during the summon..."],
                                     handleOk: this.refreshPage
                                 }
                             });
-                            retries = 0;
-                        } else {
-                            //if the gacha exists, reroll from the newly retrieved gacha
-                            gacha = reloadGacha;
                         }
+
+                    } else {
+                        this.setState({
+                            alert: {
+                                text: [
+                                    "Your a poor bich"
+                                ],
+                                okText: ":("
+                            }
+                        });
                     }
-                }
-                retries--;
-            } catch (err) {
-                console.log("Could not summon: " + err);
+                });
             }
-        }
-        //if all retries used up, reload gacha information
-        if (retries == 0 && !rolledCharacter) {
-            this.setState({
-                alert: {
-                    title: "Oh no!",
-                    text: ["Something went wrong during the summon..."],
-                    handleOk: this.refreshPage
-                }
-            });
         }
     }
 
@@ -179,17 +199,47 @@ class GachaSummon extends BaseReactComponent {
         }, this.fetchGachaInfo);
     }
 
-    handleSummonClick = () => {
+    handleSummonClick = async () => {
+        const readSessRes = await updateSession();
+        if (readSessRes) {
+            if (readSessRes.currUser) {
+                this.setState({
+                    currUser: readSessRes.currUser
+                }, function () {
+                    if (this.state.currUser.starFrags >= summonCost) {
+                        this.setState({
+                            alert: {
+                                title: "Summon?",
+                                text: [
+                                    "Summoning costs ", <strong>{summonCost}</strong>, " star fragments.", <br/>,
+                                    "You have ",  <strong>{this.state.currUser.starFrags}</strong>, " star fragments."],
+                                yesNo: true,
+                                yesText: "Summon",
+                                noText: "Cancel",
+                                handleYes: this.summon
+                            }
+                        });
+                    } else {
+                        this.setState({
+                            alert: {
+                                text: [
+                                    "Your a poor bich"
+                                ],
+                                okText: ":("
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    }
+
+    handleInactiveClick = () => {
         this.setState({
             alert: {
-                title: "Summon?",
                 text: [
-                    "Summoning costs ", <strong>{summonCost}</strong>, " star fragments.", <br/>,
-                    "You have ",  <strong>{this.state.currUser.starFrags}</strong>, " star fragments."],
-                yesNo: true,
-                yesText: "Summon",
-                noText: "Cancel",
-                handleYes: this.summon
+                    "This gacha has been set to ", <strong>inactive</strong>, ", so summons are currently unavailable.",
+                <br/>, "Please check back later!" ]
             }
         });
     }
@@ -266,7 +316,7 @@ class GachaSummon extends BaseReactComponent {
                         <br/>
                         { isGachaLoaded && gacha.active ?
                             <button className="smnButtonActive" onClick={this.handleSummonClick}>Summon</button> :
-                            <button className="smnButtonInactive" onClick={this.handleSummonClick}>Inactive</button>
+                            <button className="smnButtonInactive" onClick={this.handleInactiveClick}>Inactive</button>
                         }
                         { isGachaLoaded ?
                             <div className="gachaSmnDesc">{gacha.desc}</div> :

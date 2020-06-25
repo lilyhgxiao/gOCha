@@ -11,7 +11,7 @@ import BaseReactComponent from "./../BaseReactComponent";
 import AlertDialogue from "./../AlertDialogue";
 
 // Importing actions/required methods
-import { readSession } from "../../actions/loginHelpers";
+import { updateSession } from "../../actions/loginHelpers";
 
 //images
 import dashboard_placeholder from './../../images/dashboard_placeholder.jpg';
@@ -32,7 +32,7 @@ class Dashboard extends BaseReactComponent {
     }
 
     async componentDidMount() {
-        const readSessRes = await readSession();
+        const readSessRes = await updateSession();
         if (readSessRes) {
             if (readSessRes.currUser) {
                 this.setState({

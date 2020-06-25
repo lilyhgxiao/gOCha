@@ -210,6 +210,7 @@ exports.getUserByEmail = async function(req, res) {
 	}
 };
 
+
 exports.updateUserInfo = async function(req, res) {
     if (!req.session.user) {
 		res.status(401).send(); //send 401 unauthorized error if not logged in
@@ -250,6 +251,9 @@ exports.updateUserInfo = async function(req, res) {
 
 		//save the user
 		const result = await user.save();
+		if (user._id == req.session.user._id) {
+			req.session.user = result;
+		}
 		res.status(200).send(result);
 	} catch (err) {
 		res.status(500).send(err);
@@ -289,6 +293,9 @@ exports.incCurrency = async function(req, res) {
 
 		//update user
 		const result = await User.findByIdAndUpdate(id, updateQuery, {new: true}).exec();
+		if (user._id == req.session.user._id) {
+			req.session.user = result;
+		}
 		res.status(200).send(result);
 
 	} catch(err) {
@@ -298,6 +305,7 @@ exports.incCurrency = async function(req, res) {
 
 exports.summonChara = async function(req, res) {	
 	if (!req.session.user) {
+		console.log(req.session)
 		res.status(401).send(); //send 401 unauthorized error if not logged in
 		return;
     }
@@ -317,6 +325,7 @@ exports.summonChara = async function(req, res) {
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
 		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
+			console.log(user._id, req.session.user._id)
 			res.status(401).send();
 			return;
 		}
@@ -338,7 +347,7 @@ exports.summonChara = async function(req, res) {
 				for (i = 0; i < req.body.chara.length; i++) {
 					validCharaCheck = await checkIfCharaValid(req.body.chara[i]);
 					if (validCharaCheck.valid === true) {
-						if (user.inventory.findIndex(charaInInv => JSON.stringify(charaInInv) === JSON.stringify(req.body.chara[i])) === -1) {
+						if (checkIfInInventory(req.body.chara[i], user.inventory) === -1) {
 							inventory.push({_id: req.body.chara[i]._id, 
 								creator: req.body.chara[i].creator, 
 								gacha: req.body.chara[i].gacha});
@@ -353,7 +362,7 @@ exports.summonChara = async function(req, res) {
 
 				}
 			} else {
-				if (user.inventory.findIndex(charaInInv => JSON.stringify(charaInInv) === JSON.stringify(req.body.chara)) === -1) {
+				if (checkIfInInventory(req.body.chara, user.inventory) === -1) {
 					validCharaCheck = await checkIfCharaValid(req.body.chara);
 					if (validCharaCheck.valid === true) {
 						inventory.push({_id: req.body.chara._id, 
@@ -380,6 +389,9 @@ exports.summonChara = async function(req, res) {
 
 		//update user
 		const result = await User.findByIdAndUpdate(id, updateQuery, {new: true}).exec();
+		if (user._id == req.session.user._id) {
+			req.session.user = result;
+		}
 		res.status(200).send(result);
 
 	} catch(err) {
@@ -421,6 +433,9 @@ exports.pushUserInfo = async function(req, res) {
 
 		//update user
 		const result = await User.findByIdAndUpdate(id, {$push: updateQuery}, {new: true}).exec();
+		if (user._id == req.session.user._id) {
+			req.session.user = result;
+		}
 		res.status(200).send(result);
 
 	} catch(err) {
@@ -508,6 +523,15 @@ async function checkIfCharaValid(chara) {
 		console.log("Error with Promise.all in checkIfCharaValid: " + err);
 		return { valid: false, msg: "Error with Promise.all in checkIfCharaValid: " + err };
 	});
+}
+
+function checkIfInInventory(chara, inventory) {
+	const charaToCompare = { _id: chara._id, gacha: chara.gacha, creator: chara.creator };
+	const compareResult = inventory.findIndex(charaInInv => {
+		const charaInInvTemp = { _id: charaInInv._id, gacha: charaInInv.gacha, creator: charaInInv.creator };
+		return (JSON.stringify(charaInInvTemp) === JSON.stringify(charaToCompare));
+	});
+	return compareResult;
 }
 
 exports.User = User;

@@ -12,7 +12,7 @@ import CharaProfile from "./../CharaProfile";
 
 // Importing actions/required methods
 import { getCharaById } from "../../actions/charaHelpers";
-import { readSession } from "../../actions/loginHelpers";
+import { updateSession } from "../../actions/loginHelpers";
 
 class Inventory extends BaseReactComponent {
 
@@ -36,7 +36,7 @@ class Inventory extends BaseReactComponent {
     async componentDidMount() {
         const locationState = this.props.location.state;
         console.log(locationState);
-        const readSessRes = await readSession();
+        const readSessRes = await updateSession();
         if (readSessRes) {
             if (readSessRes.currUser) {
                 this.setState({

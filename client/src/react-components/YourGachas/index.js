@@ -11,7 +11,7 @@ import GachaList from "./../GachaList";
 
 // Importing actions/required methods
 import { getGachaById } from "../../actions/gachaHelpers";
-import { readSession } from "../../actions/loginHelpers";
+import { updateSession } from "../../actions/loginHelpers";
 
 class YourGachas extends BaseReactComponent {
 
@@ -31,7 +31,7 @@ class YourGachas extends BaseReactComponent {
     }
 
     async componentDidMount() {
-        const readSessRes = await readSession();
+        const readSessRes = await updateSession();
         if (readSessRes) {
             if (readSessRes.currUser) {
                 this.setState({

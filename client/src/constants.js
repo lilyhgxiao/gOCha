@@ -23,9 +23,12 @@ exports.maxWelcPhrLength = 140;
 exports.maxSummPhrLength = 140;
 
 //chara summon percentages
-exports.fiveStarChance = 0.1;
-exports.fourStarChance = 0.3;
-exports.threeStarChance = 0.6;
+exports.fiveStarChance = 0.06;
+exports.fourStarChance = 0.20;
+exports.threeStarChance = 0.74;
 
 //costs
 exports.summonCost = 100;
+exports.threeStarSilvers = 10;
+exports.fourStarSilvers = 30;
+exports.fiveStarSilvers = 100;

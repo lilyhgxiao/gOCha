@@ -40,7 +40,7 @@ app.use(function(req, res, next) {
         res.setHeader('Access-Control-Allow-Origin', origin);
     }
     //res.header('Access-Control-Allow-Origin', 'http://127.0.0.1:8020');
-    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.header('Access-Control-Allow-Credentials', true);
     return next();
@@ -95,6 +95,24 @@ app.get("/users/logout", (req, res) => {
 app.get("/users/check-session", (req, res) => {
     if (req.session.user) {
         res.status(200).send({ currUser: req.session.user });
+    } else {
+        res.status(401).send();
+    }
+});
+
+app.get("/users/update-session", async (req, res) => {
+    if (req.session.user) {
+		try {
+			const result = await user.User.findById(req.session.user._id).exec();
+			if (!result) {
+				res.status(404).send();
+			} else {
+				req.session.user = result;
+				res.status(200).send({ currUser: result });
+			}
+		} catch (err) {
+			res.status(500).send(err);
+		}
     } else {
         res.status(401).send();
     }

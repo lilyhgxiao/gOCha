@@ -8,6 +8,8 @@ import "./styles.css";
 
 //images
 import logo from './../../images/logo_placeholder.png';
+import starFrag_placeholder from './../../images/starFrag_placeholder.png';
+import silvers_placeholder from './../../images/silvers_placeholder.png';
 
 /* The Header Component */
 class Header extends React.Component {
@@ -46,8 +48,14 @@ class Header extends React.Component {
                                 <input className="searchBar"></input>
                                 <button className="searchButton" onClick={ this.search }>Search</button>
                             </div> */}
-                            <div className="hdrCurrency">Star Fragments: {starFrags}</div>
-                            <div className="hdrCurrency">Silvers: {silvers}</div>
+                            <div className="hdrCurrency">
+                                <img className="hdrCurrencyIcon" src={starFrag_placeholder} alt="StarFrag Placeholder"/>
+                                {starFrags}
+                            </div>
+                            <div className="hdrCurrency">
+                                <img className="hdrCurrencyIcon" src={silvers_placeholder} alt="StarFrag Placeholder"/>
+                                {silvers}
+                            </div>
                             <Link className="hdrProfile" to={'/profile/' + username}>{username}</Link>
                             <Link className="hdrSettings" to={'/settings'}>Settings</Link>
                             <Link className="hdrLogout" onClick={ this.logoutUser } to={'/login'}>Log Out</Link>        

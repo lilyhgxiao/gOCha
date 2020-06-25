@@ -12,7 +12,11 @@ import StarRarityDisplay from './../StarRarityDisplay';
 
 // Importing actions/required methods
 import { getCharaById } from "../../actions/charaHelpers";
-import { readSession } from "../../actions/loginHelpers";
+import { updateSession } from "../../actions/loginHelpers";
+import { summonChara, incCurrency } from "../../actions/userhelpers";
+
+//Importing constants
+import { summonCost, threeStarSilvers, fourStarSilvers, fiveStarSilvers } from "./../../constants";
 
 //images
 import main_placeholder from './../../images/dashboard_placeholder.jpg';
@@ -24,7 +28,8 @@ class GachaSmnResult extends BaseReactComponent {
     state = {
         isLoaded: false,
         chara: null,
-        alreadyHave: false
+        alreadyHave: false,
+        silversReceived: 0
     };
 
     constructor(props) {
@@ -38,7 +43,7 @@ class GachaSmnResult extends BaseReactComponent {
 
     async componentDidMount() {
         const locationState = this.props.location.state;
-        const readSessRes = await readSession();
+        const readSessRes = await updateSession();
         if (readSessRes) {
             if (readSessRes.currUser) {
                 this.setState({
@@ -51,41 +56,60 @@ class GachaSmnResult extends BaseReactComponent {
     addCharaToInv = async (locationState) => {
         if (locationState) {
             if (locationState.rolledCharacter) {
+                const charaToAdd = locationState.rolledCharacter;
                 this.setState({
-                    chara: locationState.rolledCharacter
+                    chara: charaToAdd
                 }, async function () {
-                    const subtractFrags = 
-                    this.setState({
-                        isLoaded: true
+                    const { currUser } = this.state;
+                    const charaToCompare = { _id: charaToAdd._id, gacha: charaToAdd.gacha, creator: charaToAdd.creator };
+                    const compareResult = currUser.inventory.findIndex(charaInInv => {
+                        const charaInInvTemp = { _id: charaInInv._id, gacha: charaInInv.gacha, creator: charaInInv.creator };
+                        return (JSON.stringify(charaInInvTemp) === JSON.stringify(charaToCompare));
                     });
+                    if (compareResult === -1) {
+                        //if the user doesnt have the character, add it to inventory
+                        const summonCharaRes = await summonChara(currUser._id, charaToAdd, summonCost);
+                        if (summonCharaRes) {
+                            this.setState({
+                                chara: locationState.rolledCharacter,
+                                isLoaded: true
+                            });
+                        }
+                    } else {
+                        //if the user does have the character, add silvers to the user's currency
+                        let silversToAdd;
+                        if (charaToAdd.rarity === 3) {
+                            silversToAdd = threeStarSilvers;
+                        } else if (charaToAdd.rarity === 4) {
+                            silversToAdd = fourStarSilvers;
+                        } else if (charaToAdd.rarity === 5) {
+                            silversToAdd = fiveStarSilvers;
+                        } else {
+                            console.log("charaToAdd has an invalid rarity.")
+                            silversToAdd = 0;
+                        }
+                        if (silversToAdd > 0) {
+                            const addSilversRes = await incCurrency(currUser._id, summonCost * (-1), silversToAdd);
+                            if (addSilversRes) {
+                                this.setState({
+                                    chara: locationState.rolledCharacter,
+                                    isLoaded: true,
+                                    alreadyHave: true,
+                                    silversReceived: silversToAdd
+                                });
+                            }
+                        }
+                    }
                 });
             }
         } else {
 
         }
-        /*
-        const charaReqs = [];
-        const currUser = this.state.currUser;
-        console.log(this.state);
-        let i;
-        for (i = 0; i < currUser.inventory.length; i++) {
-            charaReqs.push(getCharaById(currUser.inventory[i]._id));
-        }
-
-        Promise.all(charaReqs).then(res => {
-            console.log(res);
-            this.setState({
-                charaList: res,
-                isLoaded: true
-            });
-        }).catch((err) => {
-            console.log("Error with Promise.all in fetchInv: " + err);
-        })*/
     }
 
     render() {
 
-        const { isLoaded, chara, currUser } = this.state;
+        const { isLoaded, chara, currUser, alreadyHave, silversReceived } = this.state;
 
         return (
             <div className="App">
@@ -105,8 +129,14 @@ class GachaSmnResult extends BaseReactComponent {
                                     <div className="charaSmnPhrase">{chara.summonPhrase}</div> :
                                     null
                                 }
+                                {alreadyHave ?
+                                    <div className="alreadyHaveText">
+                                        You already have this character. You got {silversReceived} silvers.
+                                    </div> :
+                                    null
+                                }
                                 <div className="charaSmnButtonContainer">
-                                    <Link to={'/gachaSummon/' + chara.gacha}>
+                                    <Link to={'/summon/' + chara.gacha}>
                                         <button className="charaSmnButton">Go back to the Gacha</button>
                                     </Link>
                                     <Link to={{pathname: '/inventory', state: {showChara: chara}}}>
