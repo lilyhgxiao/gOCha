@@ -1,9 +1,20 @@
 .charaLinkContainer {
     display: inline-block;
     padding: 5px 10px;
+    margin: 0px 10px;
 }
 
 .charaLinkIcon {
     height: 100px;
     width: 100px;
+}
+
+.charaLinkName {
+    display: -webkit-box;
+    word-wrap: break-word;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    width: 100px;
+    height: 67px;
 }

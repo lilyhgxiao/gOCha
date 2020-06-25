@@ -1,0 +1,107 @@
+.createGachaContainer {
+    margin-top: 20px;
+}
+
+.gachaNameContainer {
+    margin: 30px 40px 20px 40px;
+}
+
+.gachaNameInput {
+    font-size: 30px;
+    color: #235789;
+    width: 690px;
+}
+
+.nameCharCount {
+    text-align: right;
+    margin-right: 10px;
+}
+
+.nameCharCountRed {
+    text-align: right;
+    color: red;
+    margin-right: 10px;
+}
+
+.gachaMainPic {
+    height: 700px;
+    width: 700px;
+}
+
+.gachaIconDescContainer {
+    margin: 30px 0px;
+    vertical-align: top;
+}
+
+.gachaIconContainer {
+    display: inline-block;
+    margin-right: 30px;
+}
+
+.gachaIcon {
+    display: block;
+    height: 100px;
+    width: 100px;
+}
+
+.gachaNamePreview {
+    display: -webkit-box;
+    word-wrap: break-word;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    width: 100px;
+    height: 67px;
+}
+
+.gachaDescContainer {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.gachaDescInput {
+    vertical-align: top;
+    font-size: 15px;
+    height: 140px;
+    width: 550px;
+}
+
+.descCharCount {
+    text-align: right;
+}
+
+.descCharCountRed {
+    text-align: right;
+    color: red;
+}
+
+.gachaStatsTableContainer {
+    margin-bottom: 30px;
+}
+
+table.gachaStatsTable, tr.gachaStatsTable {
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+th.gachaStatsTableLeft, td.gachaStatsTableLeft {
+    border: 1px solid black;
+    border-collapse: collapse;
+    width: 400px;
+}
+
+th.gachaStatsTableRight, td.gachaStatsTableRight {
+    border: 1px solid black;
+    border-collapse: collapse;
+    width: 90px;
+}
+
+.statsInput {
+    width: 390px;
+} 
+
+.gachaSaveButton {
+    margin: 20px 0px;
+}

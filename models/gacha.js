@@ -75,17 +75,28 @@ const Gacha = mongoose.model('Gacha', GachaSchema, 'Gachas')
 /* Gacha resource API methods *****************/
 exports.createGacha = async function(req, res) {
     //create new gacha with Gacha model
-    const gacha = new Gacha({
-        name: req.body.name,
-        desc: req.body.desc,
-        coverPic: req.body.coverPic,
-        iconPic: req.body.iconPic,
-        stats: req.body.stats,
-        threeStars: req.body.threeStars,
-        fourStars: req.body.fourStars,
-        fiveStars: req.body.fiveStars,
-        creator: req.body.creator
-    });
+    const gachaBody = {};
+
+    //clean body
+    if (req.body.name) gachaBody.name = req.body.name;
+    if (req.body.desc) gachaBody.desc = req.body.desc;
+    if (req.body.coverPic) gachaBody.coverPic = req.body.coverPic;
+    if (req.body.iconPic) gachaBody.iconPic = req.body.iconPic;
+    if (req.body.threeStars) gachaBody.threeStars = req.body.threeStars;
+    if (req.body.fourStars) gachaBody.fourStars = req.body.fourStars;
+    if (req.body.fiveStars) gachaBody.fiveStars = req.body.fiveStars;
+    if (req.body.creator) gachaBody.creator = req.body.creator;
+    if (req.body.stats) {
+        const stats = [];
+        let i;
+            for (i = 0; i < req.body.stats.length; i++) {
+                let statId = mongoose.Types.ObjectId();
+                stats.push({ name: req.body.stats[i], _id: statId })
+        }
+        gachaBody.stats = stats;
+    }
+
+    const gacha = new Gacha(gachaBody);
 
     try {
         //check if the creator exists

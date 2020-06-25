@@ -11,6 +11,7 @@ import YourGachas from "./react-components/YourGachas";
 import FavGachas from "./react-components/FavGachas";
 import GachaSummon from "./react-components/GachaSummon"
 import GachaSmnResult from "./react-components/GachaSmnResult"
+import CreateGacha from "./react-components/CreateGacha"
 
 import { readSession } from "./actions/loginHelpers";
 
@@ -42,7 +43,8 @@ class App extends BaseReactComponent {
                     <Route path="/yourGachas" exact component={YourGachas} />
                     <Route path="/favourites" exact component={FavGachas} />
                     <Route path="/summon/:id" exact component={GachaSummon} />
-                    <Route path="/summonResult/:id" exact component={GachaSmnResult} />
+                    <Route path="/summon/result/:id" exact component={GachaSmnResult} />
+                    <Route path="/create/gacha" exact component={CreateGacha} />
                 </Switch>
             </BrowserRouter>
         );

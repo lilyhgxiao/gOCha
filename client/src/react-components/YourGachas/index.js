@@ -77,7 +77,8 @@ class YourGachas extends BaseReactComponent {
                         <div>
                             {   isLoaded ?
                                 <GachaList 
-                                gachaList={gachaList}/> : 
+                                gachaList={gachaList}
+                                newLink={true}/> : 
                                 null
                             }
                         </div>

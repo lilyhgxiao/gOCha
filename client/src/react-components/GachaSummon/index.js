@@ -281,7 +281,7 @@ class GachaSummon extends BaseReactComponent {
         if (rolledCharacter) {
             return (
                 <Redirect push to={{
-                    pathname: "/summonResult/" + gacha._id,
+                    pathname: "/summon/result/" + gacha._id,
                     state: { rolledCharacter: rolledCharacter }
                 }} />
             );

@@ -34,7 +34,7 @@ class GachaSmnResult extends BaseReactComponent {
 
     constructor(props) {
         super(props);
-        this.props.history.push("/summonResult/" + props.match.params.id);
+        this.props.history.push("/summon/result/" + props.match.params.id);
     }
 
     filterState({ currUser }) {

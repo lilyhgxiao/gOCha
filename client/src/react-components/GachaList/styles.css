@@ -1,0 +1,22 @@
+.gachaListUL {
+    max-height: 167px;
+}
+
+.newGachaLink {
+    vertical-align: top;
+    display: inline-block;
+    border: 2px dashed;
+    border-radius: 10px;
+    padding: 5px 10px;
+    height: 100%;
+}
+
+.newGachaLinkIcon {
+    height: 100px;
+    width: 100px;
+}
+
+.newGachaLinkName {
+    height: 67px;
+    width: 100px;
+}
