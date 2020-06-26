@@ -19,7 +19,8 @@ const chara = require("./models/chara");
 // to validate object IDs
 const { ObjectID } = require("mongodb");
 
-var cors = require('cors')
+const multer = require('multer')
+var fs = require('fs');
 
 mongoose.set('useFindAndModify', false);
 
@@ -31,6 +32,12 @@ app.use(bodyParser.json());
 const session = require("express-session");
 app.use(bodyParser.urlencoded({ extended: true }));
 
+const {
+    generateGetUrl,
+    generatePutUrl
+  } = require('./AWSPresigner');
+
+
 /*** Session handling **************************************/
 app.use(function(req, res, next) {
     const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
@@ -40,7 +47,7 @@ app.use(function(req, res, next) {
         res.setHeader('Access-Control-Allow-Origin', origin);
     }
     //res.header('Access-Control-Allow-Origin', 'http://127.0.0.1:8020');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, PUT');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.header('Access-Control-Allow-Credentials', true);
     return next();
@@ -206,6 +213,35 @@ app.patch('/charas/push/:id', chara.pushCharaInfo);
 /// a DELETE route to remove a chara by its id.
 app.delete("/charas/:id", chara.deleteChara);
 
+
+/* AWS get/put URL routes */
+// GET URL
+app.get('/generate-get-url', (req, res) => {
+    // Both Key and ContentType are defined in the client side.
+    // Key refers to the remote name of the file.
+    const { Key } = req.query;
+    generateGetUrl(Key)
+        .then(getURL => {
+            res.send(getURL);
+        })
+        .catch(err => {
+            res.send(err);
+        });
+});
+
+// PUT URL
+app.get('/generate-put-url', (req, res) => {
+    // Both Key and ContentType are defined in the client side.
+    // Key refers to the remote name of the file.
+    // ContentType refers to the MIME content type, in this case image/jpeg
+    const { Key, ContentType } = req.query;
+    generatePutUrl(Key, ContentType).then(putURL => {
+        res.send({ putURL });
+    })
+        .catch(err => {
+            res.send(err);
+        });
+});
 
 /*** Webpage routes below **********************************/
 // Serve the build

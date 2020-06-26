@@ -32,3 +32,6 @@ exports.summonCost = 100;
 exports.threeStarSilvers = 10;
 exports.fourStarSilvers = 30;
 exports.fiveStarSilvers = 100;
+
+//amazon s3 url root 
+exports.s3URL = "https://gocha.s3.ca-central-1.amazonaws.com/";

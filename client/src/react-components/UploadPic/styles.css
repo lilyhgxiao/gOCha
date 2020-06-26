@@ -1,0 +1,60 @@
+.uploadContainer {
+    text-align: center;
+}
+
+label {
+    display: inline-block;
+}
+
+.resolutionDisplay{
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    padding: 5px 10px;
+    background-color: rgba(0,0,0, 0.4);
+    color: white;
+}
+
+.uploadMainContainer {
+    position: relative;
+    display: inline-block;
+    height: 710px;
+    width: 710px;
+    border: 2px solid transparent;
+}
+
+.uploadMainPic {
+    margin: 5px;
+    height: 700px;
+    width: 700px;
+    border: 2px solid transparent;
+}
+
+.uploadMainPic:hover {
+    margin: 5px;
+    border: 2px dashed;
+}
+
+.hiddenInput {
+    display: none;
+}
+
+.uploadIconContainer {
+    position: relative;
+    display: inline-block;
+    height: 115px;
+    width: 115px;
+    border: 2px solid transparent;
+}
+
+.uploadIconPic {
+    margin: 5px;
+    height: 100px;
+    width: 100px;
+    border: 2px solid transparent;
+}
+
+.uploadIconPic:hover {
+    margin: 5px;
+    border: 2px dashed;
+}

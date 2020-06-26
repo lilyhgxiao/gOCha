@@ -23,9 +23,12 @@
     margin-right: 10px;
 }
 
-.gachaMainPic {
-    height: 700px;
-    width: 700px;
+.createGachaMainPicContainer {
+    text-align: center;
+}
+
+.hiddenInput {
+    display: none;
 }
 
 .gachaIconDescContainer {
@@ -38,31 +41,27 @@
     margin-right: 30px;
 }
 
-.gachaIcon {
-    display: block;
-    height: 100px;
-    width: 100px;
-}
-
 .gachaNamePreview {
+    margin: 0px 5px 0px 5px;
     display: -webkit-box;
     word-wrap: break-word;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
     overflow: hidden;
-    width: 100px;
+    width: 110px;
     height: 67px;
 }
 
 .gachaDescContainer {
     display: inline-block;
+    margin: 5px 0px 0px 0px;
     vertical-align: top;
 }
 
 .gachaDescInput {
     vertical-align: top;
     font-size: 15px;
-    height: 140px;
+    height: 170px;
     width: 550px;
 }
 

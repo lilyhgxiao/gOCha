@@ -2,7 +2,7 @@
 'use strict';
 const log = console.log
 
-const { minGachaNameLength, maxGachaNameLength, maxGachaDescLength, maxStatsLength } = require('../client/src/constants');
+const { minGachaNameLength, maxGachaNameLength, maxGachaDescLength, maxStatsLength, s3URL } = require('../client/src/constants');
 
 const userModel = require("./user.js");
 const charaModel = require("./chara");
@@ -32,12 +32,10 @@ const GachaSchema = new mongoose.Schema({
         maxlength: maxGachaDescLength
     }, 
     coverPic: { //title pic of gacha on summon page
-		data: Buffer, 
-        contentType: String
+		type: String
     },
     iconPic: { //icon pic of gacha on lists
-		data: Buffer, 
-        contentType: String
+		type: String
     },
     stats: { //stats to compare the characters in gacha
 		type: [ GachaStatSchema ],
@@ -74,18 +72,28 @@ const Gacha = mongoose.model('Gacha', GachaSchema, 'Gachas')
 
 /* Gacha resource API methods *****************/
 exports.createGacha = async function(req, res) {
+    if (!req.session.user) {
+        res.status(401).send(); //send 401 unauthorized error if not logged in
+        return;
+    }
+
     //create new gacha with Gacha model
     const gachaBody = {};
 
     //clean body
+    gachaBody._id = mongoose.Types.ObjectId();
     if (req.body.name) gachaBody.name = req.body.name;
     if (req.body.desc) gachaBody.desc = req.body.desc;
-    if (req.body.coverPic) gachaBody.coverPic = req.body.coverPic;
-    if (req.body.iconPic) gachaBody.iconPic = req.body.iconPic;
     if (req.body.threeStars) gachaBody.threeStars = req.body.threeStars;
     if (req.body.fourStars) gachaBody.fourStars = req.body.fourStars;
     if (req.body.fiveStars) gachaBody.fiveStars = req.body.fiveStars;
-    if (req.body.creator) gachaBody.creator = req.body.creator;
+    if (req.body.creator)  {
+        if (req.body.creator != req.session.user._id && !req.session.user.isAdmin) {
+            res.status(401).send(); // unauthorized
+            return;
+        }    
+        gachaBody.creator = req.body.creator;
+    }
     if (req.body.stats) {
         const stats = [];
         let i;
@@ -99,6 +107,7 @@ exports.createGacha = async function(req, res) {
     const gacha = new Gacha(gachaBody);
 
     try {
+        if (!ObjectID.isValid(req.body.creator)) res.status(404).send(); //check for a valid mongodb id
         //check if the creator exists
         const user = await userModel.User.findById(req.body.creator).exec();
         if (!user) {
@@ -111,6 +120,10 @@ exports.createGacha = async function(req, res) {
         //push the gacha onto user's own gachas
         user.ownGachas.push(newGacha._id);
         const result = await user.save();
+
+        if (result._id == req.session.user._id) {
+			req.session.user = result;
+        }
 
         //send result
         res.status(200).send({gacha: newGacha, user: result});
@@ -157,6 +170,7 @@ exports.getGachaById = function(req, res) {
 exports.updateGachaInfo = async function(req, res) {
     if (!req.session.user) {
         res.status(401).send(); //send 401 unauthorized error if not logged in
+        return;
     }
     //get id from the url
     const id = req.params.id;
@@ -231,6 +245,7 @@ exports.pushGachaInfo = async function(req, res) {
 
         //save gacha to database
         const result = await gacha.save();
+        
         //send result
         res.status(200).send(result);
 
