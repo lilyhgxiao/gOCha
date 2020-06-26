@@ -14,13 +14,14 @@ import AlertDialogue from "./../AlertDialogue";
 // Importing actions/required methods
 import { updateSession } from "../../actions/loginHelpers";
 import { getGachaById } from "../../actions/gachaHelpers";
-import { getUserById } from "../../actions/userhelpers";
+import { getUserById, pullUserInfo, pushUserInfo } from "../../actions/userhelpers";
 import { getCharaById } from "../../actions/charaHelpers";
 
 //images
 import main_placeholder from './../../images/dashboard_placeholder.jpg';
 import skeleton_placeholder from './../../images/gacha_summon_main_skeleton_placeholder.jpg';
-import edit_icon from './../../images/edit.png';
+import favourited from './../../images/stat_filled.png';
+import notFavourited from './../../images/stat_unfilled.png';
 
 //Importing constants
 import { summonCost, threeStarChance, fourStarChance, fiveStarChance } from "./../../constants";
@@ -34,7 +35,8 @@ class GachaSummon extends BaseReactComponent {
         gacha: null,
         alert: null,
         rolledCharacter: null,
-        redirectDashboard: false
+        redirectDashboard: false,
+        favourite: false
     };
 
     constructor(props) {
@@ -79,6 +81,11 @@ class GachaSummon extends BaseReactComponent {
                 creator: creator,
                 isCreatorLoaded: true
             });
+            if (this.state.currUser.favGachas.findIndex(favGacha => favGacha._id.toString() === gacha._id.toString()) !== -1) {
+                this.setState({
+                    favourite: true
+                });
+            }
         } catch (err) {
             console.log("Error in fetchGachaInfo: " + err);
         }
@@ -244,6 +251,52 @@ class GachaSummon extends BaseReactComponent {
         });
     }
 
+    handleFavouriteClick = async () => {
+        const { gacha } = this.state;
+        let alertText;
+        let favourite = false;
+
+        const readSessRes = await updateSession();
+        if (!readSessRes) {
+            //kick out
+            return;
+        }
+        if (!readSessRes.currUser) {
+            //kick out
+            return;
+        }
+        this.setState({
+            currUser: readSessRes.currUser
+        });  
+        const currUser = readSessRes.currUser
+
+        if (currUser.favGachas.findIndex(favGacha => favGacha._id.toString() === gacha._id.toString()) === -1) {
+            const addFavRes = await pushUserInfo(currUser._id, { favGachas: {_id: gacha._id, creator: gacha.creator } });
+            if (addFavRes) {
+                alertText = gacha.name + " has been added to your favourite gacha list!";
+                favourite = true;
+            } else {
+                alertText = "Sorry, something went wrong.";
+                favourite = false;
+            }
+        } else {
+            const removeFavRes = await pullUserInfo(currUser._id, { favGachas: {_id: gacha._id, creator: gacha.creator } });
+            if (removeFavRes) {
+                alertText = gacha.name + " has been removed from your favourite gacha list.";
+                favourite = false;
+            } else {
+                alertText = "Sorry, something went wrong.";
+                favourite = true;
+            }
+        }
+        this.setState({
+            alert: {
+                text: [ alertText ]
+            },
+            favourite: favourite
+        });
+    }
+
     handleCharaListClick = () => {
         //adjusting height if mainBodyContainer is not tall enough
         const mainBodyContainer = document.querySelector(".mainBodyContainer");
@@ -268,7 +321,7 @@ class GachaSummon extends BaseReactComponent {
 
     render() {
         const { isGachaLoaded, isCreatorLoaded, gacha, creator, currUser, alert, 
-            redirectDashboard, rolledCharacter } = this.state;
+            redirectDashboard, rolledCharacter, favourite } = this.state;
 
         if (redirectDashboard) {
             return (
@@ -308,11 +361,17 @@ class GachaSummon extends BaseReactComponent {
                         null
                     }
                     <div className="mainBody">
+                        <div className="favouriteGachaButton" onClick={this.handleFavouriteClick}>
+                            { favourite ?
+                                <img className="favIcon" src={favourited} alt="Fav icon"/> :
+                                <img className="favIcon" src={notFavourited} alt="Not fav icon"/>
+                            }
+                        </div>
                         <div className="pageTitle">{ isGachaLoaded ? gacha.name : "" }</div>
                         <div className="pageSubtitle">{ isCreatorLoaded ? creator.username : "" }</div>
                         {isGachaLoaded ? 
-                        <img className="gachaSmnMainPic" src={main_placeholder} alt={gacha.name + " Main Picture"}/> :
-                        <img className="gachaSmnMainPic" src={skeleton_placeholder} alt="Skeleton Main Picture"/> }
+                        <img className="gachaSmnMainPic" src={gacha.coverPic} alt={gacha.name + " Cover Pic"}/> :
+                        <img className="gachaSmnMainPic" src={skeleton_placeholder} alt="Skeleton Cover Pic"/> }
                         <br/>
                         { isGachaLoaded && gacha.active ?
                             <button className="smnButtonActive" onClick={this.handleSummonClick}>Summon</button> :

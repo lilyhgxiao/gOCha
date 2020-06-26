@@ -443,6 +443,49 @@ exports.pushUserInfo = async function(req, res) {
 	}
 };
 
+exports.pullUserInfo = async function(req, res) {
+	if (!req.session.user) {
+		res.status(401).send(); //send 401 unauthorized error if not logged in
+		return;
+    }
+    //get id from the url
+    const id = req.params.id;
+
+    //check for a valid mongodb id
+	if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+	
+	try {
+		//find user by id
+		const user = await User.findById(id).exec();
+		//if user doesn't exist, return 404
+		if (!user) {
+			res.status(404).send();
+			return;
+		}
+		//if current user on session does not match user to be edited, AND the user is not an admin
+		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
+			res.status(401).send();
+			return;
+		}
+
+		//clean request body
+		const updateQuery = {};
+		if (req.body.ownGachas) updateQuery.ownGachas = req.body.ownGachas;
+		if (req.body.favGachas) updateQuery.favGachas = req.body.favGachas;
+		if (req.body.inventory) updateQuery.inventory = req.body.inventory;
+
+		//update user
+		const result = await User.findByIdAndUpdate(id, {$pull: updateQuery}, {new: true}).exec();
+		if (user._id == req.session.user._id) {
+			req.session.user = result;
+		}
+		res.status(200).send(result);
+
+	} catch(err) {
+		res.status(500).send(err);
+	}
+};
+
 exports.deleteUser = async function(req, res) {
 	if (!req.session.user) {
 		res.status(401).send(); //send 401 unauthorized error if not logged in

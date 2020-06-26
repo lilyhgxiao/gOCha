@@ -1,3 +1,14 @@
+.favouriteGachaButton {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.favIcon {
+    height: 50px;
+    width: 50px;
+}
+
 .gachaSmnMainPic {
     height: 700px;
     width: 700px;

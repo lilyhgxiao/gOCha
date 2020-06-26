@@ -169,11 +169,82 @@ export const incCurrency = async function (id, starFrags, silvers) {
         } else if (res.status === 401) {
             //do something else if bad request
             return null;
-        }else {
+        } else {
             //status is 500
             return null;
         }
     } catch (err) {
-
+        console.log('fetch failed, ', err);
+        return null;
     }
 } 
+
+export const pushUserInfo = async function (id, body) {
+    const url = "http://localhost:3001/users/push/" + id;
+
+    try {
+        const res = await fetch(url, {
+            method: 'PATCH',
+            body: JSON.stringify(body),
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            credentials: "include",
+        });
+        if (res.status === 200) {
+            const user = await res.json();
+            if (user !== undefined) {
+                setState("currUser", user);
+                return true;
+            }
+        } else if (res.status === 400) {
+            //do something else if bad request
+            return null;
+        } else if (res.status === 401) {
+            //do something else if bad request
+            return null;
+        } else {
+            //status is 500
+            return null;
+        }
+    } catch (err) {
+        console.log('fetch failed, ', err);
+        return null;
+    }
+}
+
+export const pullUserInfo = async function (id, body) {
+    const url = "http://localhost:3001/users/pull/" + id;
+
+    try {
+        const res = await fetch(url, {
+            method: 'PATCH',
+            body: JSON.stringify(body),
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            credentials: "include",
+        });
+        if (res.status === 200) {
+            const user = await res.json();
+            if (user !== undefined) {
+                setState("currUser", user);
+                return true;
+            }
+        } else if (res.status === 400) {
+            //do something else if bad request
+            return null;
+        } else if (res.status === 401) {
+            //do something else if bad request
+            return null;
+        } else {
+            //status is 500
+            return null;
+        }
+    } catch (err) {
+        console.log('fetch failed, ', err);
+        return null;
+    }
+}

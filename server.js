@@ -153,6 +153,9 @@ app.patch('/users/:id', user.updateUserInfo);
 //a PATCH route to push new elements onto user info
 app.patch('/users/push/:id', user.pushUserInfo);
 
+//a PATCH route to pull elements from user info
+app.patch('/users/pull/:id', user.pullUserInfo);
+
 //a PATCH route to change user currency
 app.patch('/users/incCurrency/:id', user.incCurrency);
 

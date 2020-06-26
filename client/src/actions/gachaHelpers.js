@@ -2,6 +2,8 @@ import { setState, convertJSON } from "./helpers";
 
 import { uploadFile } from "./fileHelpers";
 
+import { s3URL } from "./../constants";
+
 export const getGachaById = async (id) => {
     const url = "http://localhost:3001/gachas/" + id
     //const url = "/gachas/" + id 
@@ -58,12 +60,12 @@ export const createNewGacha = async (body) => {
             if (!res[0]) {
                 console.log("Error with uploading cover pic.");
             } else {
-                patchBody.coverPic = newCoverPicName;
+                patchBody.coverPic = s3URL + newCoverPicName;
             }
             if (!res[1]) {
                 console.log("Error with uploading icon pic.");
             } else {
-                patchBody.iconPic = newIconPicName;
+                patchBody.iconPic = s3URL + newIconPicName;
             }
             
             console.log("patching gacha")
