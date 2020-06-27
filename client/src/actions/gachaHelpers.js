@@ -101,3 +101,11 @@ export const createNewGacha = async (body) => {
         return null;
     }
 }
+
+/**TODO: edit gacha*/
+
+/**TODO: add stat */
+
+/**TODO: delete stat */
+
+/**TODO: update stat */

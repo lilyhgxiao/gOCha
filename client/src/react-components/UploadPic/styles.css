@@ -15,7 +15,7 @@ label {
     color: white;
 }
 
-.uploadMainContainer {
+.uploadCoverContainer {
     position: relative;
     display: inline-block;
     height: 710px;
@@ -23,14 +23,14 @@ label {
     border: 2px solid transparent;
 }
 
-.uploadMainPic {
+.uploadCoverPic {
     margin: 5px;
     height: 700px;
     width: 700px;
     border: 2px solid transparent;
 }
 
-.uploadMainPic:hover {
+.uploadCoverPic:hover {
     margin: 5px;
     border: 2px dashed;
 }

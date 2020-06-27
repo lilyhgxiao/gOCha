@@ -37,7 +37,7 @@ class GachaLink extends BaseReactComponent {
         return (
             <div className="gachaLinkContainer" onMouseEnter={this.handleMouseHover} onMouseLeave={this.handleMouseHover}>
                 { isHovering && currUser._id == gacha.creator ?
-                    <Link to={'/edit/'}>
+                    <Link to={'/edit/gacha/' + gacha._id}>
                         <input
                             className="gachaLinkEditButton"
                             type='image'

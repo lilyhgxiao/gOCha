@@ -65,28 +65,28 @@ class UploadPic extends React.Component {
     }
 
     render() {
-        const { main, src } = this.props;
+        const { cover, src } = this.props;
         const { isHovering, preview } = this.state;
 
         return (
-                <div className={main ? "uploadMainContainer" : "uploadIconContainer"} onMouseEnter={this.handleMouseHover} onMouseLeave={this.handleMouseHover}>
+                <div className={cover ? "uploadCoverContainer" : "uploadIconContainer"} onMouseEnter={this.handleMouseHover} onMouseLeave={this.handleMouseHover}>
                     { isHovering ?
                         <div className="resolutionDisplay">
-                            { main ? <span>700 x 700</span> : <span>100 x 100</span>}
+                            { cover ? <span>700 x 700</span> : <span>100 x 100</span>}
                         </div> :
                         null
                     }
-                    <label htmlFor={main ? "uploadMainImage" : "uploadIconImage" }>
+                    <label htmlFor={cover ? "uploadCoverImage" : "uploadIconImage" }>
                         <img 
-                            className={main ? "uploadMainPic" : "uploadIconPic"} 
+                            className={cover ? "uploadCoverPic" : "uploadIconPic"} 
                             src={ (!src && src === "") ? preview : src } 
-                            alt={main ? "New Main Pic" : "New Icon Pic"} />
+                            alt={cover ? "New Cover Pic" : "New Icon Pic"} />
                     </label>
                     <input
                         className="hiddenInput"
                         type="file"
-                        name={main ? "mainPic" : "iconPic"}
-                        id={main ? "uploadMainImage" : "uploadIconImage" }
+                        name={cover ? "coverPic" : "iconPic"}
+                        id={cover ? "uploadCoverImage" : "uploadIconImage" }
                         accept=".png,.jpg, .jpeg"
                         onChange={this.handleImageUpload}
                     />

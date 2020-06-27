@@ -2,6 +2,7 @@
 import React from "react";
 import { uid } from "react-uid";
 import { Redirect } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import "./styles.css";
 import "./../../App.css"
@@ -14,7 +15,8 @@ import AlertDialogue from "./../AlertDialogue";
 
 // Importing actions/required methods
 import { updateSession } from "../../actions/loginHelpers";
-import { createNewGacha } from "../../actions/gachaHelpers";
+import { getGachaById } from "../../actions/gachaHelpers";
+import { getUserById } from "../../actions/userhelpers";
 
 //images
 import dotted_line_box from './../../images/dotted_line_box_placeholder.png';
@@ -22,25 +24,27 @@ import dotted_line_box from './../../images/dotted_line_box_placeholder.png';
 //Importing constants
 import { maxGachaDescLength, maxGachaNameLength, minGachaNameLength } from "./../../constants";
 
-class CreateGacha extends BaseReactComponent {
+class EditGacha extends BaseReactComponent {
 
     state = {
         alert: null,
+        gacha: null,
+        isGachaLoaded: false,
         coverPic: dotted_line_box,
         coverPicRaw: null,
         iconPic: dotted_line_box,
         iconPicRaw: null,
         name: "",
         desc: "",
-        stats: [],
-        toEdit: false,
-        toSummon: false,
-        toId: null
+        oldStats: [],
+        newStats: [],
+        active: false,
+        toSummon: false
     }
 
     constructor(props) {
         super(props);
-        this.props.history.push("/create/gacha");
+        this.props.history.push("/edit/gacha/" + props.match.params.id);
     }
 
     filterState({ currUser }) {
@@ -53,8 +57,41 @@ class CreateGacha extends BaseReactComponent {
             if (readSessRes.currUser) {
                 this.setState({
                     currUser: readSessRes.currUser
-                }, this.resizeMainContainer);
+                }, this.fetchGachaInfo);
             }
+        }
+    }
+
+    fetchGachaInfo = async () => {
+        const id = this.props.match.params.id;
+
+        try {
+            const gacha = await getGachaById(id);
+            if (!gacha) {
+                console.log("Failed to get gacha " + id);
+                return;
+            }
+            const creator = await getUserById(gacha.creator);
+            if (!creator) {
+                console.log("Failed to get creator " + id);
+                return;
+            }
+            if (creator._id.toString() !== this.state.currUser._id.toString()) {
+                //do not have permission. redirect to 401 error page
+                return;
+            }
+            this.setState({
+                gacha: gacha,
+                coverPic: gacha.coverPic,
+                iconPic: gacha.iconPic,
+                name: gacha.name,
+                desc: gacha.desc,
+                oldStats: gacha.stats,
+                active: gacha.active,
+                isGachaLoaded: true
+            }, this.resizeMainContainer);
+        } catch (err) {
+            console.log("Error in fetchGachaInfo: " + err);
         }
     }
 
@@ -69,48 +106,77 @@ class CreateGacha extends BaseReactComponent {
         });
     }
 
-    handleStatInputChange = (event) => {
+    handleActiveClick = () => {
+        this.setState({
+            active: !this.state.active
+        });
+    }
+
+    handleOldStatInputChange = (event) => {
         const target = event.target;
         const value = target.value;
         const index = parseInt(target.getAttribute("index"));
-        const { stats } = this.state;
-
-        stats[index] = value;
-    
+        const stats = this.state.oldStats;
+        stats[index].name = value;
         this.setState({
-          stats: stats 
+            oldStats: stats
         });
+    }
+
+    handleNewStatInputChange = (event) => {
+        const target = event.target;
+        const value = target.value;
+        const index = parseInt(target.getAttribute("index"));
+
+        const stats = this.state.newStats;
+        stats[index] = value;
+        this.setState({
+            newStats: stats
+        });        
     }
 
     resizeMainContainer = () => {
         const mainBodyContainer = document.querySelector(".mainBodyContainer");
-        const createGachaStyle = window.getComputedStyle(document.querySelector(".createGachaContainer"));
+        const editGachaStyle = window.getComputedStyle(document.querySelector(".editGachaContainer"));
 
-        const newHeight = parseInt(createGachaStyle.height) + parseInt(createGachaStyle.marginTop) * 3;
+        const newHeight = parseInt(editGachaStyle.height) + parseInt(editGachaStyle.marginTop) * 3;
         mainBodyContainer.style.height = newHeight.toString() + "px";
     }
 
     addStat = () => {
-        const { stats } = this.state;
+        const { newStats } = this.state;
 
-        stats.push("");
+        newStats.push("");
 
         this.setState({
-            stats: stats
+            newStats: newStats
         }, this.resizeMainContainer);
     }
 
-    deleteStat = (event) => {
+    deleteOldStat = (event) => {
         const target = event.target;
         const index = parseInt(target.getAttribute("index"));
-        const { stats } = this.state;
-
+        
+        const stats = this.state.oldStats;
         if (index > -1) {
             stats.splice(index, 1);
         }
-        
         this.setState({
-            stats: stats
+            oldStats: stats
+        }, this.resizeMainContainer);
+        
+    }
+
+    deleteNewStat = (event) => {
+        const target = event.target;
+        const index = parseInt(target.getAttribute("index"));
+        
+        const stats = this.state.newStats;
+        if (index > -1) {
+            stats.splice(index, 1);
+        }
+        this.setState({
+            newStats: stats
         }, this.resizeMainContainer);
     }
 
@@ -139,16 +205,6 @@ class CreateGacha extends BaseReactComponent {
             msg.push(<br/>)
             success = false;
         }
-        if (coverPicRaw === null) {
-            msg.push("Please upload a cover picture.");
-            msg.push(<br/>)
-            success = false;
-        }
-        if (iconPicRaw === null) {
-            msg.push("Please upload an icon.");
-            msg.push(<br/>)
-            success = false;
-        }
         let i;
         for (i = 0; i < stats.length; i++) {
             if (stats[i]==="") {
@@ -169,7 +225,7 @@ class CreateGacha extends BaseReactComponent {
                 coverPic: coverPicRaw,
                 iconPic: iconPicRaw
             };
-            const createGachaRes = await createNewGacha(createGachaBody);
+            /*const createGachaRes = await createNewGacha(createGachaBody);
             if (createGachaRes) {
                 if (createGachaRes.gacha) {
                     this.setState({
@@ -184,7 +240,7 @@ class CreateGacha extends BaseReactComponent {
                         }
                     });
                 }
-            }
+            }*/
         } else {
             this.setState({
                 alert: {
@@ -196,19 +252,47 @@ class CreateGacha extends BaseReactComponent {
 
     }
 
-    redirectEdit = (id) => {
-        this.setState({
-            alert: null,
-            toEdit: true,
-            toId: id
-        });
+    editGacha = async () => {
+        const { name, desc, active, oldStats, newStats, coverPicRaw, iconPicRaw, currUser, gacha } = this.state;
+        const editGachaBody = {
+            name: name,
+            desc: desc,
+            active: active
+        };
+        if (coverPicRaw) editGachaBody.coverPicRaw = coverPicRaw;
+        if (iconPicRaw) editGachaBody.coverPicRaw = iconPicRaw;
+
+        const editStatsReqs = [];
+
+        let i;
+        let checkStat;
+        for (i = 0; i < gacha.oldStats; i++) {
+            checkStat = oldStats.filter(stat => stat._id.toString() === gacha.oldStats[i]._id.toString());
+            if (checkStat.length === 0) {
+                editStatsReqs.push(/**TODO: delete the stat with that id */)
+            } else {
+                if (checkStat[0].name !== gacha.oldStats[i].name) {
+                    editStatsReqs.push(/**TODO: update the stat  with that id */)
+                }
+            }
+        }
+        if (newStats.length > 0) {
+            editStatsReqs.push(/**TODO: add all new stats */)
+        }
+
+        Promise.all(editStatsReqs).then(res => {
+            /**TODO: send request to patch gacha */
+
+        }).catch(err => {
+            console.log("Promise all failed in editGacha " + err);
+            /**TODO: add error checking here */
+        })
     }
 
     redirectGacha = (id) => {
         this.setState({
             alert: null,
-            toSummon: true,
-            toId: id
+            toSummon: true
         });
     }
 
@@ -224,20 +308,12 @@ class CreateGacha extends BaseReactComponent {
 
     render() {
         const { history } = this.props;
-        const { currUser, alert, coverPic, iconPic, name, desc, stats, toEdit, toSummon, toId } = this.state;
-
-        if (toEdit) {
-            return (
-                <Redirect push to={{
-                    pathname: "/edit/gacha/" + toId
-                }} />
-            );
-        }
+        const { currUser, gacha, alert, coverPic, iconPic, name, desc, oldStats, newStats, toSummon, active } = this.state;
 
         if (toSummon) {
             return (
                 <Redirect push to={{
-                    pathname: "/summon/" + toId
+                    pathname: "/summon/" + gacha._id
                 }} />
             );
         }
@@ -257,8 +333,9 @@ class CreateGacha extends BaseReactComponent {
                         null
                     }
                     <div className="mainBody">
-                        <div className="createGachaContainer">
-                            <div className="pageSubtitle">Create New Gacha</div>
+                        <div className="editGachaContainer">
+                            <div className="pageSubtitle">Edit Gacha</div>
+                            <button onClick={this.handleActiveClick}>{active ? <span>Active</span> : <span>Inactive</span>}</button>
                             <div className="gachaNameContainer">
                                 <input className="gachaNameInput"
                                     name='name'
@@ -266,7 +343,7 @@ class CreateGacha extends BaseReactComponent {
                                     onChange={this.handleInputChange}
                                     type="text"
                                     placeholder="Name (required)" />
-                                {maxGachaNameLength - name.length > 0 ?
+                                { maxGachaNameLength - name.length > 0 ?
                                     <div className="nameCharCount">{maxGachaNameLength - name.length}</div> :
                                     <div className="nameCharCountRed">{maxGachaNameLength - name.length}</div>
                                 }
@@ -299,23 +376,45 @@ class CreateGacha extends BaseReactComponent {
                                             <th className="gachaStatsTableLeft">Stats</th>
                                             <th className="gachaStatsTableRight"></th>
                                         </tr>
-                                        {stats.map((stat, index) => {
+                                        {oldStats.map((stat, index) => {
                                             return (<tr className="gachaStatsTable" key={uid(index)}>
                                                 <td className="gachaStatsTableLeft">
                                                     <input className="statsInput"
                                                         name={'stats[' + index + ']'}
-                                                        value={stats[index]}
+                                                        value={oldStats[index].name}
                                                         index={index}
-                                                        onChange={this.handleStatInputChange}
+                                                        old={"true"}
+                                                        onChange={this.handleOldStatInputChange}
                                                         type="text"
                                                         placeholder={"Stat " + (index + 1).toString() + " Name (required)"} />
                                                 </td>
                                                 <td className="gachaStatsTableRight">
-                                                    <button className="deleteStatButton" onClick={this.deleteStat} index={index}>Delete Stat</button>
+                                                    <button className="deleteStatButton" 
+                                                        onClick={this.deleteOldStat} 
+                                                        index={index} 
+                                                        old={"true"}>Delete Stat</button>
                                                 </td>
                                             </tr>);
                                         })}
-                                        {   stats.length < 10 ?
+                                        {newStats.map((stat, index) => {
+                                            return (<tr className="gachaStatsTable" key={uid(index)}>
+                                                <td className="gachaStatsTableLeft">
+                                                    <input className="statsInput"
+                                                        name={'stats[' + index + ']'}
+                                                        value={newStats[index]}
+                                                        index={index}
+                                                        onChange={this.handleNewStatInputChange}
+                                                        type="text"
+                                                        placeholder={"Stat " + (oldStats.length + index + 1).toString() + " Name (required)"} />
+                                                </td>
+                                                <td className="gachaStatsTableRight">
+                                                    <button className="deleteStatButton" 
+                                                        onClick={this.deleteNewStat} 
+                                                        index={index}>Delete Stat</button>
+                                                </td>
+                                            </tr>);
+                                        })}
+                                        {   oldStats.length + newStats.length < 10 ?
                                             <tr className="gachaStatsTable">
                                                 <td className="gachaStatsTableLeft">
                                                     <button className="addStatButton" onClick={this.addStat}>Add Stat</button>
@@ -323,7 +422,6 @@ class CreateGacha extends BaseReactComponent {
                                                 <td className="gachaStatsTableRight"></td>
                                             </tr> : null
                                         }
-                                        
                                     </tbody>
                                 </table>
                             </div>
@@ -336,4 +434,4 @@ class CreateGacha extends BaseReactComponent {
     }
 }
 
-export default CreateGacha;
+export default EditGacha;

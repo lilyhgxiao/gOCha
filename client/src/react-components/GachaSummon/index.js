@@ -18,7 +18,6 @@ import { getUserById, pullUserInfo, pushUserInfo } from "../../actions/userhelpe
 import { getCharaById } from "../../actions/charaHelpers";
 
 //images
-import main_placeholder from './../../images/dashboard_placeholder.jpg';
 import skeleton_placeholder from './../../images/gacha_summon_main_skeleton_placeholder.jpg';
 import favourited from './../../images/stat_filled.png';
 import notFavourited from './../../images/stat_unfilled.png';
@@ -314,9 +313,9 @@ class GachaSummon extends BaseReactComponent {
 
     handleExitWindowClick = () => {
         const mainBodyContainer = document.querySelector(".mainBodyContainer");
-            const gachaSmnListContainer = document.querySelector(".gachaSmnListContainer");
-            mainBodyContainer.style.height = "";
-            gachaSmnListContainer.style.visibility = "hidden";
+        const gachaSmnListContainer = document.querySelector(".gachaSmnListContainer");
+        mainBodyContainer.style.height = "";
+        gachaSmnListContainer.style.visibility = "hidden";
     }
 
     render() {
@@ -370,8 +369,8 @@ class GachaSummon extends BaseReactComponent {
                         <div className="pageTitle">{ isGachaLoaded ? gacha.name : "" }</div>
                         <div className="pageSubtitle">{ isCreatorLoaded ? creator.username : "" }</div>
                         {isGachaLoaded ? 
-                        <img className="gachaSmnMainPic" src={gacha.coverPic} alt={gacha.name + " Cover Pic"}/> :
-                        <img className="gachaSmnMainPic" src={skeleton_placeholder} alt="Skeleton Cover Pic"/> }
+                        <img className="gachaSmnCoverPic" src={gacha.coverPic} alt={gacha.name + " Cover Pic"}/> :
+                        <img className="gachaSmnCoverPic" src={skeleton_placeholder} alt="Skeleton Cover Pic"/> }
                         <br/>
                         { isGachaLoaded && gacha.active ?
                             <button className="smnButtonActive" onClick={this.handleSummonClick}>Summon</button> :
