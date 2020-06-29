@@ -31,6 +31,7 @@ class YourGachas extends BaseReactComponent {
     }
 
     async componentDidMount() {
+        /**TODO: redirect back to login if session is not there */
         const readSessRes = await updateSession();
         if (readSessRes) {
             if (readSessRes.currUser) {
@@ -50,13 +51,14 @@ class YourGachas extends BaseReactComponent {
             gachaReqs.push(getGachaById(currUser.ownGachas[i]));
         }
 
+        /**TODO: handle if requests fail...? */
         Promise.all(gachaReqs).then(res => {
-            console.log(res);
             this.setState({
                 gachaList: res,
                 isLoaded: true
             });
         }).catch((err) => {
+            /**TODO: handle if catch */
             console.log("Error with Promise.all in fetchYrGachas: " + err);
         })
     }

@@ -18,6 +18,7 @@ import { getUserById, pullUserInfo, pushUserInfo } from "../../actions/userhelpe
 import { getCharaById } from "../../actions/charaHelpers";
 
 //images
+/**TODO: replace placeholder images */
 import skeleton_placeholder from './../../images/gacha_summon_main_skeleton_placeholder.jpg';
 import favourited from './../../images/stat_filled.png';
 import notFavourited from './../../images/stat_unfilled.png';
@@ -48,6 +49,7 @@ class GachaSummon extends BaseReactComponent {
     }
 
     async componentDidMount() {
+        /**TODO: redirect back to login if session is not there */
         const readSessRes = await updateSession();
         if (readSessRes) {
             if (readSessRes.currUser) {
@@ -62,6 +64,7 @@ class GachaSummon extends BaseReactComponent {
         const id = this.props.match.params.id;
 
         try {
+            /**TODO: handle when request fails */
             const gacha = await getGachaById(id);
             if (!gacha) {
                 console.log("Failed to get gacha " + id);
@@ -71,6 +74,7 @@ class GachaSummon extends BaseReactComponent {
                 gacha: gacha,
                 isGachaLoaded: true
             });
+            /**TODO: handle when request fails */
             const creator = await getUserById(gacha.creator);
             if (!creator) {
                 console.log("Failed to get creator " + id);
@@ -86,16 +90,20 @@ class GachaSummon extends BaseReactComponent {
                 });
             }
         } catch (err) {
+            /**TODO: handle when request fails */
             console.log("Error in fetchGachaInfo: " + err);
         }
     }
 
+    /**TODO: CLEAN UP THIS FUNCTION TOO MANY NESTS */
     summon = async () => {
         //remove the alert
         this.setState({ 
             alert: null 
         });
 
+        /**TODO: redirect back to login if session is not there */
+        /**TODO: handle when request fails */
         const readSessRes = await updateSession();
         if (readSessRes) {
             if (readSessRes.currUser) {
@@ -178,6 +186,7 @@ class GachaSummon extends BaseReactComponent {
                         }
 
                     } else {
+                        /**TODO: change this LOL */
                         this.setState({
                             alert: {
                                 text: [
@@ -206,6 +215,8 @@ class GachaSummon extends BaseReactComponent {
     }
 
     handleSummonClick = async () => {
+        /**TODO: redirect back to login if session is not there */
+        /**TODO: handle when request fails */
         const readSessRes = await updateSession();
         if (readSessRes) {
             if (readSessRes.currUser) {
@@ -226,6 +237,7 @@ class GachaSummon extends BaseReactComponent {
                             }
                         });
                     } else {
+                        /**TODO: change this LOL */
                         this.setState({
                             alert: {
                                 text: [
@@ -245,7 +257,7 @@ class GachaSummon extends BaseReactComponent {
             alert: {
                 text: [
                     "This gacha has been set to ", <strong>inactive</strong>, ", so summons are currently unavailable.",
-                <br/>, "Please check back later!" ]
+                    <br/>, "Please check back later!" ]
             }
         });
     }
@@ -257,11 +269,11 @@ class GachaSummon extends BaseReactComponent {
 
         const readSessRes = await updateSession();
         if (!readSessRes) {
-            //kick out
+            /**TODO: redirect back to login if session is not there */
             return;
         }
         if (!readSessRes.currUser) {
-            //kick out
+            /**TODO: redirect back to login if session is not there */
             return;
         }
         this.setState({
@@ -275,6 +287,7 @@ class GachaSummon extends BaseReactComponent {
                 alertText = gacha.name + " has been added to your favourite gacha list!";
                 favourite = true;
             } else {
+                /**TODO: handle when request fails */
                 alertText = "Sorry, something went wrong.";
                 favourite = false;
             }
@@ -284,6 +297,7 @@ class GachaSummon extends BaseReactComponent {
                 alertText = gacha.name + " has been removed from your favourite gacha list.";
                 favourite = false;
             } else {
+                /**TODO: handle when request fails */
                 alertText = "Sorry, something went wrong.";
                 favourite = true;
             }
@@ -339,6 +353,7 @@ class GachaSummon extends BaseReactComponent {
             );
         }
 
+        /**TODO: handle when gacha empty */
         return (
             <div className="App">
                 <Header username={currUser ? currUser.username : ""}
@@ -369,8 +384,9 @@ class GachaSummon extends BaseReactComponent {
                         <div className="pageTitle">{ isGachaLoaded ? gacha.name : "" }</div>
                         <div className="pageSubtitle">{ isCreatorLoaded ? creator.username : "" }</div>
                         {isGachaLoaded ? 
-                        <img className="gachaSmnCoverPic" src={gacha.coverPic} alt={gacha.name + " Cover Pic"}/> :
-                        <img className="gachaSmnCoverPic" src={skeleton_placeholder} alt="Skeleton Cover Pic"/> }
+                            <img className="gachaSmnCoverPic" src={gacha.coverPic} alt={gacha.name + " Cover Pic"}/> :
+                            <img className="gachaSmnCoverPic" src={skeleton_placeholder} alt="Skeleton Cover Pic"/> 
+                        }
                         <br/>
                         { isGachaLoaded && gacha.active ?
                             <button className="smnButtonActive" onClick={this.handleSummonClick}>Summon</button> :

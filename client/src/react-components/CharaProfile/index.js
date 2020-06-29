@@ -10,6 +10,7 @@ import StatDisplay from './../StatDisplay';
 import BaseReactComponent from "./../BaseReactComponent";
 
 //images
+/**TODO: replace placeholders */
 import main_placeholder from './../../images/dashboard_placeholder.jpg';
 import exit_icon from './../../images/exit.png';
 import edit_icon from './../../images/edit.png';
@@ -18,7 +19,7 @@ import edit_icon from './../../images/edit.png';
 import { getUserById } from "../../actions/userhelpers";
 import { getGachaById } from "../../actions/gachaHelpers";
 
-
+/**TODO: replace main keyword with cover */
 
 class CharaProfile extends BaseReactComponent {
 
@@ -50,6 +51,7 @@ class CharaProfile extends BaseReactComponent {
     const getCreatorRes = getUserById(chara.creator);
     
     Promise.all([getGachaRes, getCreatorRes]).then(res => {
+      /**TODO: handle when get gacha and creator fail */
       this.setState({
           gacha: res[0],
           creator: res[1],
@@ -64,6 +66,8 @@ class CharaProfile extends BaseReactComponent {
     const { chara, handleExitWindowClick } = this.props;
     const { gachaCreatorLoaded, currUser } = this.state;
 
+    /**TODO: handle chara or chara properties are empty */
+    /**TODO: replace cover pic placeholder with actual cover pic */
     return (
       <div>
         <div className="darkBackground">

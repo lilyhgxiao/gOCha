@@ -7,6 +7,7 @@ import "./styles.css";
 import BaseReactComponent from "./../BaseReactComponent";
 
 //images
+/**TODO: replace placeholder images */
 import icon_placeholder from './../../images/dashboard_placeholder.jpg';
 import edit_icon from './../../images/edit.png';
 
@@ -34,6 +35,8 @@ class GachaLink extends BaseReactComponent {
         const { gacha } = this.props;
         const { isHovering, currUser } = this.state;
 
+        /**TODO: turn currUser into prop instead of state */
+        /**TODO: handle if gacha or gacha properties are empty */
         return (
             <div className="gachaLinkContainer" onMouseEnter={this.handleMouseHover} onMouseLeave={this.handleMouseHover}>
                 { isHovering && currUser._id == gacha.creator ?

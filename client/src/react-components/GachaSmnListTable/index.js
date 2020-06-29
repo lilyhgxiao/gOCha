@@ -8,6 +8,7 @@ class GachaSmnListTable extends React.Component {
     render() {
         const { isLoaded, charaList, chance } = this.props;
 
+        /**TODO: handle when props empty, ESPECIALLY charaList */
         return (
             <table className="gachaSmnListTable">
                 <tbody>

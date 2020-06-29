@@ -31,6 +31,7 @@ class FavGachas extends BaseReactComponent {
     }
 
     async componentDidMount() {
+        /**TODO: redirect back to login if session is not there */
         const readSessRes = await updateSession();
         if (readSessRes) {
             if (readSessRes.currUser) {
@@ -50,6 +51,7 @@ class FavGachas extends BaseReactComponent {
             gachaReqs.push(getGachaById(currUser.favGachas[i]._id));
         }
 
+        /**TODO: Handle failed reqs...? */
         Promise.all(gachaReqs).then(res => {
             console.log(res);
             this.setState({

@@ -37,6 +37,8 @@ const {
     generatePutUrl
   } = require('./AWSPresigner');
 
+  /**TODO: change all id comparisons to use toString() */
+
 
 /*** Session handling **************************************/
 app.use(function(req, res, next) {
@@ -81,8 +83,8 @@ app.post("/users/login", (req, res) => {
             req.session.user = user;
             res.status(200).send({ currUser: user });
         })
-        .catch(error => {
-            res.status(400).send()
+        .catch(err => {
+            res.status(400).send();
         });
 });
 

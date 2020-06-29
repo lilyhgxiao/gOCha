@@ -15,7 +15,10 @@ import { updateSession } from "../../actions/loginHelpers";
 
 
 //images
+/**TODO: replace placeholder images */
 import dashboard_placeholder from './../../images/dashboard_placeholder.jpg';
+
+/**TODO: implement random character selection for cover pic */
 
 class Dashboard extends BaseReactComponent {
 
@@ -33,7 +36,7 @@ class Dashboard extends BaseReactComponent {
     }
 
     async componentDidMount() {
-        console.log(dashboard_placeholder)
+        /**TODO: redirect back to login if session is not there */
         const readSessRes = await updateSession();
         if (readSessRes) {
             if (readSessRes.currUser) {

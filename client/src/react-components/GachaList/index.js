@@ -8,6 +8,7 @@ import "./styles.css";
 import GachaLink from "./../GachaLink";
 
 //images
+/**TODO: get new image */
 import new_gacha_placeholder from './../../images/new_gacha_placeholder.png';
 
 /* Component for the List of Students */

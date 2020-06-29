@@ -6,6 +6,7 @@ import { Redirect } from 'react-router';
 import { login, logout, updateLoginForm } from "../../actions/loginHelpers"
 import { getState } from "statezero";
 
+/**TODO: replace placeholder images */
 import logo from './../../images/logo_placeholder.png';
 
 import "./../../App.css";
@@ -56,6 +57,8 @@ class Login extends React.Component {
         }); 
     }
 
+    /**TODO: use alert dialogue here */
+    /**TODO: validate input...? */
     tryLogin = async () => {
         const result = await login();
         const { isAdmin, loginSuccessful } = result;
@@ -100,6 +103,7 @@ class Login extends React.Component {
         }
 
         /*Render */
+        /**TODO: add alertdialogue */
         return (
             <div className='center'>
                 <img id='logo' src={logo} alt='logo'/>

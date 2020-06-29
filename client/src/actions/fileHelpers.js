@@ -1,5 +1,7 @@
 const fetch = require('node-fetch');
 
+/**TODO: get rid of most console.logs */
+
 export const uploadFile = async (file, fileName) => {
 
     let url = "http://localhost:3001/generate-put-url?";
@@ -38,7 +40,9 @@ export const uploadFile = async (file, fileName) => {
     }
 }
 
+/**TODO: fix up this function and test it */
 export const getFile = async (fileName) => {
+    /**TODO: fix url */
     const url = "http://localhost:3001/generate-get-url?Key=${encodeURIComponent(fileName)}&ContentType=${encodeURIComponent(file.type)}"
     //const url = "/generate-get-url?Key=${encodeURIComponent(file.name)}&ContentType=${encodeURIComponent(file.type)}"
 

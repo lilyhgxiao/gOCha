@@ -3,10 +3,10 @@ import React from "react";
 import "./styles.css";
 
 // Importing components
-import BaseReactComponent from "./../BaseReactComponent";
 import GachaSmnListTable from "./../GachaSmnListTable";
 
 //images
+/**TODO: replace placeholder images */
 import main_placeholder from './../../images/dashboard_placeholder.jpg';
 import exit_icon from './../../images/exit.png';
 import edit_icon from './../../images/edit.png';
@@ -19,7 +19,7 @@ import { uid } from "react-uid";
 import { fiveStarChance, fourStarChance, threeStarChance } from "./../../constants";
 
 
-class GachaSmnList extends BaseReactComponent {
+class GachaSmnList extends React.Component {
 
     state = {
         threeStarsList: [],
@@ -28,13 +28,10 @@ class GachaSmnList extends BaseReactComponent {
         isLoaded: false
     };
 
-    filterState({ currUser }) {
-        return { currUser };
-    }
-
     async componentDidMount() {
         const { gacha } = this.props;
 
+        /**TODO: handle when request fails */
         const getAllCharasRes = await getAllCharasInGacha(gacha._id);
         if (!getAllCharasRes) {
             console.log("Failed to get charas of gacha.")
@@ -42,14 +39,15 @@ class GachaSmnList extends BaseReactComponent {
         }
 
         this.setState({
-            threeStarsList: getAllCharasRes.filter(chara => chara.rarity == 3),
-            fourStarsList: getAllCharasRes.filter(chara => chara.rarity == 4),
-            fiveStarsList: getAllCharasRes.filter(chara => chara.rarity == 5),
+            threeStarsList: getAllCharasRes.filter(chara => chara.rarity === 3),
+            fourStarsList: getAllCharasRes.filter(chara => chara.rarity === 4),
+            fiveStarsList: getAllCharasRes.filter(chara => chara.rarity === 5),
             isLoaded: true
         });
       
     }
 
+    /**TODO: handle when gacha/properties is empty */
     render() {
         const { gacha, handleExitWindowClick } = this.props;
         const { isLoaded, threeStarsList, fourStarsList, fiveStarsList } = this.state;

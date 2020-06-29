@@ -34,6 +34,7 @@ class Inventory extends BaseReactComponent {
     }
 
     async componentDidMount() {
+        /**TODO: redirect back to login if session is not there */
         const locationState = this.props.location.state;
         console.log(locationState);
         const readSessRes = await updateSession();
@@ -52,7 +53,6 @@ class Inventory extends BaseReactComponent {
     }
 
     showCharaImmediately = (locationState) => {
-        console.log("hey")
         this.setState({
             charaProfileVisible: true,
             charaProfile: locationState.showChara
@@ -68,13 +68,14 @@ class Inventory extends BaseReactComponent {
             charaReqs.push(getCharaById(currUser.inventory[i]._id));
         }
 
+        /**TODO: handle failed requests...? */
         Promise.all(charaReqs).then(res => {
-            console.log(res);
             this.setState({
                 charaList: res,
                 isLoaded: true
             });
         }).catch((err) => {
+            /**TODO: handle catch error */
             console.log("Error with Promise.all in fetchInv: " + err);
         })
     }
@@ -108,12 +109,12 @@ class Inventory extends BaseReactComponent {
 
                 <div className="mainBodyContainer">
                     {  charaProfileVisible ?
-                                    <CharaProfile className="charaProf" 
-                                    chara={charaProfile} 
-                                    handleExitWindowClick={this.handleExitWindowClick}
-                                    /> : 
-                                    null
-                                }
+                        <CharaProfile className="charaProf"
+                            chara={charaProfile}
+                            handleExitWindowClick={this.handleExitWindowClick}
+                        /> :
+                        null
+                    }
                     <div className="mainBody">
                         <div className="pageTitle">Inventory</div>
                         <div>

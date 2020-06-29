@@ -9,6 +9,7 @@ import { minUserLength, maxUserLength, minEmailLength,
     minPassLength, maxPassLength } from '../../constants';
 
 //images
+/**TODO: replace image placeholder */
 import logo from './../../images/logo_placeholder.png';
 
 
@@ -58,6 +59,7 @@ class Signup extends React.Component {
         return { msg: "Input validated.", success: true }
     }
 
+    /**TODO: use alert dialogue */
     authSignup = async () => {
         //authenticate
 
@@ -93,6 +95,8 @@ class Signup extends React.Component {
                     signupSuccessful: signupRes.signupSuccess
                 });
 
+                /**TODO: put login request here */
+
                 if (!signupRes.signupSuccess) {
                     alert("Failed to sign up: " + signupRes.msg);
                 }
@@ -126,6 +130,7 @@ class Signup extends React.Component {
             );
         }
 
+        /**TODO: add alert dialogue */
         return(
             <div className='center'>
                 <img id='logo' src={logo} alt='logo'/>

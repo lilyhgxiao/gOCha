@@ -4,12 +4,14 @@ import { uid } from "react-uid";
 import "./styles.css";
 
 //images
+/**TODO: replace image placeholders */
 import stat_filled from './../../images/stat_filled.png';
 import stat_unfilled from './../../images/stat_unfilled.png';
 
 class StarRarityDisplay extends React.Component {
 
   render() {
+    /**TODO: handle if value is empty */
     const { value } = this.props;
 
     let statIcons = [];

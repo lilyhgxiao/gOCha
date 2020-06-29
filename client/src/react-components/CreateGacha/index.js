@@ -17,6 +17,7 @@ import { updateSession } from "../../actions/loginHelpers";
 import { createNewGacha } from "../../actions/gachaHelpers";
 
 //images
+/**TODO: replace placeholder images */
 import dotted_line_box from './../../images/dotted_line_box_placeholder.png';
 
 //Importing constants
@@ -48,6 +49,7 @@ class CreateGacha extends BaseReactComponent {
     }
 
     async componentDidMount() {
+        /**TODO: redirect back to login if session is not there */
         const readSessRes = await updateSession();
         if (readSessRes) {
             if (readSessRes.currUser) {
@@ -113,11 +115,13 @@ class CreateGacha extends BaseReactComponent {
             stats: stats
         }, this.resizeMainContainer);
     }
-
+    
+    /**TODO: resize main container...? */
     validateInput = async () => {
         const { name, desc, stats, coverPicRaw, iconPicRaw, currUser } = this.state;
         let success = true;
         const msg = [];
+        //validate gacha name length
         if (name.length < minGachaNameLength) {
             msg.push("Your gacha name is too short.");
             msg.push(<br/>)
@@ -132,6 +136,7 @@ class CreateGacha extends BaseReactComponent {
             msg.push(<br/>)
             success = false;
         } 
+        //validate gacha desc length
         if (maxGachaDescLength - desc.length < 0) {
             msg.push("Your description is too long.");
             msg.push(<br/>)
@@ -139,6 +144,7 @@ class CreateGacha extends BaseReactComponent {
             msg.push(<br/>)
             success = false;
         }
+        //validate if pictures uploaded or not
         if (coverPicRaw === null) {
             msg.push("Please upload a cover picture.");
             msg.push(<br/>)
@@ -149,9 +155,10 @@ class CreateGacha extends BaseReactComponent {
             msg.push(<br/>)
             success = false;
         }
+        //validate stat names are not blank
         let i;
         for (i = 0; i < stats.length; i++) {
-            if (stats[i]==="") {
+            if (/\S/.test(stats[i])) {
                 msg.push("Please don't leave any stat names blank.");
                 msg.push(<br/>)
                 msg.push("Delete them if needed.");
@@ -169,6 +176,7 @@ class CreateGacha extends BaseReactComponent {
                 coverPic: coverPicRaw,
                 iconPic: iconPicRaw
             };
+            /**TODO: handle if create gacha fails */
             const createGachaRes = await createNewGacha(createGachaBody);
             if (createGachaRes) {
                 if (createGachaRes.gacha) {

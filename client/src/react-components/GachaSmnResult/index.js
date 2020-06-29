@@ -19,6 +19,7 @@ import { summonChara, incCurrency } from "../../actions/userhelpers";
 import { summonCost, threeStarSilvers, fourStarSilvers, fiveStarSilvers } from "./../../constants";
 
 //images
+/**TODO: replace placeholder images */
 import main_placeholder from './../../images/dashboard_placeholder.jpg';
 import exit_icon from './../../images/exit.png';
 import edit_icon from './../../images/edit.png';
@@ -42,6 +43,7 @@ class GachaSmnResult extends BaseReactComponent {
     }
 
     async componentDidMount() {
+        /**TODO: redirect back to login if session is not there */
         const locationState = this.props.location.state;
         const readSessRes = await updateSession();
         if (readSessRes) {
@@ -68,6 +70,7 @@ class GachaSmnResult extends BaseReactComponent {
                     });
                     if (compareResult === -1) {
                         //if the user doesnt have the character, add it to inventory
+                        /**TODO: handle when request fails */
                         const summonCharaRes = await summonChara(currUser._id, charaToAdd, summonCost);
                         if (summonCharaRes) {
                             this.setState({
@@ -89,6 +92,7 @@ class GachaSmnResult extends BaseReactComponent {
                             silversToAdd = 0;
                         }
                         if (silversToAdd > 0) {
+                            /**TODO: handle when request fails */
                             const addSilversRes = await incCurrency(currUser._id, summonCost * (-1), silversToAdd);
                             if (addSilversRes) {
                                 this.setState({
@@ -111,6 +115,8 @@ class GachaSmnResult extends BaseReactComponent {
 
         const { isLoaded, chara, currUser, alreadyHave, silversReceived } = this.state;
 
+        /**TODO: handle when props empty */
+        /**TODO: replace placeholder image with actual image */
         return (
             <div className="App">
                 <Header username={currUser ? currUser.username : ""}

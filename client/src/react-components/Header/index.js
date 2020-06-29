@@ -23,11 +23,13 @@ class Header extends React.Component {
         logout();
     };
 
+    /**search function to be coming? */
     search = () => {
 
     }
 
     render() {
+        /**TODO: handle when props are empty */
         const { starFrags, silvers, username } = this.props;
 
         return (

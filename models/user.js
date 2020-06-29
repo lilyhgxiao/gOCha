@@ -13,6 +13,11 @@ const { ObjectID } = require("mongodb");
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
 
+/**TODO: change all id comparisons to use toString() */
+/**TODO: delete most console.log */
+/**TODO: have all catch errors send the error */
+/**TODO: check that all properties respect each other */
+
 const CharaMiniSchema = mongoose.Schema({
     _id: { 
         type: ObjectID, 
@@ -149,7 +154,7 @@ exports.createUser = async function(req, res) {
 		const result = await user.save();
 		res.status(200).send(result);
 	} catch (err) {
-		res.status(400).send(err)
+		res.status(400).send(err);
 	}
 };
 
@@ -166,12 +171,12 @@ exports.getUserById = async function(req, res) {
     const id = req.params.id;
 
     //check for a valid mongodb id
-	if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+	if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
 	
 	try {
 		const result = await User.findById(id).exec();
 		if (!result) {
-            res.status(404).send();
+            res.status(404).send(/**TODO: send error */);
         } else {
             res.status(200).send(result);
         }
@@ -186,7 +191,7 @@ exports.getUserByUsername = async function(req, res) {
 	try {
 		const result = await User.findOne({ username: username }).exec();
 		if (!result) {
-            res.status(404).send();
+            res.status(404).send(/**TODO: send error */);
         } else {
             res.status(200).send(result);
         }
@@ -201,7 +206,7 @@ exports.getUserByEmail = async function(req, res) {
 	try {
 		const result = await User.findOne({ email: email }).exec();
 		if (!result) {
-            res.status(404).send();
+            res.status(404).send(/**TODO: send error */);
         } else {
             res.status(200).send(result);
         }
@@ -213,26 +218,26 @@ exports.getUserByEmail = async function(req, res) {
 
 exports.updateUserInfo = async function(req, res) {
     if (!req.session.user) {
-		res.status(401).send(); //send 401 unauthorized error if not logged in
+		res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
 		return;
     }
     //get id from the url
     const id = req.params.id;
 
     //check for a valid mongodb id
-	if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+	if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
 	
 	try {
 		//find user by id
 		const user = await User.findById(id).exec();
 		//if user doesn't exist, return 404
 		if (!user) {
-			res.status(404).send();
+			res.status(404).send(/**TODO: send error */);
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
-		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
-			res.status(401).send();
+		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
+			res.status(401).send(/**TODO: send error */);
 			return;
 		}
 
@@ -251,7 +256,7 @@ exports.updateUserInfo = async function(req, res) {
 
 		//save the user
 		const result = await user.save();
-		if (user._id == req.session.user._id) {
+		if (user._id.toString() === req.session.user._id.toString()) {
 			req.session.user = result;
 		}
 		res.status(200).send(result);
@@ -263,26 +268,26 @@ exports.updateUserInfo = async function(req, res) {
 
 exports.incCurrency = async function(req, res) {
 	if (!req.session.user) {
-		res.status(401).send(); //send 401 unauthorized error if not logged in
+		res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
 		return;
     }
     //get id from the url
     const id = req.params.id;
 
     //check for a valid mongodb id
-	if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+	if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
 	
 	try {
 		//find user by id
 		const user = await User.findById(id).exec();
 		//if user doesn't exist, return 404
 		if (!user) {
-			res.status(404).send();
+			res.status(404).send(/**TODO: send error */);
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
-		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
-			res.status(401).send();
+		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
+			res.status(401).send(/**TODO: send error */);
 			return;
 		}
 
@@ -293,7 +298,7 @@ exports.incCurrency = async function(req, res) {
 
 		//update user
 		const result = await User.findByIdAndUpdate(id, updateQuery, {new: true}).exec();
-		if (user._id == req.session.user._id) {
+		if (user._id.toString() === req.session.user._id.toString()) {
 			req.session.user = result;
 		}
 		res.status(200).send(result);
@@ -305,28 +310,26 @@ exports.incCurrency = async function(req, res) {
 
 exports.summonChara = async function(req, res) {	
 	if (!req.session.user) {
-		console.log(req.session)
-		res.status(401).send(); //send 401 unauthorized error if not logged in
+		res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
 		return;
     }
     //get id from the url
     const id = req.params.id;
 
     //check for a valid mongodb id
-	if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+	if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
 	
 	try {
 		//find user by id
 		const user = await User.findById(id).exec();
 		//if user doesn't exist, return 404
 		if (!user) {
-			res.status(404).send();
+			res.status(404).send(/**TODO: send error */);
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
-		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
-			console.log(user._id, req.session.user._id)
-			res.status(401).send();
+		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
+			res.status(401).send(/**TODO: send error */);
 			return;
 		}
 
@@ -383,13 +386,13 @@ exports.summonChara = async function(req, res) {
 		}
 		
 		if (!requestValid) {
-			res.status(400).send(); //bad request
+			res.status(400).send(/**TODO: send error */); //bad request
 			return;
 		}
 
 		//update user
 		const result = await User.findByIdAndUpdate(id, updateQuery, {new: true}).exec();
-		if (user._id == req.session.user._id) {
+		if (user._id.toString() === req.session.user._id.toString()) {
 			req.session.user = result;
 		}
 		res.status(200).send(result);
@@ -402,26 +405,26 @@ exports.summonChara = async function(req, res) {
 
 exports.pushUserInfo = async function(req, res) {
 	if (!req.session.user) {
-		res.status(401).send(); //send 401 unauthorized error if not logged in
+		res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
 		return;
     }
     //get id from the url
     const id = req.params.id;
 
     //check for a valid mongodb id
-	if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+	if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
 	
 	try {
 		//find user by id
 		const user = await User.findById(id).exec();
 		//if user doesn't exist, return 404
 		if (!user) {
-			res.status(404).send();
+			res.status(404).send(/**TODO: send error */);
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
-		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
-			res.status(401).send();
+		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
+			res.status(401).send(/**TODO: send error */);
 			return;
 		}
 
@@ -433,7 +436,7 @@ exports.pushUserInfo = async function(req, res) {
 
 		//update user
 		const result = await User.findByIdAndUpdate(id, {$push: updateQuery}, {new: true}).exec();
-		if (user._id == req.session.user._id) {
+		if (user._id.toString() === req.session.user._id.toString()) {
 			req.session.user = result;
 		}
 		res.status(200).send(result);
@@ -445,26 +448,26 @@ exports.pushUserInfo = async function(req, res) {
 
 exports.pullUserInfo = async function(req, res) {
 	if (!req.session.user) {
-		res.status(401).send(); //send 401 unauthorized error if not logged in
+		res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
 		return;
     }
     //get id from the url
     const id = req.params.id;
 
     //check for a valid mongodb id
-	if (!ObjectID.isValid(id)) res.status(404).send(); //send 404 not found error if id is invalid
+	if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
 	
 	try {
 		//find user by id
 		const user = await User.findById(id).exec();
 		//if user doesn't exist, return 404
 		if (!user) {
-			res.status(404).send();
+			res.status(404).send(/**TODO: send error */);
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
-		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
-			res.status(401).send();
+		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
+			res.status(401).send(/**TODO: send error */);
 			return;
 		}
 
@@ -476,7 +479,7 @@ exports.pullUserInfo = async function(req, res) {
 
 		//update user
 		const result = await User.findByIdAndUpdate(id, {$pull: updateQuery}, {new: true}).exec();
-		if (user._id == req.session.user._id) {
+		if (user._id.toString() === req.session.user._id.toString()) {
 			req.session.user = result;
 		}
 		res.status(200).send(result);
@@ -488,7 +491,7 @@ exports.pullUserInfo = async function(req, res) {
 
 exports.deleteUser = async function(req, res) {
 	if (!req.session.user) {
-		res.status(401).send(); //send 401 unauthorized error if not logged in
+		res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
 		return;
 	}
 	
@@ -496,19 +499,19 @@ exports.deleteUser = async function(req, res) {
     const id = req.params.id;
 
     //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) response.status(404).send(); //send 404 not found error if id is invalid
+    if (!ObjectID.isValid(id)) response.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
 	
 	try {
 		//find user by id
 		const user = await User.findById(id).exec();
 		//if user doesn't exist, return 404
 		if (!user) {
-			res.status(404).send();
+			res.status(404).send(/**TODO: send error */);
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
-		if (user._id != req.session.user._id && !req.session.user.isAdmin) {
-			res.status(401).send();
+		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
+			res.status(401).send(/**TODO: send error */);
 			return;
 		}
 
@@ -555,10 +558,10 @@ async function checkIfCharaValid(chara) {
 		if (res[0] === null || res[1] === null || res[2] === null) {
 			return { valid: false, msg: "Either the character, gacha or creator does not exist." };
 		}
-		if (res[0].gacha != chara.gacha) {
+		if (res[0].gacha.toString() !== chara.gacha.toString()) {
 			return { valid: false, msg: "The gacha on the rolled character does not match the actual character." };
 		}
-		if (res[0].creator != chara.creator) {
+		if (res[0].creator.toString() !== chara.creator.toString()) {
 			return { valid: false, msg: "The creator on the rolled character does not match the actual character." };
 		}
 		return { valid: true, msg: "The character is valid." };

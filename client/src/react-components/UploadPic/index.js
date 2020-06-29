@@ -6,10 +6,8 @@ import "./styles.css";
 // Importing components
 
 
-//Importing helper functions
-import { uploadFile } from "../../actions/fileHelpers";
-
 //images
+/**TODO: replace image placeholders */
 import icon_placeholder from './../../images/dashboard_placeholder.jpg';
 import edit_icon from './../../images/edit.png';
 import dotted_line_box from './../../images/dotted_line_box_placeholder.png';
@@ -58,10 +56,6 @@ class UploadPic extends React.Component {
                 }
             }
         }
-    }
-
-    testImageUpload = async (file) => {
-        
     }
 
     render() {
