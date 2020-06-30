@@ -15,10 +15,11 @@ import AlertDialogue from "./../AlertDialogue";
 
 // Importing actions/required methods
 import { updateSession } from "../../actions/loginHelpers";
-import { getGachaById } from "../../actions/gachaHelpers";
+import { getGachaById, editGacha, addStatsToGacha, updateStatsOnGacha, deleteStatsOnGacha } from "../../actions/gachaHelpers";
 import { getUserById } from "../../actions/userhelpers";
 
 //images
+/**TODO: replace image placeholders */
 import dotted_line_box from './../../images/dotted_line_box_placeholder.png';
 
 //Importing constants
@@ -80,13 +81,14 @@ class EditGacha extends BaseReactComponent {
                 //do not have permission. redirect to 401 error page
                 return;
             }
+            const oldStats = JSON.parse(JSON.stringify(gacha.stats));
             this.setState({
                 gacha: gacha,
                 coverPic: gacha.coverPic,
                 iconPic: gacha.iconPic,
                 name: gacha.name,
                 desc: gacha.desc,
-                oldStats: gacha.stats,
+                oldStats: oldStats,
                 active: gacha.active,
                 isGachaLoaded: true
             }, this.resizeMainContainer);
@@ -181,7 +183,7 @@ class EditGacha extends BaseReactComponent {
     }
 
     validateInput = async () => {
-        const { name, desc, stats, coverPicRaw, iconPicRaw, currUser } = this.state;
+        const { name, desc, newStats, oldStats, coverPicRaw, iconPicRaw, currUser } = this.state;
         let success = true;
         const msg = [];
         if (name.length < minGachaNameLength) {
@@ -206,8 +208,9 @@ class EditGacha extends BaseReactComponent {
             success = false;
         }
         let i;
-        for (i = 0; i < stats.length; i++) {
-            if (stats[i]==="") {
+        for (i = 0; i < newStats.length; i++) {
+            if (!(/\S/.test(newStats[i]))) {
+                console.log(newStats[i])
                 msg.push("Please don't leave any stat names blank.");
                 msg.push(<br/>)
                 msg.push("Delete them if needed.");
@@ -217,30 +220,20 @@ class EditGacha extends BaseReactComponent {
             }   
         }
         if (success === true) {
-            const createGachaBody = {
-                name: name,
-                desc: desc,
-                stats: stats,
-                creator: currUser._id,
-                coverPic: coverPicRaw,
-                iconPic: iconPicRaw
-            };
-            /*const createGachaRes = await createNewGacha(createGachaBody);
-            if (createGachaRes) {
-                if (createGachaRes.gacha) {
-                    this.setState({
-                        alert: {
-                            title: "Gacha created successfully!",
-                            text: ["Would you like to edit it right away?"],
-                            yesNo: true,
-                            handleYes: this.redirectGacha.bind(this, createGachaRes.gacha._id),
-                            handleNo: this.redirectGacha.bind(this, createGachaRes.gacha._id),
-                            yesText: "Go to Edit",
-                            noText: "Go to Summon"
-                        }
-                    });
-                }
-            }*/
+            for (i = 0; i < oldStats.length; i++) {
+                if (!(/\S/.test(oldStats[i].name))) {
+                    console.log(oldStats[i])
+                    msg.push("Please don't leave any stat names blank.");
+                    msg.push(<br/>)
+                    msg.push("Delete them if needed.");
+                    msg.push(<br/>)
+                    success = false;
+                    break;
+                }   
+            }
+        }
+        if (success === true) {
+            this.editGacha();
         } else {
             this.setState({
                 alert: {
@@ -253,40 +246,72 @@ class EditGacha extends BaseReactComponent {
     }
 
     editGacha = async () => {
+        const success = true;
         const { name, desc, active, oldStats, newStats, coverPicRaw, iconPicRaw, currUser, gacha } = this.state;
+        console.log(oldStats);
         const editGachaBody = {
             name: name,
             desc: desc,
             active: active
         };
-        if (coverPicRaw) editGachaBody.coverPicRaw = coverPicRaw;
-        if (iconPicRaw) editGachaBody.coverPicRaw = iconPicRaw;
+        if (coverPicRaw) editGachaBody.coverPic = { oldURL: gacha.coverPic, raw: coverPicRaw };
+        if (iconPicRaw) editGachaBody.iconPic = { oldURL: gacha.iconPic, raw: iconPicRaw };
+
+        const patchGachaReq = await editGacha(gacha._id, editGachaBody);
+        /**TODO: handle response */
+        if (!patchGachaReq.gacha) {
+            console.log("something went wrong")
+            success = false;
+            return;
+        }
 
         const editStatsReqs = [];
 
         let i;
         let checkStat;
-        for (i = 0; i < gacha.oldStats; i++) {
-            checkStat = oldStats.filter(stat => stat._id.toString() === gacha.oldStats[i]._id.toString());
+        const deleteStats = []
+        for (i = 0; i < gacha.stats.length; i++) {
+            checkStat = oldStats.filter(stat => stat._id.toString() === gacha.stats[i]._id.toString());
+            console.log(checkStat)
+            console.log(gacha.stats[i])
             if (checkStat.length === 0) {
-                editStatsReqs.push(/**TODO: delete the stat with that id */)
+                deleteStats.push(gacha.stats[i]);
             } else {
-                if (checkStat[0].name !== gacha.oldStats[i].name) {
-                    editStatsReqs.push(/**TODO: update the stat  with that id */)
+                if (checkStat[0].name !== gacha.stats[i].name) {
+                    console.log(checkStat[0])
+                    editStatsReqs.push(await updateStatsOnGacha(gacha._id, {stats: checkStat[0]}))
                 }
             }
         }
+        if (deleteStats.length > 0) {
+            console.log(deleteStats)
+            editStatsReqs.push(await deleteStatsOnGacha(gacha._id, { stats: deleteStats }));
+        }
         if (newStats.length > 0) {
-            editStatsReqs.push(/**TODO: add all new stats */)
+            editStatsReqs.push(await addStatsToGacha(gacha._id, { stats: newStats }));
         }
 
-        Promise.all(editStatsReqs).then(res => {
-            /**TODO: send request to patch gacha */
+        editStatsReqs.forEach(res => {
+            /**TODO: check res and handle if any returned null */
+            if (res === null) {
+                const success = false;
+                console.log("A stat was not edited properly.")
+            }
+        });
 
-        }).catch(err => {
-            console.log("Promise all failed in editGacha " + err);
-            /**TODO: add error checking here */
-        })
+        if (success) {
+            this.setState({
+                alert: {
+                    title: "Gacha saved successfully!"
+                }
+            });
+        } else {
+            this.setState({
+                alert: {
+                    text: ["Something went wrong..."]
+                }
+            });
+        }
     }
 
     redirectGacha = (id) => {

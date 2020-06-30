@@ -30,3 +30,11 @@ export const convertJSON = (obj) => {
     }
     return newObj;
 }
+
+export const coverFileName = (gachaId, file, version) => {
+    return "gacha_images/" + gachaId + "_coverPic_v" + version + (file.type).replace("image/", ".");
+}
+
+export const iconFileName = (gachaId, file, version) => {
+    return "gacha_images/" + gachaId + "_iconPic_v" + version + (file.type).replace("image/", ".");
+}

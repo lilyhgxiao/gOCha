@@ -34,7 +34,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const {
     generateGetUrl,
-    generatePutUrl
+    generatePutUrl,
+    deleteAWSObject
   } = require('./AWSPresigner');
 
   /**TODO: change all id comparisons to use toString() */
@@ -246,6 +247,15 @@ app.get('/generate-put-url', (req, res) => {
         .catch(err => {
             res.send(err);
         });
+});
+
+app.delete('/delete-object', (req, res) => {
+    const { Key } = req.query;
+    deleteAWSObject(Key).then(data => {
+        res.status(200).send({data});
+    }).catch(err => {
+        res.status(500).send(err);
+    })
 });
 
 /*** Webpage routes below **********************************/

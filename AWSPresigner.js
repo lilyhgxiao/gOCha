@@ -54,5 +54,20 @@ function generatePutUrl(Key, ContentType) {
   });
 }
 
+function deleteAWSObject(Key) {
+  return new Promise((resolve, reject) => {
+    // Note Bucket is retrieved from the env variable above.
+    const params = { Bucket, Key };
+  
+    s3.deleteObject(params, function(err, data) {
+      if (err) {
+        reject(err);
+      }
+      // If there is no errors we can send back the pre-signed PUT URL
+      resolve(data);
+      });
+    });
+}
+
 // Finally, we export the methods so we can use it in our main application.
-module.exports = { generateGetUrl, generatePutUrl };
+module.exports = { generateGetUrl, generatePutUrl, deleteAWSObject };

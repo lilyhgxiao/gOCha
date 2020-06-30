@@ -158,7 +158,7 @@ class CreateGacha extends BaseReactComponent {
         //validate stat names are not blank
         let i;
         for (i = 0; i < stats.length; i++) {
-            if (/\S/.test(stats[i])) {
+            if (!(/\S/.test(stats[i]))) {
                 msg.push("Please don't leave any stat names blank.");
                 msg.push(<br/>)
                 msg.push("Delete them if needed.");

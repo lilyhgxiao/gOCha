@@ -301,6 +301,7 @@ exports.addStats = async function(req, res) {
                 charaUpdateQuery.stats.push({ name: req.body.stats[i], value: 0, _id: statId });
             }
         }
+        /**TODO: if no stats, 400 error */
 
         //save stat to gacha
         const result = await gacha.save();
@@ -322,7 +323,10 @@ exports.updateStat = async function(req, res) {
     const id = req.params.id;
 
     //check for a valid mongodb id
-    if (!ObjectID.isValid(id) || !ObjectID.isValid(req.body._id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
+    if (!ObjectID.isValid(id)) {
+        res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
+        return;
+    }
 
     try {
         //find gacha by id
@@ -340,10 +344,15 @@ exports.updateStat = async function(req, res) {
 
         //prepare to update stat for characters and gacha
         const charaUpdateQuery = { "stats.$.name": "" };
-        if (req.body) {
-            charaUpdateQuery["stats.$.name"] = req.body.name;
-            const statIndex = gacha.stats.findIndex(stat => stat._id.toString() === req.body._id.toString());
-            gacha.stats[statIndex].name = req.body.name;
+        if (req.body.stats) {
+            if (!ObjectID.isValid(req.body.stats._id)) {
+                res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
+                return
+            }
+            charaUpdateQuery["stats.$.name"] = req.body.stats.name;
+            /**TODO: if stat doesnt exist, send 404 error */
+            const statIndex = gacha.stats.findIndex(stat => stat._id.toString() === req.body.stats._id.toString());
+            gacha.stats[statIndex].name = req.body.stats.name;
         } else {
             res.status(400).send(/**TODO: send error */);
             return;
@@ -352,7 +361,7 @@ exports.updateStat = async function(req, res) {
         //save stat to gacha
         const result = await gacha.save();
         //save stat to all characters in gacha
-        const writeResult = await charaModel.Chara.updateMany({gacha: id, "stats._id": req.body._id }, {$set: charaUpdateQuery }).exec();
+        const writeResult = await charaModel.Chara.updateMany({gacha: id, "stats._id": req.body.stats._id }, {$set: charaUpdateQuery }).exec();
         res.status(200).send({gacha: result, charaWriteResult: writeResult});
 
     } catch (err) {
@@ -390,6 +399,7 @@ exports.deleteStats = async function(req, res) {
             charaUpdateQuery["stats"] = { _id: { $in: req.body.stats } };
             req.body.stats.forEach(statToDelete => { gacha.stats = gacha.stats.filter(stat => statToDelete._id.toString() !== stat._id.toString()) })
         }
+        /**TODO: 400 error if req.body.stats does not exist */
 
         //save gacha
         const result = await gacha.save();
