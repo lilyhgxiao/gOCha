@@ -1,0 +1,35 @@
+table.charaEditLinkTable, tr.charaEditLinkTable, td.charaEditLinkTable, th.charaEditLinkTable {
+    border: 1px solid;
+    border-collapse: collapse;
+    vertical-align: top;
+}
+
+table.charaEditLinkTable {
+    display: inline-block;
+}
+
+.charaEditTableCell {
+    height: 400px;
+    overflow-y: scroll;
+}
+
+.gachaCharaListContainer {
+    text-align: center;
+}
+
+.charaEditAddNewButton {
+    float: right;
+    margin-right: 15px;
+}
+
+.charaEditContTable {
+    display: inline-block;
+}
+
+.charaEditContTable td {
+    vertical-align: top;
+}
+
+.charaEditTabButton {
+    margin: 10px;
+}

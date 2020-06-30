@@ -12,11 +12,13 @@ import Header from "./../Header";
 import BaseReactComponent from "./../BaseReactComponent";
 import UploadPic from "./../UploadPic";
 import AlertDialogue from "./../AlertDialogue";
+import CharaEditTable from "./../CharaEditTable";
 
 // Importing actions/required methods
 import { updateSession } from "../../actions/loginHelpers";
 import { getGachaById, editGacha, addStatsToGacha, updateStatsOnGacha, deleteStatsOnGacha } from "../../actions/gachaHelpers";
 import { getUserById } from "../../actions/userhelpers";
+import { getAllCharasInGacha } from "../../actions/charaHelpers";
 
 //images
 /**TODO: replace image placeholders */
@@ -39,6 +41,9 @@ class EditGacha extends BaseReactComponent {
         desc: "",
         oldStats: [],
         newStats: [],
+        threeStars: [],
+        fourStars: [],
+        fiveStars: [],
         active: false,
         toSummon: false
     }
@@ -91,10 +96,27 @@ class EditGacha extends BaseReactComponent {
                 oldStats: oldStats,
                 active: gacha.active,
                 isGachaLoaded: true
-            }, this.resizeMainContainer);
+            }, this.fetchCharas);
+
         } catch (err) {
             console.log("Error in fetchGachaInfo: " + err);
         }
+    }
+
+    fetchCharas = async () => {
+        const { gacha } = this.state;
+        const getAllCharasRes = await getAllCharasInGacha(gacha._id);
+        if (!getAllCharasRes) {
+            console.log("Failed to get charas of gacha.")
+            return;
+        }
+
+        this.setState({
+            threeStars: getAllCharasRes.filter(chara => chara.rarity === 3),
+            fourStars: getAllCharasRes.filter(chara => chara.rarity === 4),
+            fiveStars: getAllCharasRes.filter(chara => chara.rarity === 5),
+            isLoaded: true
+        ,}, this.resizeMainContainer);
     }
 
     handleInputChange = (event) => {
@@ -183,7 +205,7 @@ class EditGacha extends BaseReactComponent {
     }
 
     validateInput = async () => {
-        const { name, desc, newStats, oldStats, coverPicRaw, iconPicRaw, currUser } = this.state;
+        const { name, desc, newStats, oldStats } = this.state;
         let success = true;
         const msg = [];
         if (name.length < minGachaNameLength) {
@@ -247,7 +269,7 @@ class EditGacha extends BaseReactComponent {
 
     editGacha = async () => {
         const success = true;
-        const { name, desc, active, oldStats, newStats, coverPicRaw, iconPicRaw, currUser, gacha } = this.state;
+        const { name, desc, active, oldStats, newStats, coverPicRaw, iconPicRaw, gacha } = this.state;
         console.log(oldStats);
         const editGachaBody = {
             name: name,
@@ -333,7 +355,8 @@ class EditGacha extends BaseReactComponent {
 
     render() {
         const { history } = this.props;
-        const { currUser, gacha, alert, coverPic, iconPic, name, desc, oldStats, newStats, toSummon, active } = this.state;
+        const { currUser, gacha, alert, coverPic, iconPic, name, desc, oldStats, newStats, 
+            toSummon, active, threeStars, fourStars, fiveStars } = this.state;
 
         if (toSummon) {
             return (
@@ -450,6 +473,7 @@ class EditGacha extends BaseReactComponent {
                                     </tbody>
                                 </table>
                             </div>
+                            <CharaEditTable page={this} gacha={gacha} threeStars={threeStars} fourStars={fourStars} fiveStars={fiveStars}/>
                             <button className="gachaSaveButton" onClick={this.validateInput}>Save</button>
                         </div>
                     </div>

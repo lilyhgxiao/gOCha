@@ -1,0 +1,22 @@
+.charaEditLinkContainer {
+    background-color: #E8EBF7;
+}
+
+.charaEditLinkContainer:hover {
+    background-color: #e3b5be;
+}
+
+.charaEditLinkIcon {
+    height: 100px;
+    width: 100px;
+}
+
+.charaEditLinkName {
+    height: 100px;
+    width: 200px;
+    display: -webkit-box;
+    word-wrap: break-word;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+}

@@ -8,6 +8,8 @@ import icon_placeholder from './../../images/dashboard_placeholder.jpg';
 /**TODO: handle when chara  or chara properties is empty */
 
 class CharaLink extends React.Component {
+
+  /**TODO: move handle charalink click here..? */
   render() {
     const { chara, handleCharaLinkClick } = this.props;
 
