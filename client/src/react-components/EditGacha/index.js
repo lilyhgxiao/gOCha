@@ -377,7 +377,8 @@ class EditGacha extends BaseReactComponent {
                     { alert ? 
                         <AlertDialogue parent={this} title={alert.title} text={alert.text} yesNo={alert.yesNo} 
                         handleYes={alert.handleYes} handleNo={alert.handleNo} handleOk={alert.handleOk} 
-                        yesText={alert.yesText} noText={alert.noText} okText={alert.okText} image={alert.image}/> :
+                        yesText={alert.yesText} noText={alert.noText} okText={alert.okText} image={alert.image}
+                        checkbox={alert.checkbox} checkboxText={alert.checkboxText}/> :
                         null
                     }
                     <div className="mainBody">

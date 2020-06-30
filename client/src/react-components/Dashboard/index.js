@@ -52,7 +52,8 @@ class Dashboard extends BaseReactComponent {
             alert: {
                 title: "Yep",
                 yesNo: true,
-                image: {src: dashboard_placeholder, alt:"Dashboard Placeholder"}
+                image: {src: dashboard_placeholder, alt:"Dashboard Placeholder"},
+                checkbox: true
             }
         })
     }
@@ -72,7 +73,8 @@ class Dashboard extends BaseReactComponent {
                     { alert ? 
                         <AlertDialogue parent={this} title={alert.title} text={alert.text} yesNo={alert.yesNo} 
                         handleYes={alert.handleYes} handleNo={alert.handleNo} handleOk={alert.handleOk} 
-                        yesText={alert.yesText} noText={alert.noText} okText={alert.okText} image={alert.image}/> :
+                        yesText={alert.yesText} noText={alert.noText} okText={alert.okText} image={alert.image}
+                        checkbox={alert.checkbox} checkboxText={alert.checkboxText}/> :
                         null
                     }
                     <div className="mainBody">

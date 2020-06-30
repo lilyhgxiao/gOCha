@@ -8,15 +8,36 @@ import exit_icon from './../../images/exit.png';
 
 class AlertDialogue extends React.Component {
 
+    state = {
+        checked: false
+    };
+
     handleExit = (parent) => {
         parent.setState({
             alert: null
         });
     }
 
+    handleCheck = () => {
+        this.setState({
+            checked: !this.state.checked
+        });
+    }
+
+    handleChoiceWithCheck = (handleFunction) => {
+        const {checkbox} = this.props;
+        const {checked} = this.state;
+
+        if (checkbox) {
+            handleFunction(checked);
+        } else {
+            handleFunction();
+        }
+    }
+
     render() {
         const { parent, title, text, yesNo, handleYes, handleNo, handleOk, 
-            yesText, noText, okText, image } = this.props;
+            yesText, noText, okText, image, checkbox, checkboxText } = this.props;
 
         return (
             <div className="alertDialogueContainer">
@@ -38,14 +59,31 @@ class AlertDialogue extends React.Component {
                             text.map((textOrHTML, index) => <span key={index}>{textOrHTML}</span>)
                             : "Alert dialogue text goes here" }
                         </div>
+                        {checkbox ?
+                        <div className="alertCheckbox">
+                            <input type="checkbox" onClick={this.handleCheck}/>{checkboxText ? checkboxText : "Checkbox text goes here"}
+                        </div> : null
+                        }
                     </div>
                     { yesNo ?
                         <div className="alertDialogueButtonContainer">
-                            <button className="alertDialogueButton" onClick={handleYes ? handleYes : this.handleExit.bind(this, parent)}>{yesText ? yesText : "Yes"}</button> 
-                            <button className="alertDialogueButton" onClick={handleNo ? handleNo : this.handleExit.bind(this, parent)}>{noText ? noText : "No"}</button>
+                            <button
+                                className="alertDialogueButton"
+                                onClick={this.handleChoiceWithCheck.bind(this, handleYes ? handleYes : this.handleExit.bind(this, parent))}>
+                                {yesText ? yesText : "Yes"}
+                            </button> 
+                            <button 
+                                className="alertDialogueButton" 
+                                onClick={this.handleChoiceWithCheck.bind(this, handleNo ? handleNo : this.handleExit.bind(this, parent))}>
+                                    {noText ? noText : "No"}
+                            </button>
                         </div> :
                         <div className="alertDialogueButtonContainer">
-                            <button className="alertDialogueButton" onClick={handleOk ? handleOk : this.handleExit.bind(this, parent)}>{okText ? okText : "Ok"}</button>
+                            <button 
+                                className="alertDialogueButton" 
+                                onClick={this.handleChoiceWithCheck.bind(this, handleOk ? handleOk : this.handleExit.bind(this, parent))}>
+                                    {okText ? okText : "Ok"}
+                            </button>
                         </div>
                     }
                 </div>
