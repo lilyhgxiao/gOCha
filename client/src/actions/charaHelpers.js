@@ -41,3 +41,34 @@ export const getAllCharasInGacha = async (id) => {
         return null;
     }
 }
+
+export const deleteCharaById = async (id) => {
+    const url = "http://localhost:3001/charas/" + id
+    //const url = "/charas/" + id 
+
+    try {
+        const res = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            credentials: "include",
+        });
+        if (res.status === 404) { //resource not found
+            /**TODO: handle 404 error */
+            return null;
+        } else if (res.status === 401) { //unauthorized
+            /**TODO: handle 401 error */
+            return null;
+        } else if (res.status === 500) { //internal server error
+            /**TODO: handle 500 error */
+            return null;
+        }
+        const json = await res.json();
+        return json;
+    } catch (err) {
+        console.log('fetch failed, ', err);
+        return null;
+    }
+}

@@ -61,7 +61,7 @@ class AlertDialogue extends React.Component {
                         </div>
                         {checkbox ?
                         <div className="alertCheckbox">
-                            <input type="checkbox" onClick={this.handleCheck}/>{checkboxText ? checkboxText : "Checkbox text goes here"}
+                            <input type="checkbox" onClick={this.handleCheck}/>{checkboxText ? checkboxText.map((textOrHTML, index) => <span key={index}>{textOrHTML}</span>) : "Checkbox text goes here"}
                         </div> : null
                         }
                     </div>

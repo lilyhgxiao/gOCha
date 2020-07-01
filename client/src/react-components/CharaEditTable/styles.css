@@ -2,6 +2,7 @@ table.charaEditLinkTable, tr.charaEditLinkTable, td.charaEditLinkTable, th.chara
     border: 1px solid;
     border-collapse: collapse;
     vertical-align: top;
+    width: 400px;
 }
 
 table.charaEditLinkTable {

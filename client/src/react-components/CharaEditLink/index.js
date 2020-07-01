@@ -34,44 +34,69 @@ class CharaEditLink extends React.Component {
         });
     }
 
-    deleteChara = () => {
+    deleteChara = (checked) => {
         const { page, chara } = this.props;
+        const { charasToRemove, dontShowDeleteWarning } = page.state;
 
+        if (!dontShowDeleteWarning) {
+            page.setState({
+                dontShowDeleteWarning: checked
+            });
+        }
+        
         let charaList;
         if (chara.rarity === 3) {
             charaList = page.state.threeStars.filter(charaOnList => charaOnList._id.toString() !== chara._id.toString());
+            charasToRemove.push(chara._id);
             page.setState({
+                charasToRemove: charasToRemove,
                 threeStars: charaList,
                 alert: null
             });
         } else if (chara.rarity === 4) {
             charaList = page.state.fourStars.filter(charaOnList => charaOnList._id.toString() !== chara._id.toString());
+            charasToRemove.push(chara._id);
             page.setState({
+                charasToRemove: charasToRemove,
                 fourStars: charaList,
                 alert: null
             });
         } else {
             charaList = page.state.fiveStars.filter(charaOnList => charaOnList._id.toString() !== chara._id.toString());
+            charasToRemove.push(chara._id);
             page.setState({
+                charasToRemove: charasToRemove,
                 fiveStars: charaList,
                 alert: null
             });
         }
+        if (charaList.length === 0) {
+            page.setState({
+                active: false
+            });
+        }
     }
 
-    handleDeleteClick = () => {
+    handleDeleteClick = (checked) => {
         const { page, chara } = this.props;
+        const { dontShowDeleteWarning } = page.state;
 
-        page.setState({
-            alert: {
-                title: "Delete " + chara.name + "?",
-                text: ["This will not take effect until the gacha has been saved."],
-                yesNo: true,
-                yesText: "Delete",
-                noText: "Cancel",
-                handleYes: this.deleteChara
-            }
-        });
+        if (dontShowDeleteWarning) {
+            this.deleteChara(checked);
+        } else {
+            page.setState({
+                alert: {
+                    title: "Delete " + chara.name + "?",
+                    text: ["This will not take effect until the gacha has been saved."],
+                    yesNo: true,
+                    yesText: "Delete",
+                    noText: "Cancel",
+                    checkbox: true,
+                    checkboxText: ["Don't show this warning again", <br/>,"(only this edit session)"],
+                    handleYes: this.deleteChara
+                }
+            });
+        }
     }
 
     render() {

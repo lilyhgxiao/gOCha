@@ -3,7 +3,7 @@
 const log = console.log
 
 const { minCharaNameLength, maxCharaNameLength, maxCharaDescLength, 
-    maxStatsLength, maxWelcPhrLength, maxSummPhrLength } = require('../client/src/constants');
+    maxStatsLength, maxWelcPhrLength, maxSummPhrLength, summonCost } = require('../client/src/constants');
 
 const userModel = require("./user");
 const gachaModel = require("./gacha");
@@ -123,6 +123,7 @@ exports.createChara = async function(req, res) {
             res.status(404).send({msg: "The gacha this character belongs to does not exist."});
             return;
         }
+        /**TODO: if stats are not added to the character, add stats from the gacha to the character with value of 0 */
 
         //save the character
         const newChara = await chara.save();
@@ -330,7 +331,8 @@ exports.deleteChara = async function(req, res) {
         //edit gacha rarity list
         const gacha = await gachaModel.Gacha.findById(removedChara.gacha).exec();
         //pull character from the inventories of the users
-        const users = await userModel.User.updateMany({"inventory._id": removedChara._id }, { $pull: {"inventory": { "_id": removedChara._id }} }).exec();
+        const users = await userModel.User.updateMany({"inventory._id": removedChara._id }, 
+            { $pull: {"inventory": { "_id": removedChara._id } }, $inc: {"starFrags": summonCost} }).exec();
 
         //if gacha doesn't exist, don't need to edit it.
         if (!gacha) {

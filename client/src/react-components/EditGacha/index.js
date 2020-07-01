@@ -18,7 +18,7 @@ import CharaEditTable from "./../CharaEditTable";
 import { updateSession } from "../../actions/loginHelpers";
 import { getGachaById, editGacha, addStatsToGacha, updateStatsOnGacha, deleteStatsOnGacha } from "../../actions/gachaHelpers";
 import { getUserById } from "../../actions/userhelpers";
-import { getAllCharasInGacha } from "../../actions/charaHelpers";
+import { getAllCharasInGacha, deleteCharaById } from "../../actions/charaHelpers";
 
 //images
 /**TODO: replace image placeholders */
@@ -44,8 +44,10 @@ class EditGacha extends BaseReactComponent {
         threeStars: [],
         fourStars: [],
         fiveStars: [],
+        charasToRemove: [],
         active: false,
-        toSummon: false
+        toSummon: false,
+        dontShowDeleteWarning: false
     }
 
     constructor(props) {
@@ -131,9 +133,19 @@ class EditGacha extends BaseReactComponent {
     }
 
     handleActiveClick = () => {
-        this.setState({
-            active: !this.state.active
-        });
+        const { active, threeStars, fourStars, fiveStars } = this.state;
+        if (active === false && (threeStars.length === 0 || fourStars.length === 0 || fiveStars.length === 0)) {
+            this.setState({
+                alert: {
+                    text: ["You cannot set this gacha to active because", <br/>, "one of your rarity lists is empty."]
+                }
+            });
+        } else {
+            this.setState({
+                active: !this.state.active
+            });
+        }
+        
     }
 
     handleOldStatInputChange = (event) => {
@@ -269,8 +281,8 @@ class EditGacha extends BaseReactComponent {
 
     editGacha = async () => {
         const success = true;
-        const { name, desc, active, oldStats, newStats, coverPicRaw, iconPicRaw, gacha } = this.state;
-        console.log(oldStats);
+        const { name, desc, active, oldStats, newStats, coverPicRaw, iconPicRaw, charasToRemove, gacha } = this.state;
+
         const editGachaBody = {
             name: name,
             desc: desc,
@@ -291,22 +303,18 @@ class EditGacha extends BaseReactComponent {
 
         let i;
         let checkStat;
-        const deleteStats = []
+        const deleteStats = [];
         for (i = 0; i < gacha.stats.length; i++) {
             checkStat = oldStats.filter(stat => stat._id.toString() === gacha.stats[i]._id.toString());
-            console.log(checkStat)
-            console.log(gacha.stats[i])
             if (checkStat.length === 0) {
                 deleteStats.push(gacha.stats[i]);
             } else {
                 if (checkStat[0].name !== gacha.stats[i].name) {
-                    console.log(checkStat[0])
                     editStatsReqs.push(await updateStatsOnGacha(gacha._id, {stats: checkStat[0]}))
                 }
             }
         }
         if (deleteStats.length > 0) {
-            console.log(deleteStats)
             editStatsReqs.push(await deleteStatsOnGacha(gacha._id, { stats: deleteStats }));
         }
         if (newStats.length > 0) {
@@ -316,8 +324,22 @@ class EditGacha extends BaseReactComponent {
         editStatsReqs.forEach(res => {
             /**TODO: check res and handle if any returned null */
             if (res === null) {
-                const success = false;
+                success = false;
                 console.log("A stat was not edited properly.")
+            }
+        });
+
+        /**TODO: delete removed characters */
+        const removeCharaReqs = [];
+        for (i = 0; i < charasToRemove.length; i++) {
+            removeCharaReqs.push(await deleteCharaById(charasToRemove[i]));
+        }
+
+        removeCharaReqs.forEach(res => {
+            /**TODO: check res and handle if any returned null */
+            if (res === null) {
+                success = false;
+                console.log("A character was not deleted properly.")
             }
         });
 
