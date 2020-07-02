@@ -8,27 +8,43 @@ import "./styles.css";
 import stat_filled from './../../images/stat_filled.png';
 import stat_unfilled from './../../images/stat_unfilled.png';
 
-class StarRarityDisplay extends React.Component {
+class StatDisplay extends React.Component {
 
-  render() {
-    /**TODO: handle if value is empty */
-    const { value } = this.props;
+	handleClick = (value) => {
+		const { edit, index, page } = this.props;
 
-    let statIcons = [];
-    let i;
-    for (i = 0; i < value; i++) {
-        statIcons.push(<img className="statFilled" src={stat_filled} key={ uid(i)} alt={'Filled Stat Icon'}/>)
-    }
-    for (i = 0; i < 5 - value; i++) {
-        statIcons.push(<img className="statUnfilled" src={stat_unfilled} key={ uid(value+i)} alt={'Unfilled Stat Icon'}/>)
-    }
+		if (edit) {
+			const stats = page.state.stats;
+			stats[index].value = value + 1;
+			page.setState({
+				stats: stats
+			});
+		}
+	}
 
-    return (
-        <div className="statDisplayContainer">
-            {statIcons}
-        </div>
-    );
-  }
+	render() {
+		const statIcons = [1, 1, 1, 1, 1];
+		const { value } = this.props;
+		
+		return (
+			<div className="statDisplayContainer">
+				{statIcons.map((icon, index) => {
+					if (index + 1 <= value) {
+						return (<img className="statFilled"
+							src={stat_filled} key={uid(index)}
+							alt={'Filled Stat Icon'}
+							onClick={this.handleClick.bind(this, index)} />);
+					} else {
+						return (<img className="statUnfilled"
+							src={stat_unfilled} key={uid(index)}
+							alt={'Unfilled Stat Icon'}
+							onClick={this.handleClick.bind(this, index)} />);
+					}
+				})
+				}
+			</div>
+		);
+	}
 }
 
-export default StarRarityDisplay;
+export default StatDisplay;

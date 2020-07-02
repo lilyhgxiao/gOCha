@@ -1,0 +1,123 @@
+.createCharaContainer {
+    margin-top: 20px;
+}
+
+.charaNameContainer {
+    margin: 30px 40px 20px 40px;
+}
+
+.charaNameInput {
+    font-size: 30px;
+    color: #235789;
+    width: 690px;
+}
+
+.nameCharCount {
+    text-align: right;
+    margin-right: 10px;
+}
+
+.nameCharCountRed {
+    text-align: right;
+    color: red;
+    margin-right: 10px;
+}
+
+.createCharaCoverPicContainer {
+    text-align: center;
+}
+
+.hiddenInput {
+    display: none;
+}
+
+.charaIconDescContainer {
+    margin: 30px 0px;
+    vertical-align: top;
+}
+
+.charaIconContainer {
+    display: inline-block;
+    margin-right: 30px;
+}
+
+.charaNamePreview {
+    margin: 0px 5px 0px 5px;
+    display: -webkit-box;
+    word-wrap: break-word;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    width: 110px;
+    height: 67px;
+}
+
+.charaDescContainer {
+    display: inline-block;
+    margin: 5px 0px 0px 0px;
+    vertical-align: top;
+}
+
+.charaDescInput {
+    vertical-align: top;
+    resize: none;
+    font-size: 15px;
+    height: 170px;
+    width: 550px;
+}
+
+.descCharCount {
+    text-align: right;
+}
+
+.descCharCountRed {
+    text-align: right;
+    color: red;
+}
+
+.createCharaStatsTable {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table.createCharaStatsTable, table.createCharaStatsTable tr, table.createCharaStatsTable tr th, table.createCharaStatsTable tr td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+.charaPhraseContainer {
+    text-align: middle; 
+    margin: 10px 0px 10px 0px;
+}
+
+.rarityPhrasesTable {
+    display: inline-block;
+}
+
+.rarityPhrasesTable th {
+    display: inline-block;
+    vertical-align: middle;
+    text-align: right;
+    margin-right: 20px;
+    width: 150px;
+}
+
+.rarityPhrasesTable td {
+    display: inline-block;
+    vertical-align: middle;
+    text-align: left;
+    margin-right: 20px;
+    width: 550px;
+}
+
+
+.charaPhraseInput {
+    display: inline-block;
+    vertical-align: middle;
+    width: 500px;
+    resize: none;
+}
+
+.charaSaveButton {
+    margin: 20px 0px;
+}

@@ -47,7 +47,7 @@ const CharaSchema = new mongoose.Schema({
         trim: true,
         maxlength: maxCharaDescLength
     }, 
-    mainPic: { //title pic of chara on summon page
+    coverPic: { //title pic of chara on summon page
 		type: String,
         default: ""
     },
@@ -100,7 +100,7 @@ exports.createChara = async function(req, res) {
         name: req.body.name, 
         rarity: req.body.rarity,
         desc: req.body.desc,
-        mainPic: req.body.mainPic,
+        coverPic: req.body.coverPic,
         iconPic: req.body.iconPic,
         stats: req.body.stats,
         welcomePhrase: req.body.welcomePhrase,
@@ -217,7 +217,7 @@ exports.updateCharaInfo = async function (req, res) {
         if (req.body.rarity) chara.rarity = req.body.rarity;
         if (req.body.desc) chara.desc = req.body.desc;
         if (req.body.stats) chara.stats = req.body.stats;
-        if (req.body.mainPic) chara.mainPic = req.body.mainPic;
+        if (req.body.coverPic) chara.coverPic = req.body.coverPic;
         if (req.body.iconPic) chara.iconPic = req.body.iconPic;
         /**TODO: check if gacha exists */
         if (req.body.gacha) chara.gacha = req.body.gacha;
