@@ -66,7 +66,7 @@ export const createNewGacha = async (body) => {
         /**TODO: handle if coverPic and iconPic don't exist */
         //uploading pictures to s3
         const newCoverPicName = coverFileName(gacha._id, body.coverPic, 0);
-        const newIconPicName = coverFileName(gacha._id, body.iconPic, 0);
+        const newIconPicName = iconFileName(gacha._id, body.iconPic, 0);
         const uploadCoverRes = uploadFile(body.coverPic, newCoverPicName);
         const uploadIconRes = uploadFile(body.iconPic, newIconPicName);
 

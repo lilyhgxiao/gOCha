@@ -280,7 +280,7 @@ class EditGacha extends BaseReactComponent {
     }
 
     editGacha = async () => {
-        const success = true;
+        let success = true;
         const { name, desc, active, oldStats, newStats, coverPicRaw, iconPicRaw, charasToRemove, gacha } = this.state;
 
         const editGachaBody = {

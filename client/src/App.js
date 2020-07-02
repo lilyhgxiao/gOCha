@@ -14,6 +14,7 @@ import GachaSmnResult from "./react-components/base-pages/GachaSmnResult"
 import CreateGacha from "./react-components/base-pages/CreateGacha"
 import EditGacha from "./react-components/base-pages/EditGacha"
 import CreateChara from "./react-components/base-pages/CreateChara"
+import EditChara from "./react-components/base-pages/EditChara"
 
 import { readSession } from "./actions/loginHelpers";
 
@@ -49,6 +50,7 @@ class App extends BaseReactComponent {
                     <Route path="/create/gacha" exact component={CreateGacha} />
                     <Route path="/edit/gacha/:id" exact component={EditGacha} />
                     <Route path="/create/chara/:id" exact component={CreateChara} />
+                    <Route path="/edit/chara/:id" exact component={EditChara} />
                 </Switch>
             </BrowserRouter>
         );

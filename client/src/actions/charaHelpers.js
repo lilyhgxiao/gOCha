@@ -89,7 +89,7 @@ export const createNewChara = async (id, body) => {
         /**TODO: handle if coverPic and iconPic don't exist */
         //uploading pictures to s3
         const newCoverPicName = coverFileName(chara._id, body.coverPicRaw, 0);
-        const newIconPicName = coverFileName(chara._id, body.iconPicRaw, 0);
+        const newIconPicName = iconFileName(chara._id, body.iconPicRaw, 0);
         const uploadCoverRes = uploadFile(body.coverPicRaw, newCoverPicName);
         const uploadIconRes = uploadFile(body.iconPicRaw, newIconPicName);
 
@@ -154,6 +154,86 @@ export const createNewChara = async (id, body) => {
         console.log('fetch failed, ', err);
         return null;
     }
+}
+
+/**TODO: edit gacha*/
+export const editChara = async (id, body) => {
+    const url = "http://localhost:3001/charas/" + id;
+    //const url = "/charas/" + id; 
+
+    try {
+        const editBody = Object.assign({}, body);
+
+        //upload pictures
+        let coverPicUpload = null;
+        let iconPicUpload = null;
+        let newCoverVer = 0;
+        let newIconVer = 0;
+        console.log(body.coverPic)
+        if (body.coverPic) {
+            const oldCoverVer = parseInt(body.coverPic.oldURL.substring(body.coverPic.oldURL.lastIndexOf("_v") + 2, body.coverPic.oldURL.lastIndexOf(".")));
+            newCoverVer = isNaN(oldCoverVer) ? 0 : (oldCoverVer + 1) % 50;
+            coverPicUpload = body.coverPic ? await uploadFile(body.coverPic.raw, coverFileName(id, body.coverPic.raw, newCoverVer)) : null;
+            if (!coverPicUpload.message) {
+                editBody.coverPic = s3URL + coverFileName(id, body.coverPic.raw, newCoverVer);
+                console.log(body.coverPic.oldURL.replace(s3URL, ""))
+                const coverPicDelete = deleteFile(body.coverPic.oldURL.replace(s3URL, ""));
+            } else {
+                console.log("Error with uploading cover pic."); //cover pic failed
+            }
+        }
+        if (body.iconPic) {
+            const oldIconVer = parseInt(body.iconPic.oldURL.substring(body.iconPic.oldURL.lastIndexOf("_v") + 2, body.iconPic.oldURL.lastIndexOf(".")));
+            newIconVer = isNaN(oldIconVer) ? 0 : (oldIconVer + 1) % 50;
+            iconPicUpload = body.iconPic ? await uploadFile(body.iconPic.raw, iconFileName(id, body.iconPic.raw, newIconVer)) : null;
+            if (!iconPicUpload.message) {
+                editBody.iconPic = s3URL + iconFileName(id, body.iconPic.raw, newIconVer);
+                const iconPicDelete = deleteFile(body.iconPic.oldURL.replace(s3URL, ""));
+            } else {
+                console.log("Error with uploading icon pic."); //icon pic failed
+            }
+        }
+
+        //patch res
+        const res = await fetch(url, {
+            method: 'PATCH',
+            body: JSON.stringify(convertJSON(editBody)),
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            credentials: "include",
+        });
+        const json = await res.json();
+        if (res.status === 401) { //unauthorized
+            /**TODO: handle 401 error */
+            console.log(json)
+            return null;
+        } else if (res.status === 404) { //resource not found
+            /**TODO: handle 404 error */
+            console.log(json)
+            return null;
+        } else if (res.status === 500) { //internal server error
+            /**TODO: handle 500 error */
+            console.log(json)
+            return null;
+        }
+
+        console.log(json)
+        if (json === undefined) { //patch failed
+            return null;
+        } else {
+            if (json.gacha) {
+                return { chara: json.chara, gacha: json.gacha };
+            } else {
+                return { chara: json.result };
+            }
+        }
+    } catch (err) {
+        console.log(err);
+        return null;
+    }
+
 }
 
 export const deleteCharaById = async (id) => {

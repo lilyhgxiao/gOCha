@@ -16,7 +16,7 @@ import StarRarityDisplay from "../../page-components/StarRarityDisplay";
 
 // Importing actions/required methods
 import { updateSession } from "../../../actions/loginHelpers";
-import { createNewChara } from "../../../actions/charaHelpers";
+import { getCharaById, editChara } from "../../../actions/charaHelpers";
 import { getGachaById } from "../../../actions/gachaHelpers";
 import { getUserById } from "../../../actions/userhelpers";
 
@@ -26,6 +26,7 @@ import dotted_line_box from './../../../images/dotted_line_box_placeholder.png';
 
 //Importing constants
 import { maxCharaDescLength, maxCharaNameLength, minCharaNameLength, maxWelcPhrLength, maxSummPhrLength } from "../../../constants";
+import { forEach } from "lodash-es";
 
 class CreateChara extends BaseReactComponent {
 
@@ -41,12 +42,14 @@ class CreateChara extends BaseReactComponent {
         rarity: 3,
         welcomePhrase: "",
         summonPhrase: "",
-        toEdit: false
+        chara: null,
+        toEdit: false,
+        isCharaLoaded: false
     }
 
     constructor(props) {
         super(props);
-        this.props.history.push("/create/chara/" + props.match.params.id);
+        this.props.history.push("/edit/chara/" + props.match.params.id);
     }
 
     filterState({ currUser }) {
@@ -60,21 +63,21 @@ class CreateChara extends BaseReactComponent {
             if (readSessRes.currUser) {
                 this.setState({
                     currUser: readSessRes.currUser
-                }, this.fetchGachaInfo);
+                }, this.fetchCharaGachaInfo);
             }
         }
     }
 
-    fetchGachaInfo = async () => {
+    fetchCharaGachaInfo = async () => {
         const id = this.props.match.params.id;
 
         try {
-            const gacha = await getGachaById(id);
-            if (!gacha) {
-                console.log("Failed to get gacha " + id);
+            const chara = await getCharaById(id);
+            if (!chara) {
+                console.log("Failed to get chara " + id);
                 return;
             }
-            const creator = await getUserById(gacha.creator);
+            const creator = await getUserById(chara.creator);
             if (!creator) {
                 console.log("Failed to get creator " + id);
                 return;
@@ -83,19 +86,41 @@ class CreateChara extends BaseReactComponent {
                 //do not have permission. redirect to 401 error page
                 return;
             }
-            const stats = JSON.parse(JSON.stringify(gacha.stats));
-            stats.forEach(stat => {
-                stat.value = 0;
-            });
+            const stats = this.addMissingStats(chara.stats, chara.gacha);
+
             this.setState({
-                gacha: gacha,
+                chara: chara,
+                coverPic: chara.coverPic,
+                iconPic: chara.iconPic,
+                name: chara.name,
+                desc: chara.desc,
                 stats: stats,
-                isGachaLoaded: true
+                rarity: chara.rarity,
+                welcomePhrase: chara.welcomePhrase,
+                summonPhrase: chara.summonPhrase,
+                stats: stats
             }, this.resizeMainContainer);
 
         } catch (err) {
             console.log("Error in fetchGachaInfo: " + err);
         }
+    }
+
+    addMissingStats = async (charaStats, id) => {
+        const statsToReturn = JSON.parse(JSON.stringify(charaStats));
+        const gacha = await getGachaById(id);
+        if (!gacha) {
+            console.log("Failed to get gacha " + id);
+            return;
+        }
+        let checkStat;
+        gacha.stats.forEach(gachaStat => {
+            checkStat = charaStats.filter(charaStat =>  charaStat._id.toString() === gachaStat._id.toString());
+            if (checkStat.length > 0) {
+                statsToReturn.push({ _id: gachaStat._id, name: gachaStat.name, value: 0 });
+            }
+        })
+        return statsToReturn;
     }
 
     handleInputChange = (event) => {
@@ -111,16 +136,16 @@ class CreateChara extends BaseReactComponent {
 
     resizeMainContainer = () => {
         const mainBodyContainer = document.querySelector(".mainBodyContainer");
-        const createCharaStyle = window.getComputedStyle(document.querySelector(".createCharaContainer"));
+        const editCharaStyle = window.getComputedStyle(document.querySelector(".editCharaContainer"));
 
-        const newHeight = parseInt(createCharaStyle.height) + parseInt(createCharaStyle.marginTop) * 3;
+        const newHeight = parseInt(editCharaStyle.height) + parseInt(editCharaStyle.marginTop) * 3;
         mainBodyContainer.style.height = newHeight.toString() + "px";
     }
     
     /**TODO: resize main container...? */
     validateInput = async () => {
         const { name, desc, stats, rarity, welcomePhrase, summonPhrase, coverPicRaw, 
-            iconPicRaw, currUser, gacha } = this.state;
+            iconPicRaw, currUser } = this.state;
         let success = true;
         const msg = [];
         //validate chara name length
@@ -162,47 +187,12 @@ class CreateChara extends BaseReactComponent {
             msg.push(<br/>)
             success = false;
         }
-        //validate if pictures uploaded or not
-        if (coverPicRaw === null) {
-            msg.push("Please upload a cover picture.");
-            msg.push(<br/>)
-            success = false;
-        }
-        if (iconPicRaw === null) {
-            msg.push("Please upload an icon.");
-            msg.push(<br/>)
-            success = false;
-        }
         if (success === true) {
-            const createCharaBody = {
-                name: name,
-                desc: desc,
-                stats: stats,
-                creator: currUser._id,
-                rarity: rarity,
-                welcomePhrase: welcomePhrase,
-                summonPhrase: summonPhrase,
-                coverPicRaw: coverPicRaw,
-                iconPicRaw: iconPicRaw,
-            };
-            /**TODO: handle if create gacha fails */
-            const createCharaRes = await createNewChara(gacha._id, createCharaBody);
-            if (createCharaRes) {
-                console.log(createCharaRes);
-                if (createCharaRes.gacha && createCharaRes.chara) {
-                    this.setState({
-                        alert: {
-                            title: "Chara created successfully!",
-                            handleOk: this.redirectEdit.bind(this, createCharaRes.gacha._id),
-                            okText: "Go back to Edit Gacha"
-                        }
-                    });
-                }
-            }
+            this.editChara();
         } else {
             this.setState({
                 alert: {
-                    title: "Could not create the character",
+                    title: "Could not edit the character",
                     text: msg
                 }
             });
@@ -210,7 +200,58 @@ class CreateChara extends BaseReactComponent {
 
     }
 
-    redirectEdit = (id) => {
+    editChara = async () => {
+        let success = true;
+        const { name, desc, stats, rarity, welcomePhrase, summonPhrase, coverPicRaw, iconPicRaw, 
+            currUser, chara } = this.state;
+
+        const editCharaBody = {
+            name: name,
+            desc: desc,
+            stats: stats,
+            rarity: rarity,
+            welcomePhrase: welcomePhrase,
+            summonPhrase: summonPhrase
+        };
+        if (coverPicRaw) editCharaBody.coverPic = { oldURL: chara.coverPic, raw: coverPicRaw };
+        if (iconPicRaw) editCharaBody.iconPic = { oldURL: chara.iconPic, raw: iconPicRaw };
+
+        const patchCharaReq = await editChara(chara._id, editCharaBody);
+        /**TODO: handle response */
+        if (!patchCharaReq.chara) {
+            console.log(patchCharaReq)
+            console.log("something went wrong")
+            success = false;
+            return;
+        }
+        if (chara.rarity !== rarity && !patchCharaReq.gacha) {
+            /**TODO: handle response to gacha not being patched properly when rarity changes */
+            console.log("rarity changed and gacha not edited")
+            success = false;
+            return;
+        }
+
+        if (success) {
+            this.setState({
+                alert: {
+                    title: "Chara saved successfully!",
+                    text: ["Would you like to go back to the edit gacha page?"],
+                    yesNo: true,
+                    yesText: "Go back to Edit Gacha",
+                    noText: "Stay here",
+                    handleYes: this.redirectEdit
+                }
+            });
+        } else {
+            this.setState({
+                alert: {
+                    text: ["Something went wrong..."]
+                }
+            });
+        }
+    }
+
+    redirectEdit = () => {
         this.setState({
             alert: null,
             toEdit: true
@@ -219,14 +260,13 @@ class CreateChara extends BaseReactComponent {
 
     render() {
         const { history } = this.props;
-        const gacha_id = this.props.match.params.id;
-        const { currUser, alert, coverPic, iconPic, name, desc, stats, rarity, 
+        const { currUser, alert, chara, coverPic, iconPic, name, desc, stats, rarity, 
             welcomePhrase, summonPhrase, toEdit } = this.state;
 
         if (toEdit) {
             return (
                 <Redirect push to={{
-                    pathname: "/edit/gacha/" + gacha_id
+                    pathname: "/edit/gacha/" + chara.gacha
                 }} />
             );
         }
@@ -247,7 +287,7 @@ class CreateChara extends BaseReactComponent {
                         null
                     }
                     <div className="mainBody">
-                        <div className="createCharaContainer">
+                        <div className="editCharaContainer">
                             <div className="pageSubtitle">Create New Chara</div>
                             <div className="charaNameContainer">
                                 <input className="charaNameInput"
@@ -261,7 +301,7 @@ class CreateChara extends BaseReactComponent {
                                     <div className="nameCharCountRed">{maxCharaNameLength - name.length}</div>
                                 }
                             </div>
-                            <div className="createCharaCoverPicContainer">
+                            <div className="editCharaCoverPicContainer">
                                 <UploadPic parent={this} cover={true} src={coverPic}/>
                                 <StarRarityDisplay rarity={rarity}/>
                             </div>
@@ -327,7 +367,7 @@ class CreateChara extends BaseReactComponent {
                                 {stats.length > 0 ?
                                     <div>
                                         <div>Stats</div>
-                                        <table className="createCharaStatsTable">
+                                        <table className="editCharaStatsTable">
                                             <tbody>
                                                 {stats.map((stat, index) => {
                                                     return (
