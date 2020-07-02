@@ -46,7 +46,7 @@ class CharaEditLink extends React.Component {
     }
 
     render() {
-        const { page, gacha, threeStars, fourStars, fiveStars } = this.props;
+        const { page, gacha, threeStars, fourStars, fiveStars, canDelete } = this.props;
         const { toNewChara, rarityDisplayed } = this.state;
 
         if (toNewChara) {
@@ -82,7 +82,8 @@ class CharaEditLink extends React.Component {
                                             <td className="charaEditLinkTable">
                                                 <div className="charaEditTableCell">
                                                     <CharaEditList page={page} 
-                                                        charaList={rarityDisplayed === 3 ? threeStars : (rarityDisplayed === 4 ? fourStars: fiveStars)} />
+                                                        charaList={rarityDisplayed === 3 ? threeStars : (rarityDisplayed === 4 ? fourStars: fiveStars)}
+                                                        canDelete={canDelete} />
                                                 </div>
                                             </td>
                                         </tr>

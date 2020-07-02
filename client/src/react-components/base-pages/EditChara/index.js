@@ -13,10 +13,11 @@ import UploadPic from "../../page-components/UploadPic";
 import AlertDialogue from "../../page-components/AlertDialogue";
 import StatDisplay from "../../page-components/StatDisplay";
 import StarRarityDisplay from "../../page-components/StarRarityDisplay";
+import CharaEditTable from "../../page-components/CharaEditTable";
 
 // Importing actions/required methods
 import { updateSession } from "../../../actions/loginHelpers";
-import { getCharaById, editChara } from "../../../actions/charaHelpers";
+import { getCharaById, editChara, getAllCharasInGacha } from "../../../actions/charaHelpers";
 import { getGachaById } from "../../../actions/gachaHelpers";
 import { getUserById } from "../../../actions/userhelpers";
 
@@ -27,6 +28,8 @@ import dotted_line_box from './../../../images/dotted_line_box_placeholder.png';
 //Importing constants
 import { maxCharaDescLength, maxCharaNameLength, minCharaNameLength, maxWelcPhrLength, maxSummPhrLength } from "../../../constants";
 import { forEach } from "lodash-es";
+
+/**TODO: add navigation back to edit gacha page */
 
 class CreateChara extends BaseReactComponent {
 
@@ -43,6 +46,10 @@ class CreateChara extends BaseReactComponent {
         welcomePhrase: "",
         summonPhrase: "",
         chara: null,
+        gacha: null,
+        threeStars: [],
+        fourStars: [],
+        fiveStars: [],
         toEdit: false,
         isCharaLoaded: false
     }
@@ -86,10 +93,16 @@ class CreateChara extends BaseReactComponent {
                 //do not have permission. redirect to 401 error page
                 return;
             }
-            const stats = this.addMissingStats(chara.stats, chara.gacha);
+            const gacha = await getGachaById(chara.gacha);
+            if (!gacha) {
+                console.log("Failed to get gacha " + id);
+                return;
+            }
+            const stats = await this.addMissingStats(chara.stats, gacha.stats);
 
             this.setState({
                 chara: chara,
+                gacha: gacha,
                 coverPic: chara.coverPic,
                 iconPic: chara.iconPic,
                 name: chara.name,
@@ -99,24 +112,39 @@ class CreateChara extends BaseReactComponent {
                 welcomePhrase: chara.welcomePhrase,
                 summonPhrase: chara.summonPhrase,
                 stats: stats
-            }, this.resizeMainContainer);
+            }, this.fetchCharas);
 
         } catch (err) {
             console.log("Error in fetchGachaInfo: " + err);
         }
     }
 
-    addMissingStats = async (charaStats, id) => {
-        const statsToReturn = JSON.parse(JSON.stringify(charaStats));
-        const gacha = await getGachaById(id);
-        if (!gacha) {
-            console.log("Failed to get gacha " + id);
+    fetchCharas = async () => {
+        const { gacha } = this.state;
+        const getAllCharasRes = await getAllCharasInGacha(gacha._id);
+        if (!getAllCharasRes) {
+            console.log("Failed to get charas of gacha.")
             return;
         }
+
+        this.setState({
+            threeStars: getAllCharasRes.filter(chara => chara.rarity === 3),
+            fourStars: getAllCharasRes.filter(chara => chara.rarity === 4),
+            fiveStars: getAllCharasRes.filter(chara => chara.rarity === 5),
+            isLoaded: true
+        ,}, this.resizeMainContainer);
+    }
+
+    addMissingStats = async (charaStats, gachaStats) => {
+        const statsToReturn = JSON.parse(JSON.stringify(charaStats));
+
+        console.log(statsToReturn);
+        console.log(gachaStats);
+        
         let checkStat;
-        gacha.stats.forEach(gachaStat => {
+        gachaStats.forEach(gachaStat => {
             checkStat = charaStats.filter(charaStat =>  charaStat._id.toString() === gachaStat._id.toString());
-            if (checkStat.length > 0) {
+            if (checkStat.length === 0) {
                 statsToReturn.push({ _id: gachaStat._id, name: gachaStat.name, value: 0 });
             }
         })
@@ -260,8 +288,8 @@ class CreateChara extends BaseReactComponent {
 
     render() {
         const { history } = this.props;
-        const { currUser, alert, chara, coverPic, iconPic, name, desc, stats, rarity, 
-            welcomePhrase, summonPhrase, toEdit } = this.state;
+        const { currUser, alert, chara, gacha, coverPic, iconPic, name, desc, stats, rarity, 
+            welcomePhrase, summonPhrase, threeStars, fourStars, fiveStars, toEdit } = this.state;
 
         if (toEdit) {
             return (
@@ -389,6 +417,12 @@ class CreateChara extends BaseReactComponent {
                                 }
                             </div>
                             <button className="charaSaveButton" onClick={this.validateInput}>Save</button>
+                            <CharaEditTable page={this} 
+                                gacha={gacha} 
+                                threeStars={threeStars} 
+                                fourStars={fourStars} 
+                                fiveStars={fiveStars} 
+                                canDelete={false}/>
                         </div>
                     </div>
                 </div>

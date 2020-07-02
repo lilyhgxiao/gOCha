@@ -496,7 +496,12 @@ class EditGacha extends BaseReactComponent {
                                     </tbody>
                                 </table>
                             </div>
-                            <CharaEditTable page={this} gacha={gacha} threeStars={threeStars} fourStars={fourStars} fiveStars={fiveStars}/>
+                            <CharaEditTable page={this} 
+                                gacha={gacha} 
+                                threeStars={threeStars} 
+                                fourStars={fourStars} 
+                                fiveStars={fiveStars} 
+                                canDelete={true}/>
                             <button className="gachaSaveButton" onClick={this.validateInput}>Save</button>
                         </div>
                     </div>

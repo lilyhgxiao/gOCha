@@ -45,12 +45,12 @@ class App extends BaseReactComponent {
                     <Route path="/inventory" exact component={Inventory} />
                     <Route path="/yourGachas" exact component={YourGachas} />
                     <Route path="/favourites" exact component={FavGachas} />
-                    <Route path="/summon/:id" exact component={GachaSummon} />
-                    <Route path="/summon/result/:id" exact component={GachaSmnResult} />
+                    <Route path="/summon/:id" render={(props => <GachaSummon key={props.match.params.id} {...props}/>)} />
+                    <Route path="/summon/result/:id" render={(props => <GachaSmnResult key={props.match.params.id} {...props}/>)} />
                     <Route path="/create/gacha" exact component={CreateGacha} />
-                    <Route path="/edit/gacha/:id" exact component={EditGacha} />
-                    <Route path="/create/chara/:id" exact component={CreateChara} />
-                    <Route path="/edit/chara/:id" exact component={EditChara} />
+                    <Route path="/edit/gacha/:id" render={(props => <EditGacha key={props.match.params.id} {...props}/>)} />
+                    <Route path="/create/chara/:id" render={(props => <CreateChara key={props.match.params.id} {...props}/>)} />
+                    <Route path="/edit/chara/:id" render={(props => <EditChara key={props.match.params.id} {...props}/>)} />
                 </Switch>
             </BrowserRouter>
         );

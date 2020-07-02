@@ -11,7 +11,7 @@ class CharaEditList extends React.Component {
 
     render() {
         // the filtered states are now on this.state
-        const { page, charaList } = this.props;
+        const { page, charaList, canDelete } = this.props;
 
         return (
             <div className="charaEditListContainer">
@@ -19,7 +19,8 @@ class CharaEditList extends React.Component {
                     return (
                         <CharaEditLink key={uid(chara)}
                             page={page}
-                            chara={chara} />
+                            chara={chara}
+                            canDelete={canDelete} />
                     )
                 })}
             </div>

@@ -27,6 +27,8 @@ import dotted_line_box from './../../../images/dotted_line_box_placeholder.png';
 //Importing constants
 import { maxCharaDescLength, maxCharaNameLength, minCharaNameLength, maxWelcPhrLength, maxSummPhrLength } from "../../../constants";
 
+
+/**TODO: add navigation back to edit gacha page */
 class CreateChara extends BaseReactComponent {
 
     state = {
