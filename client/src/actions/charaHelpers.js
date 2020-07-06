@@ -240,6 +240,7 @@ export const deleteCharaById = async (id) => {
     const url = "http://localhost:3001/charas/" + id
     //const url = "/charas/" + id 
 
+    /**TODO: delete the images of the characters from Amazon S3 */
     try {
         const res = await fetch(url, {
             method: 'DELETE',

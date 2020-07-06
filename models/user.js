@@ -10,8 +10,8 @@ const charaModel = require("./chara");
 
 const mongoose = require('mongoose')
 const { ObjectID } = require("mongodb");
-const validator = require('validator')
-const bcrypt = require('bcryptjs')
+const validator = require('validator');
+const bcrypt = require('bcryptjs');
 
 /**TODO: change all id comparisons to use toString() */
 /**TODO: delete most console.log */
@@ -64,9 +64,9 @@ const UserSchema = new mongoose.Schema({
 		type: Boolean,
 		required: true
 	},
-	profilePic: {
-		data: Buffer, 
-        contentType: String
+	iconPic: {
+		type: String,
+        default: ""
 	},
 	starFrags: { //gacha currency
 		type: Number,
@@ -75,6 +75,10 @@ const UserSchema = new mongoose.Schema({
 	silvers: { //store currency
 		type: Number,
 		default: defaultSilvers
+	},
+	bio: {
+		type: String,
+        default: ""
 	},
 	ownGachas: { //id list of the user's created gachas
 		type: Array,
@@ -246,13 +250,14 @@ exports.updateUserInfo = async function(req, res) {
 		if (req.body.email) user.email = req.body.email;
 		if (req.body.password) user.password = req.body.password;
 		if (req.body.isAdmin) user.isAdmin = req.body.isAdmin;
-		if (req.body.profilePic) user.profilePic = req.body.profilePic;
+		if (req.body.iconPic) user.iconPic = req.body.iconPic;
 		if (req.body.starFrags) user.starFrags = req.body.starFrags;
 		if (req.body.silvers) user.silvers = req.body.silvers;
 		if (req.body.lastLoginDate) user.lastLoginDate = req.body.lastLoginDate;
 		if (req.body.ownGachas) user.ownGachas = req.body.ownGachas;
 		if (req.body.favGachas) user.favGachas = req.body.favGachas;
 		if (req.body.inventory) user.inventory = req.body.inventory;
+		if (req.body.bio) user.bio = req.body.bio;
 
 		//save the user
 		const result = await user.save();

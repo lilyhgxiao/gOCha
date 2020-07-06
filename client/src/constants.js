@@ -8,17 +8,18 @@ exports.minPassLength = 1;
 exports.maxPassLength = 60;
 exports.defaultStars = 100;
 exports.defaultSilvers = 0;
+exports.maxUserBioLength = 400;
 
 //gachaschema attribute requirements
 exports.minGachaNameLength = 1;
 exports.maxGachaNameLength = 50;
-exports.maxGachaDescLength = 240;
+exports.maxGachaDescLength = 400;
 exports.maxStatsLength = 10;
 
 //charaschema attribute requirements
 exports.minCharaNameLength = 1;
 exports.maxCharaNameLength = 50;
-exports.maxCharaDescLength = 50;
+exports.maxCharaDescLength = 400;
 exports.maxWelcPhrLength = 140;
 exports.maxSummPhrLength = 140;
 

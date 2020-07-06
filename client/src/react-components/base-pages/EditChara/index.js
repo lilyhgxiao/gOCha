@@ -30,6 +30,7 @@ import { maxCharaDescLength, maxCharaNameLength, minCharaNameLength, maxWelcPhrL
 import { forEach } from "lodash-es";
 
 /**TODO: add navigation back to edit gacha page */
+/**TODO: add delete character */
 
 class CreateChara extends BaseReactComponent {
 

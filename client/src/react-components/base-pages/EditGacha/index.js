@@ -27,6 +27,8 @@ import dotted_line_box from './../../../images/dotted_line_box_placeholder.png';
 //Importing constants
 import { maxGachaDescLength, maxGachaNameLength, minGachaNameLength } from "../../../constants";
 
+/**TODO: add delete gacha */
+
 class EditGacha extends BaseReactComponent {
 
     state = {

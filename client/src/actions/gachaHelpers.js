@@ -146,6 +146,7 @@ export const editGacha = async (id, body) => {
     let newCoverVer = 0;
     let newIconVer = 0;
     console.log(body.coverPic)
+    /**TODO: make this a helper method in filehelpers */
     if (body.coverPic) {
         const oldCoverVer = parseInt(body.coverPic.oldURL.substring(body.coverPic.oldURL.lastIndexOf("_v") + 2, body.coverPic.oldURL.lastIndexOf(".")));
         newCoverVer = isNaN(oldCoverVer) ? 0 : (oldCoverVer + 1) % 50;

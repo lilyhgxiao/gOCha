@@ -1,0 +1,14 @@
+.profilePic {
+    width: 100px;
+    height: 100px;
+}
+
+.editProfileButtonContainer {
+    text-align: right;
+    padding: 20px;
+}
+
+.profileBio {
+    padding: 20px;
+
+}

@@ -45,7 +45,7 @@ class YourGachas extends BaseReactComponent {
     fetchYrGachas = async () => {
         const gachaReqs = [];
         const currUser = this.state.currUser;
-        console.log(this.state);
+
         let i;
         for (i = 0; i < currUser.ownGachas.length; i++) {
             gachaReqs.push(getGachaById(currUser.ownGachas[i]));

@@ -73,7 +73,7 @@ class UploadPic extends React.Component {
                     <label htmlFor={cover ? "uploadCoverImage" : "uploadIconImage" }>
                         <img 
                             className={cover ? "uploadCoverPic" : "uploadIconPic"} 
-                            src={ (!src && src === "") ? preview : src } 
+                            src={ (!src || src === "") ? preview : src } 
                             alt={cover ? "New Cover Pic" : "New Icon Pic"} />
                     </label>
                     <input
