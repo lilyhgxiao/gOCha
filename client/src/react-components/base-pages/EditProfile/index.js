@@ -1,6 +1,7 @@
 /*  Full Profile component */
 import React from "react";
 import { Link } from 'react-router-dom';
+import { Redirect } from 'react-router';
 
 import "./styles.css";
 import "./../../../App.css"
@@ -13,7 +14,7 @@ import UploadPic from "./../../page-components/UploadPic";
 
 // Importing actions/required methods
 import { updateSession } from "../../../actions/loginHelpers";
-import { getUserByUsername, editUser } from "../../../actions/userhelpers";
+import { getUserByUsername, editUser, deleteUser } from "../../../actions/userhelpers";
 
 
 //images
@@ -34,7 +35,8 @@ class EditProfile extends BaseReactComponent {
         oldPassword: "",
         newPassword: "",
         confirmPassword: "",
-        isUserLoaded: false
+        isUserLoaded: false,
+        toLogin: false
     }
 
     constructor(props) {
@@ -153,10 +155,10 @@ class EditProfile extends BaseReactComponent {
         }
     }
 
-    compareOldPass = async () => {
-        const { user, oldPassword } = this.state;
+    comparePass = async (password) => {
+        const { user } = this.state;
         return new Promise((resolve, reject) => {
-			bcrypt.compare(oldPassword, user.password, (err, result) => {
+			bcrypt.compare(password, user.password, (err, result) => {
 				if (result) {
 					resolve(true);
 				} else {
@@ -168,10 +170,10 @@ class EditProfile extends BaseReactComponent {
 
     validatePassInput = async () => {
         let success = true;
-        const { newPassword, confirmPassword } = this.state;
+        const { oldPassword, newPassword, confirmPassword } = this.state;
         const msg = [];
         // if the user exists, make sure their password is correct
-        const checkOldPass = await this.compareOldPass();
+        const checkOldPass = await this.comparePass(oldPassword);
 		if (!checkOldPass) {
             msg.push("The old password is not correct.");
             msg.push(<br/>)
@@ -232,12 +234,95 @@ class EditProfile extends BaseReactComponent {
     }
 
     handleDelete = () => {
-        
+        this.setState({
+            alert: {
+                title: "Delete your account?",
+                text: ["Please enter your password to continue."],
+                yesNo: true,
+                yesText: "Delete",
+                noText: "Cancel",
+                handleYes: this.handleDeleteCheckPass,
+                inputOn: true,
+                inputParameters: {type: "password", placeholder: "Password"}
+            }
+        });
+    }
+
+    handleDeleteCheckPass = async (password) => {
+        const checkPass = await this.comparePass(password);
+        if (!checkPass) {
+            this.setState({
+                alert: {
+                    title: "Could not delete your account",
+                    text: ["The password was not correct."]
+                }
+            });
+        } else {
+            this.setState({
+                alert: {
+                    title: "Are you sure?",
+                    text: ["This action cannot be reversed.", <br/>, 
+                        "You will lose your inventory, favourite gacha list, and other user information. Any " + 
+                        "gachas and characters you have created will also be lost, including from the inventories of other users.",
+                        <br/>, <br/>, "Delete your account anyway?"],
+                    checkbox: true,
+                    checkboxText: ["I understand, delete my account."],
+                    okText: "Delete",
+                    handleOk: this.deleteAccount
+                }
+            });
+        }
+    }
+
+    deleteAccount = async (checked) => {
+        const { user } = this.state;
+        if (checked) {
+            /**TODO: delete the user and redirect back to login */
+            const deleteUserReq = await deleteUser(user._id);
+            if (!deleteUserReq) {
+                this.setState({
+                    alert: {
+                        text: ["Something went wrong..."]
+                    }
+                });
+            } else {
+                this.setState({
+                    alert: {
+                        title: "Successfully deleted your account",
+                        text: ["Thank you for using gOCha. See you next time!"],
+                        handleOk: this.redirectLogin
+                    }
+                });
+            }
+            
+        } else {
+            this.setState({
+                alert: {
+                    title: "Could not delete your account",
+                    text: ["Please check the confirmation checkbox."]
+                }
+            });
+        }
+    }
+
+    redirectLogin = () => {
+        this.setState({
+            alert: null,
+            toLogin: true
+        });
     }
 
     render() {
         const { history } = this.props;
-        const { currUser, alert, user, iconPic, bio, oldPassword, newPassword, confirmPassword, isUserLoaded } = this.state;
+        const { currUser, alert, user, iconPic, bio, oldPassword, newPassword, confirmPassword, isUserLoaded, toLogin } = this.state;
+
+        if (toLogin) {
+            return (
+                <Redirect push to={{
+                    pathname: "/"
+                }} />
+            );
+        }
 
         return (
             <div className="App">

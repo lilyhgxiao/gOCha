@@ -1,4 +1,4 @@
-import { setState, convertJSON, coverFileName, iconFileName } from "./helpers";
+import { setState, setEmptyState, convertJSON, coverFileName, iconFileName } from "./helpers";
 
 import { uploadFile, deleteFile } from "./fileHelpers";
 
@@ -318,6 +318,41 @@ export const pullUserInfo = async function (id, body) {
         const user = await res.json();
         if (user !== undefined) {
             setState("currUser", user);
+            return true;
+        }
+        /**TODO: handle user undefined case */
+        return null;
+    } catch (err) {
+        console.log('fetch failed, ', err);
+        return null;
+    }
+}
+
+export const deleteUser = async function (id) {
+    const url = "http://localhost:3001/users/" + id;
+
+    try {
+        const res = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            credentials: "include",
+        });
+        if (res.status === 404) {
+            /**TODO: handle 404 error */
+            return null;
+        } else if  (res.status === 401) {
+            /**TODO: handle 401 error */
+            return null;
+        } else if (res.status === 500) {
+            /**TODO: handle 500 error */
+            return null;
+        }
+        const user = await res.json();
+        if (user !== undefined) {
+            setEmptyState();
             return true;
         }
         /**TODO: handle user undefined case */
