@@ -65,3 +65,8 @@
 .alertCheckbox {
     margin-top: 15px;
 }
+
+.alertDialogueInput {
+    margin-top: 15px;
+    width: 300px;
+}

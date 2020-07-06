@@ -9,7 +9,8 @@ import exit_icon from './../../../images/exit.png';
 class AlertDialogue extends React.Component {
 
     state = {
-        checked: false
+        checked: false,
+        inputText: ""
     };
 
     handleExit = (parent) => {
@@ -24,20 +25,40 @@ class AlertDialogue extends React.Component {
         });
     }
 
-    handleChoice = (handleFunction) => {
-        const {checkbox} = this.props;
-        const {checked} = this.state;
+    handleInputChange = (event) => {
+        const target = event.target;
+        const value = target.value;
+        const name = target.name;
+    
+        // 'this' is bound to the component in this arrow function.
+        this.setState({
+          [name]: value  // [name] sets the object property name to the value of the 'name' variable.
+        });
+    }
 
-        if (checkbox) {
-            handleFunction(checked);
+    handleChoice = (handleFunction) => {
+        const {checkbox, inputOn} = this.props;
+        const {checked, inputText} = this.state;
+
+        if (inputOn) {
+            if (checkbox) {
+                handleFunction(inputText, checked);
+            } else {
+                handleFunction(inputText);
+            }
         } else {
-            handleFunction();
+            if (checkbox) {
+                handleFunction(checked);
+            } else {
+                handleFunction();
+            }
         }
     }
 
     render() {
         const { parent, title, text, yesNo, handleYes, handleNo, handleOk, yesText, noText, okText, 
             image, checkbox, checkboxText, inputOn, inputParameters } = this.props;
+        const { inputText } = this.state;
 
         return (
             <div className="alertDialogueContainer">
@@ -59,6 +80,15 @@ class AlertDialogue extends React.Component {
                             text.map((textOrHTML, index) => <span key={index}>{textOrHTML}</span>)
                             : "Alert dialogue text goes here" }
                         </div>
+                        { inputOn ?
+                            <input className="alertDialogueInput"
+                            name='inputText'
+                            value={inputText}
+                            onChange={this.handleInputChange}
+                            type={inputParameters.type}
+                            placeholder={inputParameters.placeholder} /> 
+                            : null
+                        }
                         {checkbox ?
                         <div className="alertCheckbox">
                             <input type="checkbox" onClick={this.handleCheck}/>{checkboxText ? checkboxText.map((textOrHTML, index) => <span key={index}>{textOrHTML}</span>) : "Checkbox text goes here"}
