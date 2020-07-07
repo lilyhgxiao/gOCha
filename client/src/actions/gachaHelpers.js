@@ -14,12 +14,9 @@ export const getGachaById = async (id) => {
 
     try {
         const res = await fetch(url);
-        if (res.status === 200) {
-            const gacha = await res.json();
-            return gacha;
-        } else {
-            return null;
-        }
+        const json = await res.json();
+        let msg = errorMatch(res);
+        return { status: res.status, gacha: json.gacha, msg: msg, err: null };
     } catch (err) {
         console.log('fetch failed, ', err);
         return null;
@@ -32,12 +29,9 @@ export const getGachasByCreator = async (id) => {
 
     try {
         const res = await fetch(url);
-        if (res.status === 200) {
-            const gachas = await res.json();
-            return { gachas: gachas };
-        } else {
-            return null;
-        }
+        const json = await res.json();
+        let msg = errorMatch(res);
+        return { status: res.status, gachas: json, msg: msg, err: null };
     } catch (err) {
         console.log('fetch failed, ', err);
         return null;
@@ -114,11 +108,9 @@ export const createNewGacha = async (body) => {
         }
 
         const gacha = postRes.json.gacha;
-        console.log(body)
 
         if (body.coverPic || body.iconPic) {
             const uploadRes = await uploadPicsForNewObj(gachaFolder, gacha._id, body);
-            console.log(uploadRes);
 
             if (!uploadRes.coverPic || !uploadRes.iconPic) {
                 msg.push("There was an error uploading the ");
@@ -131,16 +123,11 @@ export const createNewGacha = async (body) => {
             const patchRes = await fetchPatchGacha(gacha._id, uploadRes);
             if (patchRes.status !== 200 || patchRes.json === undefined) {
                 msg.push(patchRes.msg);
-                console.log(msg);
-                return { status: postRes.status, 
-                    msg: msg, 
+                return { status: postRes.status, msg: msg, 
                     err: "fetchPatchGacha failed" + (patchRes.err ? ": " + patchRes.err : "."),
                     gacha: gacha };
             } else {
-                console.log(msg);
-                return { status: postRes.status, 
-                    msg: msg, 
-                    err: null,
+                return { status: postRes.status, msg: msg, err: null,
                     gacha: patchRes.json };
             }
         }
@@ -153,9 +140,7 @@ export const createNewGacha = async (body) => {
 
 /**TODO: edit gacha*/
 export const editGacha = async (id, body) => {
-    const url = "http://localhost:3001/gachas/" + id;
-    //const url = "/gachas/" + id; 
-
+    const msg = [];
     const editBody = Object.assign({}, body);
 
     try {
@@ -164,45 +149,25 @@ export const editGacha = async (id, body) => {
         let iconPicUpload = null;
         /**TODO: make this a helper method in filehelpers */
         if (body.coverPic) {
-            coverPicUpload = replaceFile(body.coverPic, id, gachaFolder, true);
+            coverPicUpload = await replaceFile(body.coverPic, id, gachaFolder, true);
             if (coverPicUpload.newURL !== null) {
                 editBody.coverPic = coverPicUpload.newURL;
             }
         }
         if (body.iconPic) {
-            iconPicUpload = replaceFile(body.iconPic, id, gachaFolder, false);
+            iconPicUpload = await replaceFile(body.iconPic, id, gachaFolder, false);
             if (iconPicUpload.newURL !== null) {
                 editBody.iconPic = iconPicUpload.newURL;
             }
         }
 
         //patch res
-        const res = await fetch(url, {
-            method: 'PATCH',
-            body: JSON.stringify(convertJSON(editBody)),
-            headers: {
-                'Accept': 'application/json, text/plain, */*',
-                'Content-Type': 'application/json'
-            },
-            credentials: "include",
-        });
-        if (res.status === 401) { //unauthorized
-            /**TODO: handle 401 error */
-            console.log(res)
-            return null;
-        } else if (res.status === 404) { //resource not found
-            /**TODO: handle 404 error */
-            console.log(res)
-            return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            console.log(res)
-            return null;
-        }
-
-        const json = await res.json();
-        if (json === undefined) { //patch failed
-            return null;
+        const patchRes = await fetchPatchGacha(id, editBody);
+        if (patchRes.status !== 200 || patchRes.json === undefined) {
+            msg.push(patchRes.msg);
+            return { status: patchRes.status, msg: msg, 
+                err: "fetchPatchGacha failed" + (patchRes.err ? ": " + patchRes.err : "."),
+                gacha: patchRes.json };
         } else {
             let deleteCoverPic;
             let deleteIconPic;
@@ -210,16 +175,21 @@ export const editGacha = async (id, body) => {
                 deleteCoverPic = await deleteFile(body.coverPic.oldURL.replace(s3URL, ""));
             }
             if (body.iconPic && iconPicUpload.newURL !== null) {
-                deleteIconPic = await deleteFile(body.coverPic.oldURL.replace(s3URL, ""));
+                deleteIconPic = await deleteFile(body.iconPic.oldURL.replace(s3URL, ""));
             }
-            return { gacha: json, deleteCoverPic: deleteCoverPic, deleteIconPic: deleteIconPic };
+            return { status: patchRes.status, msg: msg, err: null,
+                gacha: patchRes.json,
+                deleteCoverPic: deleteCoverPic, 
+                deleteIconPic: deleteIconPic };
         }
     } catch (err) {
         /**TODO: handle error with catch */
         console.log('fetch failed, ', err);
-        return null;
+        return { status: null, gacha: null, msg: "Failed to patch Gacha.", err: err, deleteCoverPic: null,
+            deleteIconPic: null };
     }
 }
+
 
 /**TODO: add stat */
 export const addStatsToGacha = async (id, body) => {
@@ -237,33 +207,13 @@ export const addStatsToGacha = async (id, body) => {
             },
             credentials: "include",
         });
-        if (res.status === 401) { //unauthorized
-            /**TODO: handle 401 error */
-            console.log(res)
-            return null;
-        } else if (res.status === 404) { //resource not found
-            /**TODO: handle 404 error */
-            console.log(res)
-            return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            console.log(res)
-            return null;
-        }
-
         const json = await res.json();
-        if (json === undefined) { //patch failed
-            /**TODO: handle json undefined */
-            return null;
-        }
-        /**TODO: check # of characters changed...? */
-        if (json.gacha === undefined) {
-            return { gacha: json.gacha };
-        }
+        let msg = errorMatch(res);
+        return { status: res.status, gacha: (json.gacha ? json.gacha : null), msg: msg, err: msg };
     } catch (err) {
         /**TODO: handle error with catch */
         console.log('fetch failed, ', err);
-        return null;
+        return { status: null, gacha: null, msg: "Failed to add stats to gacha.", err: err };
     }
 }
 
@@ -283,33 +233,13 @@ export const updateStatsOnGacha = async (id, body) => {
             },
             credentials: "include",
         });
-        if (res.status === 401) { //unauthorized
-            /**TODO: handle 401 error */
-            console.log(res)
-            return null;
-        } else if (res.status === 404) { //resource not found
-            /**TODO: handle 404 error */
-            console.log(res)
-            return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            console.log(res)
-            return null;
-        }
-
         const json = await res.json();
-        if (json === undefined) { //patch failed
-            /**TODO: handle json undefined */
-            return null;
-        }
-        /**TODO: check # of characters changed...? */
-        if (json.gacha === undefined) {
-            return { gacha: json.gacha };
-        }
+        let msg = errorMatch(res);
+        return { status: res.status, gacha: (json.gacha ? json.gacha : null), msg: msg, err: msg };
     } catch (err) {
         /**TODO: handle error with catch */
         console.log('fetch failed, ', err);
-        return null;
+        return { status: null, gacha: null, msg: "Failed to update stats on gacha.", err: err };
     }
 }
 
@@ -329,32 +259,12 @@ export const deleteStatsOnGacha = async (id, body) => {
             },
             credentials: "include",
         });
-        if (res.status === 401) { //unauthorized
-            /**TODO: handle 401 error */
-            console.log(res)
-            return null;
-        } else if (res.status === 404) { //resource not found
-            /**TODO: handle 404 error */
-            console.log(res)
-            return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            console.log(res)
-            return null;
-        }
-
         const json = await res.json();
-        if (json === undefined) { //patch failed
-            /**TODO: handle json undefined */
-            return null;
-        }
-        /**TODO: check # of characters changed...? */
-        if (json.gacha === undefined) {
-            return { gacha: json.gacha };
-        }
+        let msg = errorMatch(res);
+        return { status: res.status, gacha: (json.gacha ? json.gacha : null), msg: msg, err: msg };
     } catch (err) {
         /**TODO: handle error with catch */
         console.log('fetch failed, ', err);
-        return null;
+        return { status: null, gacha: null, msg: "Failed to delete stats on gacha.", err: err };
     }
 }

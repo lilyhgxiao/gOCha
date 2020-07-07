@@ -94,11 +94,12 @@ class CreateChara extends BaseReactComponent {
                 //do not have permission. redirect to 401 error page
                 return;
             }
-            const gacha = await getGachaById(chara.gacha);
-            if (!gacha) {
+            const getGacha = await getGachaById(id);
+            if (!getGacha || !getGacha.gacha) {
                 console.log("Failed to get gacha " + id);
                 return;
             }
+            const gacha = getGacha.gacha;
             const stats = await this.addMissingStats(chara.stats, gacha.stats);
 
             this.setState({

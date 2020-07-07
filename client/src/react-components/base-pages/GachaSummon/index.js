@@ -68,11 +68,12 @@ class GachaSummon extends BaseReactComponent {
 
         try {
             /**TODO: handle when request fails */
-            const gacha = await getGachaById(id);
-            if (!gacha) {
+            const getGacha = await getGachaById(id);
+            if (!getGacha || getGacha.gacha) {
                 console.log("Failed to get gacha " + id);
                 return;
             }
+            const gacha = getGacha.gacha;
             const getAllCharasRes = await getAllCharasInGacha(id);
             if (!getAllCharasRes) {
                 console.log("Failed to get charas of gacha " + id);
@@ -150,7 +151,12 @@ class GachaSummon extends BaseReactComponent {
                                     });
                                     retries = 0;
                                 } else { //if it doesn't exist, reload the gacha information
-                                    const reloadGacha = await getGachaById(gacha._id);
+                                    const getGacha = await getGachaById(id);
+                                    if (!getGacha || getGacha.gacha) {
+                                        console.log("Failed to get gacha " + id);
+                                        return;
+                                    }
+                                    const reloadGacha = getGacha.gacha;
                                     //if the gacha no longer exists, redirect back to dashboard
                                     if (!reloadGacha) {
                                         this.setState({

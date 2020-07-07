@@ -53,9 +53,16 @@ class FavGachas extends BaseReactComponent {
 
         /**TODO: Handle failed reqs...? */
         Promise.all(gachaReqs).then(res => {
-            console.log(res);
+            const gachaList = [];
+            res.forEach(getGacha => {
+                if (!getGacha || !getGacha.gacha) {
+                    console.log("Failed to get gacha " + id);
+                    return;
+                }
+                gachaList.push(getGacha.gacha)
+            })
             this.setState({
-                gachaList: res,
+                gachaList: gachaList,
                 isLoaded: true
             });
         }).catch((err) => {

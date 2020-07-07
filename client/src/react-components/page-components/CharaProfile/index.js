@@ -53,7 +53,7 @@ class CharaProfile extends BaseReactComponent {
     Promise.all([getGachaRes, getCreatorRes]).then(res => {
       /**TODO: handle when get gacha and creator fail */
       this.setState({
-          gacha: res[0],
+          gacha: res[0].gacha,
           creator: res[1],
           gachaCreatorLoaded: true
       });

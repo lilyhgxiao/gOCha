@@ -71,11 +71,12 @@ class CreateChara extends BaseReactComponent {
         const id = this.props.match.params.id;
 
         try {
-            const gacha = await getGachaById(id);
-            if (!gacha) {
+            const getGacha = await getGachaById(id);
+            if (!getGacha || !getGacha.gacha) {
                 console.log("Failed to get gacha " + id);
                 return;
             }
+            const gacha = getGacha.gacha;
             const creator = await getUserById(gacha.creator);
             if (!creator) {
                 console.log("Failed to get creator " + id);

@@ -295,7 +295,7 @@ class EditGacha extends BaseReactComponent {
 
         const patchGachaReq = await editGacha(gacha._id, editGachaBody);
         /**TODO: handle response */
-        if (!patchGachaReq.gacha) {
+        if (!patchGachaReq || !patchGachaReq.gacha) {
             console.log("something went wrong")
             success = false;
             return;
