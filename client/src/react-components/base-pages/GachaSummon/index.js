@@ -15,7 +15,7 @@ import AlertDialogue from "./../../page-components/AlertDialogue";
 import { updateSession } from "../../../actions/loginHelpers";
 import { getGachaById } from "../../../actions/gachaHelpers";
 import { getUserById, pullUserInfo, pushUserInfo } from "../../../actions/userhelpers";
-import { getCharaById } from "../../../actions/charaHelpers";
+import { getCharaById, getAllCharasInGacha } from "../../../actions/charaHelpers";
 
 //images
 /**TODO: replace placeholder images */
@@ -33,6 +33,9 @@ class GachaSummon extends BaseReactComponent {
         isCreatorLoaded: false,
         currUser: null,
         gacha: null,
+        threeStars: [],
+        fourStars: [],
+        fiveStars: [],
         alert: null,
         rolledCharacter: null,
         redirectDashboard: false,
@@ -41,7 +44,7 @@ class GachaSummon extends BaseReactComponent {
 
     constructor(props) {
         super(props);
-        this.props.history.push("/summon/" + props.match.params.id);
+        this.props.history.push("/summon/info/" + props.match.params.id);
     }
 
     filterState({ currUser }) {
@@ -70,8 +73,16 @@ class GachaSummon extends BaseReactComponent {
                 console.log("Failed to get gacha " + id);
                 return;
             }
+            const getAllCharasRes = await getAllCharasInGacha(id);
+            if (!getAllCharasRes) {
+                console.log("Failed to get charas of gacha " + id);
+                return;
+            }
             this.setState({
                 gacha: gacha,
+                threeStars: getAllCharasRes.filter(chara => chara.rarity === 3),
+                fourStars: getAllCharasRes.filter(chara => chara.rarity === 4),
+                fiveStars: getAllCharasRes.filter(chara => chara.rarity === 5),
                 isGachaLoaded: true
             });
             /**TODO: handle when request fails */
@@ -97,6 +108,7 @@ class GachaSummon extends BaseReactComponent {
 
     /**TODO: CLEAN UP THIS FUNCTION TOO MANY NESTS */
     summon = async () => {
+        const { threeStars, fourStars, fiveStars } = this.state;
         //remove the alert
         this.setState({ 
             alert: null 
@@ -119,20 +131,18 @@ class GachaSummon extends BaseReactComponent {
 
                         let rarityToPickFrom;
                         if (roll < threeStarChance) { //rolled a three star
-                            rarityToPickFrom = gacha.threeStars;
+                            rarityToPickFrom = threeStars;
                         } else if (roll >= threeStarChance && roll < threeStarChance + fourStarChance) { // rolled a four star
-                            rarityToPickFrom = gacha.fourStars;
+                            rarityToPickFrom = fourStars;
                         } else { //rolled a five star
-                            rarityToPickFrom = gacha.fiveStars;
+                            rarityToPickFrom = fiveStars;
                         }
                         
                         //try multiple times in case the gacha is changed during the summon
                         while (retries > 0) {
                             try {
                                 //pick a random character from the rarity list
-                                const rolledCharacterId = rarityToPickFrom[Math.floor(Math.random() * rarityToPickFrom.length)];
-                                //get the character by id
-                                rolledCharacter = await getCharaById(rolledCharacterId);
+                                const rolledCharacter = rarityToPickFrom[Math.floor(Math.random() * rarityToPickFrom.length)];
                                 //if it exists, stop and set the state
                                 if (rolledCharacter) {
                                     this.setState({
@@ -334,7 +344,7 @@ class GachaSummon extends BaseReactComponent {
 
     render() {
         const { isGachaLoaded, isCreatorLoaded, gacha, creator, currUser, alert, 
-            redirectDashboard, rolledCharacter, favourite } = this.state;
+            redirectDashboard, rolledCharacter, favourite, threeStars, fourStars, fiveStars } = this.state;
 
         if (redirectDashboard) {
             return (
@@ -372,7 +382,11 @@ class GachaSummon extends BaseReactComponent {
                     {isGachaLoaded ?
                         <GachaSmnList
                             gacha={gacha}
+                            threeStars={threeStars}
+                            fourStars={fourStars}
+                            fiveStars={fiveStars}
                             handleExitWindowClick={this.handleExitWindowClick}
+                            isLoaded={isGachaLoaded}
                         /> :
                         null
                     }

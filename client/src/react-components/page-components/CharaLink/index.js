@@ -16,7 +16,7 @@ class CharaLink extends React.Component {
     /**TODO: replace chara icon with actual icon */
     return (
         <div className="charaLinkContainer" onClick={handleCharaLinkClick.bind(null, chara)}>
-            <img className="charaLinkIcon" src={icon_placeholder} alt={chara.name + " Icon"}/>
+            <img className="charaLinkIcon" src={chara.iconPic} alt={chara.name + " Icon"}/>
             <div className="charaLinkName">{chara.name}</div>
         </div>
     );

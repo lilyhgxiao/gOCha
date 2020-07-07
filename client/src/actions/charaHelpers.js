@@ -1,8 +1,8 @@
 import { setState, convertJSON, coverFileName, iconFileName } from "./helpers";
 
-import { uploadFile, deleteFile } from "./fileHelpers";
+import { uploadFile, deleteFile, replaceFile } from "./fileHelpers";
 
-import { s3URL } from "./../constants";
+import { s3URL, charaFolder } from "./../constants";
 
 const fetch = require('node-fetch');
 
@@ -88,8 +88,8 @@ export const createNewChara = async (id, body) => {
 
         /**TODO: handle if coverPic and iconPic don't exist */
         //uploading pictures to s3
-        const newCoverPicName = coverFileName(chara._id, body.coverPicRaw, 0);
-        const newIconPicName = iconFileName(chara._id, body.iconPicRaw, 0);
+        const newCoverPicName = coverFileName(charaFolder, chara._id, body.coverPicRaw, 0);
+        const newIconPicName = iconFileName(charaFolder, chara._id, body.iconPicRaw, 0);
         const uploadCoverRes = uploadFile(body.coverPicRaw, newCoverPicName);
         const uploadIconRes = uploadFile(body.iconPicRaw, newIconPicName);
 
@@ -167,30 +167,16 @@ export const editChara = async (id, body) => {
         //upload pictures
         let coverPicUpload = null;
         let iconPicUpload = null;
-        let newCoverVer = 0;
-        let newIconVer = 0;
-        console.log(body.coverPic)
         if (body.coverPic) {
-            const oldCoverVer = parseInt(body.coverPic.oldURL.substring(body.coverPic.oldURL.lastIndexOf("_v") + 2, body.coverPic.oldURL.lastIndexOf(".")));
-            newCoverVer = isNaN(oldCoverVer) ? 0 : (oldCoverVer + 1) % 50;
-            coverPicUpload = body.coverPic ? await uploadFile(body.coverPic.raw, coverFileName(id, body.coverPic.raw, newCoverVer)) : null;
-            if (!coverPicUpload.message) {
-                editBody.coverPic = s3URL + coverFileName(id, body.coverPic.raw, newCoverVer);
-                console.log(body.coverPic.oldURL.replace(s3URL, ""))
-                const coverPicDelete = deleteFile(body.coverPic.oldURL.replace(s3URL, ""));
-            } else {
-                console.log("Error with uploading cover pic."); //cover pic failed
+            coverPicUpload = replaceFile(body.coverPic, id, charaFolder, true);
+            if (coverPicUpload.newURL !== null) {
+                editBody.coverPic = coverPicUpload.newURL;
             }
         }
         if (body.iconPic) {
-            const oldIconVer = parseInt(body.iconPic.oldURL.substring(body.iconPic.oldURL.lastIndexOf("_v") + 2, body.iconPic.oldURL.lastIndexOf(".")));
-            newIconVer = isNaN(oldIconVer) ? 0 : (oldIconVer + 1) % 50;
-            iconPicUpload = body.iconPic ? await uploadFile(body.iconPic.raw, iconFileName(id, body.iconPic.raw, newIconVer)) : null;
-            if (!iconPicUpload.message) {
-                editBody.iconPic = s3URL + iconFileName(id, body.iconPic.raw, newIconVer);
-                const iconPicDelete = deleteFile(body.iconPic.oldURL.replace(s3URL, ""));
-            } else {
-                console.log("Error with uploading icon pic."); //icon pic failed
+            iconPicUpload = replaceFile(body.iconPic, id, charaFolder, false);
+            if (iconPicUpload.newURL !== null) {
+                editBody.iconPic = iconPicUpload.newURL;
             }
         }
 
@@ -223,11 +209,15 @@ export const editChara = async (id, body) => {
         if (json === undefined) { //patch failed
             return null;
         } else {
-            if (json.gacha) {
-                return { chara: json.chara, gacha: json.gacha };
-            } else {
-                return { chara: json.result };
+            let deleteCoverPic;
+            let deleteIconPic;
+            if (body.coverPic && coverPicUpload.newURL !== null) {
+                deleteCoverPic = await deleteFile(body.coverPic.oldURL.replace(s3URL, ""));
             }
+            if (body.iconPic && iconPicUpload.newURL !== null) {
+                deleteIconPic = await deleteFile(body.coverPic.oldURL.replace(s3URL, ""));
+            }
+            return { chara: json.result, deleteCoverPic: deleteCoverPic, deleteIconPic: deleteIconPic };
         }
     } catch (err) {
         console.log(err);

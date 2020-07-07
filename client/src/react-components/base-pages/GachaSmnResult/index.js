@@ -129,7 +129,7 @@ class GachaSmnResult extends BaseReactComponent {
                             <div className="charaSmnContainer">
                                 <div className="charaSmnSubtitle">Congratulations! You've summoned</div>
                                 <div className="charaSmnTitle">{chara.name}</div>
-                                <img className="charaSmnMainPic" src={main_placeholder} alt={chara.name + ' Picture'} />
+                                <img className="charaSmnCoverPic" src={chara.coverPic} alt={chara.name + ' Picture'} />
                                 <StarRarityDisplay rarity={chara.rarity} />
                                 {chara.summonPhrase ?
                                     <div className="charaSmnPhrase">{chara.summonPhrase}</div> :
@@ -142,7 +142,7 @@ class GachaSmnResult extends BaseReactComponent {
                                     null
                                 }
                                 <div className="charaSmnButtonContainer">
-                                    <Link to={'/summon/' + chara.gacha}>
+                                    <Link to={'/summon/info/' + chara.gacha}>
                                         <button className="charaSmnButton">Go back to the Gacha</button>
                                     </Link>
                                     <Link to={{pathname: '/inventory', state: {showChara: chara}}}>

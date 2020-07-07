@@ -180,6 +180,9 @@ app.get("/gachas", gacha.getAllGachas);
 /// a GET route to get a gacha by its id.
 app.get("/gachas/:id", gacha.getGachaById);
 
+/// a GET route to get all gachas by their creator.
+app.get("/gachas/bycreator/:id", gacha.getGachasByCreator);
+
 //a PATCH route to update gacha info
 app.patch('/gachas/:id', gacha.updateGachaInfo);
 
@@ -206,6 +209,9 @@ app.post("/charas/:id", chara.createChara);
 
 //a GET route to get all characters that belong to a specified gacha
 app.get("/charas/ingacha/:id", chara.getCharasByGacha);
+
+//a GET route to get all characters that belong to a specified gacha
+app.get("/charas/bycreator/:id", chara.getCharasByCreator);
 
 //a GET route to retrieve details on a particular chara
 app.get('/charas/:id', chara.getCharaById);

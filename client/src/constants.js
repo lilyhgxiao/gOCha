@@ -15,6 +15,7 @@ exports.minGachaNameLength = 1;
 exports.maxGachaNameLength = 50;
 exports.maxGachaDescLength = 400;
 exports.maxStatsLength = 10;
+exports.maxCharaListLength = 200;
 
 //charaschema attribute requirements
 exports.minCharaNameLength = 1;
@@ -36,3 +37,6 @@ exports.fiveStarSilvers = 100;
 
 //amazon s3 url root 
 exports.s3URL = "https://gocha.s3.ca-central-1.amazonaws.com/";
+exports.gachaFolder = "gacha_images/";
+exports.charaFolder = "chara_images/";
+exports.userFolder = "user_images/";

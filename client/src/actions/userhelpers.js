@@ -127,51 +127,57 @@ export const editUser = async function (id, body) {
 
     const editBody = Object.assign({}, body);
 
-    //upload pictures
-    let iconPicUpload = null;
-    let newIconVer = 0;
-    if (body.iconPic) {
-        const oldIconVer = parseInt(body.iconPic.oldURL.substring(body.iconPic.oldURL.lastIndexOf("_v") + 2, body.iconPic.oldURL.lastIndexOf(".")));
-        newIconVer = isNaN(oldIconVer) ? 0 : (oldIconVer + 1) % 50;
-        iconPicUpload = body.iconPic ? await uploadFile(body.iconPic.raw, iconFileName(id, body.iconPic.raw, newIconVer)) : null;
-        if (!iconPicUpload.message) {
-            editBody.iconPic = s3URL + iconFileName(id, body.iconPic.raw, newIconVer);
-            const iconPicDelete = deleteFile(body.iconPic.oldURL.replace(s3URL,""));
-        } else {
-            console.log("Error with uploading icon pic."); //icon pic failed
+    try {
+        //upload pictures
+        let iconPicUpload = null;
+        let newIconVer = 0;
+        if (body.iconPic) {
+            const oldIconVer = parseInt(body.iconPic.oldURL.substring(body.iconPic.oldURL.lastIndexOf("_v") + 2, body.iconPic.oldURL.lastIndexOf(".")));
+            newIconVer = isNaN(oldIconVer) ? 0 : (oldIconVer + 1) % 50;
+            iconPicUpload = body.iconPic ? await uploadFile(body.iconPic.raw, iconFileName(id, body.iconPic.raw, newIconVer)) : null;
+            if (!iconPicUpload.message) {
+                editBody.iconPic = s3URL + iconFileName(id, body.iconPic.raw, newIconVer);
+                const iconPicDelete = deleteFile(body.iconPic.oldURL.replace(s3URL,""));
+            } else {
+                console.log("Error with uploading icon pic."); //icon pic failed
+            }
         }
-    }
 
-    //patch res
-    const res = await fetch(url, {
-        method: 'PATCH',
-        body: JSON.stringify(convertJSON(editBody)),
-        headers: {
-            'Accept': 'application/json, text/plain, */*',
-            'Content-Type': 'application/json'
-        },
-        credentials: "include",
-    });
-    if (res.status === 401) { //unauthorized
-        /**TODO: handle 401 error */
-        console.log(res)
-        return null;
-    } else if (res.status === 404) { //resource not found
-        /**TODO: handle 404 error */
-        console.log(res)
-        return null;
-    } else if (res.status === 500) { //internal server error
-        /**TODO: handle 500 error */
-        console.log(res)
-        return null;
-    }
+        //patch res
+        const res = await fetch(url, {
+            method: 'PATCH',
+            body: JSON.stringify(convertJSON(editBody)),
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            credentials: "include",
+        });
+        if (res.status === 401) { //unauthorized
+            /**TODO: handle 401 error */
+            console.log(res)
+            return null;
+        } else if (res.status === 404) { //resource not found
+            /**TODO: handle 404 error */
+            console.log(res)
+            return null;
+        } else if (res.status === 500) { //internal server error
+            /**TODO: handle 500 error */
+            console.log(res)
+            return null;
+        }
 
-    const json = await res.json();
-    if (json === undefined) { //patch failed
+        const json = await res.json();
+        if (json === undefined) { //patch failed
+            return null;
+        } else {
+            return { user: json };
+        }
+    } catch (err) {
+        console.log('fetch failed, ', err);
         return null;
-    } else {
-        return { user: json };
     }
+    
 }
 
 export const summonChara = async function (id, chara, cost) {
@@ -332,6 +338,12 @@ export const deleteUser = async function (id) {
     const url = "http://localhost:3001/users/" + id;
 
     try {
+        //get all gachas and charas created by the user to delete their pictures from amazon s3
+        const getGachasURL = "http://localhost:3001/gachas/bycreator/" + id;
+        const getCharasURL = "http://localhost:3001/charas/bycreator/" + id;
+        const getGachasRes = await fetch(getGachasURL);
+        const getCharasRes = await fetch(getCharasURL);
+
         const res = await fetch(url, {
             method: 'DELETE',
             headers: {
@@ -353,6 +365,11 @@ export const deleteUser = async function (id) {
         const user = await res.json();
         if (user !== undefined) {
             setEmptyState();
+            const toDeletePics = getGachasRes.gachas.concat(getCharasRes.charas);
+            toDeletePics.forEach(obj => {
+                deleteFile(obj.coverPic.replace(s3URL, ""));
+                deleteFile(obj.iconPic.replace(s3URL, ""));
+            });
             return true;
         }
         /**TODO: handle user undefined case */

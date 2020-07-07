@@ -128,21 +128,8 @@ exports.createChara = async function(req, res) {
         //save the character
         const newChara = await chara.save();
 
-        //prepare to add the character to the rarity lists of the gacha
-        if (newChara.rarity == 3) {
-            gacha.threeStars.push(newChara._id);
-        } else if (newChara.rarity == 4) {
-            gacha.fourStars.push(newChara._id);
-        } else if (newChara.rarity == 5) {
-            gacha.fiveStars.push(newChara._id);
-        } else {
-            res.status(400).send(/**TODO: send error */);
-        }
-
-        //save the gacha
-        const result = await gacha.save();
         //send result
-        res.status(200).send({chara: newChara, gacha: result});
+        res.status(200).send({chara: newChara});
 
     } catch (err) {
         res.status(500).send(err);
@@ -167,6 +154,24 @@ exports.getCharasByGacha = function(req, res) {
         }
      );
 };
+
+exports.getCharasByCreator = function(req, res) {
+    const id = req.params.id; 
+    
+    //check for a valid mongodb id
+     if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
+
+     /**TODO: check if gacha exists */
+
+     Chara.find({ creator: id }).then(
+        result => {
+             res.status(200).send({ result });
+        },
+        err => {
+            res.status(500).send(err)
+        }
+     );
+}
 
 exports.getCharaById = function(req, res) {
     const id = req.params.id;
@@ -228,35 +233,8 @@ exports.updateCharaInfo = async function (req, res) {
 
         //save chara
         const newChara = await chara.save();
+        res.status(200).send({result: newChara});
         //if chara changed rarities, gacha needs to change rarity lists
-        if (oldRarity != newChara.rarity) {
-            const gacha = await gachaModel.Gacha.findById(newChara.gacha).exec();
-            //remove old rarity
-            if (oldRarity == 3) {
-                gacha.threeStars = gacha.threeStars.filter(charas => charas != chara._id.toString());
-            } else if (oldRarity == 4) {
-                gacha.fourStars = gacha.fourStars.filter(charas => charas != chara._id.toString())
-            } else { //rarity is 5
-                gacha.fiveStars = gacha.fiveStars.filter(charas => charas != chara._id.toString())
-            } 
-            //add new rarity
-            if (newChara.rarity == 3) {
-                gacha.threeStars.push(chara._id);
-            } else if (newChara.rarity == 4) {
-                gacha.fourStars.push(chara._id);
-            } else { //rarity is 5
-                gacha.fiveStars.push(chara._id);
-            } 
-
-            //save gacha
-            const newGacha = await gacha.save();
-            //send result
-            res.status(200).send({chara: newChara, gacha: newGacha});
-
-        } else {
-            //if no changes to gacha, send result
-            res.status(200).send({result: newChara});
-        }
     } catch (err) {
         res.status(500).send(err);
     }
@@ -328,30 +306,12 @@ exports.deleteChara = async function(req, res) {
         //remove chara
         const removedChara = await chara.remove();
 
-        //edit gacha rarity list
-        const gacha = await gachaModel.Gacha.findById(removedChara.gacha).exec();
         //pull character from the inventories of the users
         const users = await userModel.User.updateMany({"inventory._id": removedChara._id }, 
             { $pull: {"inventory": { "_id": removedChara._id } }, $inc: {"starFrags": summonCost} }).exec();
 
-        //if gacha doesn't exist, don't need to edit it.
-        if (!gacha) {
-            res.status(200).send({chara: removedChara, gacha: null, usersUpdated: users});
-            return;
-        }
-        //remove old rarity
-        if (removedChara.rarity == 3) {
-            gacha.threeStars = gacha.threeStars.filter(charas => charas.toString() !== removedChara._id.toString());
-        } else if (removedChara.rarity == 4) {
-            gacha.fourStars = gacha.fourStars.filter(charas => charas.toString() !== removedChara._id.toString())
-        } else { //rarity is 5
-            gacha.fiveStars = gacha.fiveStars.filter(charas => charas.toString() !== removedChara._id.toString())
-        } 
-        //save gacha
-        const newGacha = await gacha.save();
-
         //send result
-        res.status(200).send({chara: removedChara, gacha: newGacha, usersUpdated: users});
+        res.status(200).send({chara: removedChara, usersUpdated: users});
  
     } catch (err) {
         res.status(500).send(err);

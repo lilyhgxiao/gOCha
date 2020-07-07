@@ -31,10 +31,22 @@ export const convertJSON = (obj) => {
     return newObj;
 }
 
-export const coverFileName = (gachaId, file, version) => {
-    return "gacha_images/" + gachaId + "_coverPic_v" + version + (file.type).replace("image/", ".");
+export const coverFileName = (folder, gachaId, file, version) => {
+    return folder + gachaId + "_coverPic_v" + version + (file.type).replace("image/", ".");
 }
 
-export const iconFileName = (gachaId, file, version) => {
-    return "gacha_images/" + gachaId + "_iconPic_v" + version + (file.type).replace("image/", ".");
+export const iconFileName = (folder, gachaId, file, version) => {
+    return folder + gachaId + "_iconPic_v" + version + (file.type).replace("image/", ".");
+}
+
+export const errorMatch = (res) => {
+    if (res.status === 401) { //unauthorized
+        return "The user is unauthorized to access this resource.";
+    } else if (res.status === 404) { //resource not found
+        return "The resource was not found.";
+    } else if (res.status === 500) { //internal server error
+        return "Internal server error.";
+    } else {
+        return null;
+    }
 }

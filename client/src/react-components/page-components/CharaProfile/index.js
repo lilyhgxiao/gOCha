@@ -91,7 +91,7 @@ class CharaProfile extends BaseReactComponent {
                 </div>
                 <div className="charaInfoSection">
                   <div className="charaProfName">{chara.name}</div>
-                  <img className="charaProfMainPic" src={main_placeholder} alt={chara.name + ' Picture'}/>
+                  <img className="charaProfMainPic" src={chara.coverPic} alt={chara.name + ' Picture'}/>
                   <StarRarityDisplay rarity={chara.rarity}/>
                   <div className="charaProfDesc">{chara.desc}</div>
                   <br/>

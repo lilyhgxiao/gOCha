@@ -14,7 +14,7 @@ import GachaList from "./../../page-components/GachaList";
 // Importing actions/required methods
 import { updateSession } from "../../../actions/loginHelpers";
 import { getUserByUsername } from "../../../actions/userhelpers";
-import { getGachaById } from "../../../actions/gachaHelpers";
+import { getGachasByCreator } from "../../../actions/gachaHelpers";
 
 
 //images
@@ -64,30 +64,20 @@ class Profile extends BaseReactComponent {
                 console.log("Failed to get user " + username);
                 return;
             }
+            this.setState({
+                user: user,
+                isUserLoaded: true
+            });
+            const currUser = this.state.currUser;
 
-            const gachaReqs = [];
-
-            let i;
-            for (i = 0; i < user.ownGachas.length; i++) {
-                gachaReqs.push(getGachaById(user.ownGachas[i]));
+            const getGachasReq = await getGachasByCreator(currUser._id);
+            if (!getGachasReq) {
+                /**TODO: handle when req fails */
             }
-
-            /**TODO: handle if requests fail...? */
-            Promise.all(gachaReqs).then(res => {
-                this.setState({
-                    user: user,
-                    gachaList: res,
-                    isUserLoaded: true,
-                    isGachaLoaded: true
-                });
-            }).catch((err) => {
-                /**TODO: handle if catch */
-                this.setState({
-                    user: user,
-                    isUserLoaded: true
-                });
-                console.log("Error with Promise.all in fetchUser: " + err);
-            })
+            this.setState({
+                gachaList: getGachasReq.gachas.result,
+                isGachaLoaded: true
+            });
 
         } catch (err) {
             console.log("Error in fetchUser: " + err);

@@ -2,7 +2,7 @@
 'use strict';
 const log = console.log
 
-const { minGachaNameLength, maxGachaNameLength, maxGachaDescLength, maxStatsLength, s3URL } = require('../client/src/constants');
+const { minGachaNameLength, maxGachaNameLength, maxGachaDescLength, maxStatsLength, s3URL, maxCharaListLength } = require('../client/src/constants');
 
 const userModel = require("./user.js");
 const charaModel = require("./chara");
@@ -46,20 +46,8 @@ const GachaSchema = new mongoose.Schema({
     stats: { //stats to compare the characters in gacha
 		type: [ GachaStatSchema ],
 		default: [],
-        validate: [arrayLimit, '{PATH} exceeds the limit of ' + maxStatsLength],
-    }, 
-	threeStars: { //id list of charas w 3 stars
-		type: Array,
-        default: [],
-	},
-	fourStars: { //id list of charas w 4 stars
-		type: Array,
-        default: [],
-	},
-	fiveStars: { //id list of charas w 5 stars
-		type: Array,
-        default: [],
-	},
+        validate: [statsLimit, '{PATH} exceeds the limit of ' + maxStatsLength],
+    },
 	creator: { //creator of gacha
         type: ObjectID,
         required: true
@@ -70,7 +58,7 @@ const GachaSchema = new mongoose.Schema({
     }
 });
 
-function arrayLimit(val) {
+function statsLimit(val) {
 	return val.length <= maxStatsLength;
 }
 
@@ -95,9 +83,9 @@ exports.createGacha = async function(req, res) {
         res.status(400).send({message: "Failed to create gacha: A gacha requires a name."})
     }
     if (req.body.desc) gachaBody.desc = req.body.desc || "";
-    if (req.body.threeStars) gachaBody.threeStars = req.body.threeStars || [];
-    if (req.body.fourStars) gachaBody.fourStars = req.body.fourStars || [];
-    if (req.body.fiveStars) gachaBody.fiveStars = req.body.fiveStars || [];
+    if (req.body.coverPic) gachaBody.coverPic = req.body.coverPic || "";
+    if (req.body.iconPic) gachaBody.iconPic = req.body.iconPic || "";
+    if (req.body.charaLimit) gachaBody.charaLimit = req.body.charaLimit || [];
     if (req.body.creator)  {
         if (req.body.creator.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
             res.status(401).send(/**TODO: send error */); // unauthorized
@@ -130,16 +118,9 @@ exports.createGacha = async function(req, res) {
         } 
         //save the gacha
         const newGacha = await gacha.save();
-        
-        //push the gacha onto user's own gachas
-        user.ownGachas.push(newGacha._id);
-        const result = await user.save();
-        if (result._id.toString() === req.session.user._id.toString()) {
-			req.session.user = result;
-        }
 
         //send result
-        res.status(200).send({gacha: newGacha, user: result});
+        res.status(200).send({gacha: newGacha});
 
     } catch(err) {
         res.status(500).send(err); // server error
@@ -178,6 +159,21 @@ exports.getGachaById = function(req, res) {
         });
 };
 
+exports.getGachasByCreator = function(req, res) {
+    const id = req.params.id;
+
+    if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
+
+    Gacha.find({ creator: id }).then(
+        result => {
+            res.status(200).send({ result }); // can wrap in object if want to add more properties
+        },
+        err => {
+            res.status(500).send(err); // server error
+        }
+    );
+}
+
 exports.updateGachaInfo = async function(req, res) {
     if (!req.session.user) {
         res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
@@ -205,9 +201,6 @@ exports.updateGachaInfo = async function(req, res) {
 
         //edit gacha
         /**TODO: check if creator exists */
-        if (req.body.threeStars) gacha.threeStars = req.body.threeStars;
-        if (req.body.fourStars) gacha.fourStars = req.body.fourStars;
-        if (req.body.fiveStars) gacha.fiveStars = req.body.fiveStars;
         if (req.body.active) gacha.active = req.body.active;
         if (req.body.name) gacha.name = req.body.name;
         if (req.body.desc) gacha.desc = req.body.desc;
@@ -252,9 +245,6 @@ exports.pushGachaInfo = async function(req, res) {
         //edit gacha
         /**TODO: make sure characters in threestars, fourstars, and fivestars exist */
         if (req.body.stats) gacha.stats.push(req.body.stats);
-        if (req.body.threeStars) gacha.threeStars.push(req.body.threeStars);
-        if (req.body.fourStars) gacha.fourStars.push(req.body.fourStars);
-        if (req.body.fiveStars) gacha.fiveStars.push(req.body.fiveStars);
 
         //save gacha to database
         const result = await gacha.save();
@@ -438,9 +428,6 @@ exports.deleteGacha = async function(req, res) {
 
         //remove gacha
         const result = await gacha.remove();
-        //pull gacha from ownGachas of the user
-        const update = { ownGachas: gacha._id }
-        const creator = await userModel.User.findByIdAndUpdate(gacha.creator, { $pull: update }, { new: true }).exec();
 
         //delete all characters belonging to the gacha
         const chara = await charaModel.Chara.deleteMany({gacha: id}).exec();
@@ -448,17 +435,9 @@ exports.deleteGacha = async function(req, res) {
         const usersInventory = await userModel.User.updateMany({"inventory.gacha": id }, { $pull: {"inventory": { "gacha": id }} }).exec();
         //pull gacha from all favGacha lists of users
         const usersFavGachas = await userModel.User.updateMany({"favGachas._id": id }, { $pull: {"favGachas": { "_id": id }} }).exec();
-        
-        if (!creator) { //if creator doesn't exist for some reason
-            /**TODO: send all the other results */
-            res.status(404).send(/**TODO: send error */);
-            return;
-        }
-        /**TODO: if creator = session user, change user */
 
         //send result
         res.status(200).send({gacha: result, 
-            creator: creator, 
             charasDeleted: chara, 
             usersUpdated: {
 				inventory: usersInventory, 
@@ -466,6 +445,7 @@ exports.deleteGacha = async function(req, res) {
             }});
 
     } catch (err) {
+        console.log(err);
         res.status(500).send(err);
     }
 };

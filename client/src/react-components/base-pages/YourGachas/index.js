@@ -10,7 +10,7 @@ import BaseReactComponent from "../../other/BaseReactComponent";
 import GachaList from "./../../page-components/GachaList";
 
 // Importing actions/required methods
-import { getGachaById } from "../../../actions/gachaHelpers";
+import { getGachasByCreator } from "../../../actions/gachaHelpers";
 import { updateSession } from "../../../actions/loginHelpers";
 
 class YourGachas extends BaseReactComponent {
@@ -18,7 +18,7 @@ class YourGachas extends BaseReactComponent {
     state = {
         isLoaded: false,
         currUser: null,
-        gachaList: null
+        gachaList: []
     };
 
     constructor(props) {
@@ -43,24 +43,22 @@ class YourGachas extends BaseReactComponent {
     }
 
     fetchYrGachas = async () => {
-        const gachaReqs = [];
         const currUser = this.state.currUser;
 
-        let i;
-        for (i = 0; i < currUser.ownGachas.length; i++) {
-            gachaReqs.push(getGachaById(currUser.ownGachas[i]));
-        }
-
-        /**TODO: handle if requests fail...? */
-        Promise.all(gachaReqs).then(res => {
+        try {
+            const getGachasReq = await getGachasByCreator(currUser._id);
+            if (!getGachasReq) {
+                /**TODO: handle when req fails */
+                console.log("getGachasReq failed");
+                return;
+            }
             this.setState({
-                gachaList: res,
+                gachaList: getGachasReq.gachas.result,
                 isLoaded: true
             });
-        }).catch((err) => {
-            /**TODO: handle if catch */
-            console.log("Error with Promise.all in fetchYrGachas: " + err);
-        })
+        } catch (err) {
+            /**TODO: handle catch err */
+        }
     }
 
     render() {

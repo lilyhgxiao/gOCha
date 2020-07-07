@@ -191,11 +191,11 @@ class CreateChara extends BaseReactComponent {
             const createCharaRes = await createNewChara(gacha._id, createCharaBody);
             if (createCharaRes) {
                 console.log(createCharaRes);
-                if (createCharaRes.gacha && createCharaRes.chara) {
+                if (createCharaRes.chara) {
                     this.setState({
                         alert: {
                             title: "Chara created successfully!",
-                            handleOk: this.redirectEdit.bind(this, createCharaRes.gacha._id),
+                            handleOk: this.redirectEdit.bind(this, createCharaRes.chara.gacha),
                             okText: "Go back to Edit Gacha"
                         }
                     });

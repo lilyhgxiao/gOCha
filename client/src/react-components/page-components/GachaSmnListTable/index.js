@@ -16,7 +16,7 @@ class GachaSmnListTable extends React.Component {
                         <th className="gachaSmnListTableLeft">Name</th>
                         <th className="gachaSmnListTableRight">Summon Chance</th>
                     </tr>
-                    {charaList.length > 0 && isLoaded ?
+                    { isLoaded && charaList.length > 0 ?
                         charaList.map((chara) => {
                             return (
                                 <tr className="gachaSmnListTable" key={uid(chara)}>

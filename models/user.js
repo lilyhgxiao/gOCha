@@ -80,10 +80,6 @@ const UserSchema = new mongoose.Schema({
 		type: String,
         default: ""
 	},
-	ownGachas: { //id list of the user's created gachas
-		type: Array,
-		default: []
-	},
 	favGachas: { //id list of user's favourited gachas
 		type: Array,
 		default: []
@@ -254,7 +250,6 @@ exports.updateUserInfo = async function(req, res) {
 		if (req.body.starFrags) user.starFrags = req.body.starFrags;
 		if (req.body.silvers) user.silvers = req.body.silvers;
 		if (req.body.lastLoginDate) user.lastLoginDate = req.body.lastLoginDate;
-		if (req.body.ownGachas) user.ownGachas = req.body.ownGachas;
 		if (req.body.favGachas) user.favGachas = req.body.favGachas;
 		if (req.body.inventory) user.inventory = req.body.inventory;
 		if (req.body.bio) user.bio = req.body.bio;
@@ -435,7 +430,6 @@ exports.pushUserInfo = async function(req, res) {
 
 		//clean request body
 		const updateQuery = {};
-		if (req.body.ownGachas) updateQuery.ownGachas = req.body.ownGachas;
 		if (req.body.favGachas) updateQuery.favGachas = req.body.favGachas;
 		if (req.body.inventory) updateQuery.inventory = req.body.inventory;
 
@@ -478,7 +472,6 @@ exports.pullUserInfo = async function(req, res) {
 
 		//clean request body
 		const updateQuery = {};
-		if (req.body.ownGachas) updateQuery.ownGachas = req.body.ownGachas;
 		if (req.body.favGachas) updateQuery.favGachas = req.body.favGachas;
 		if (req.body.inventory) updateQuery.inventory = req.body.inventory;
 

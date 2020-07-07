@@ -22,10 +22,7 @@ class CharaEditLink extends React.Component {
     handleClick = () => {
         const { page, chara } = this.props;
         
-        if (!page.state.chara) {
-            return;
-        }
-        if (chara._id === page.state.chara._id) {
+        if (page.state.chara && chara._id === page.state.chara._id) {
             return;
         }
         page.setState({
@@ -122,7 +119,7 @@ class CharaEditLink extends React.Component {
             <table className="charaEditLinkContainer">
                 <tbody>
                     <tr>
-                        <td onClick={this.handleClick}><img className="charaEditLinkIcon" src={icon_placeholder} alt={chara.name + " Icon"} /></td>
+                        <td onClick={this.handleClick}><img className="charaEditLinkIcon" src={chara.iconPic} alt={chara.name + " Icon"} /></td>
                         <td onClick={this.handleClick}><div className="charaEditLinkName">{chara.name}</div></td>
                         {   canDelete ?
                             <td><button onClick={this.handleDeleteClick}>Delete</button></td> : null

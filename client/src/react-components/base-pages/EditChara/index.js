@@ -253,13 +253,6 @@ class CreateChara extends BaseReactComponent {
             success = false;
             return;
         }
-        if (chara.rarity !== rarity && !patchCharaReq.gacha) {
-            /**TODO: handle response to gacha not being patched properly when rarity changes */
-            console.log("rarity changed and gacha not edited")
-            success = false;
-            return;
-        }
-
         if (success) {
             this.setState({
                 alert: {
