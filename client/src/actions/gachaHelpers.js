@@ -16,10 +16,10 @@ export const getGachaById = async (id) => {
         const res = await fetch(url);
         const json = await res.json();
         let msg = errorMatch(res);
-        return { status: res.status, gacha: json.gacha, msg: msg, err: null };
+        return { status: res.status, gacha: json.gacha, msg: msg, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, gacha: null, msg: "Failed to get Gacha.", err: err };
     }
 }
 
@@ -31,10 +31,10 @@ export const getGachasByCreator = async (id) => {
         const res = await fetch(url);
         const json = await res.json();
         let msg = errorMatch(res);
-        return { status: res.status, gachas: json, msg: msg, err: null };
+        return { status: res.status, gachas: json.gachas, msg: msg, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, gachas: null, msg: "Failed to get Gachas.", err: err };
     }
 }
 
@@ -61,10 +61,10 @@ export const fetchNewGacha = async (body) => {
         });
         const json = await res.json();
         let msg = errorMatch(res);
-        return { status: res.status, json: json, msg: msg, err: null };
+        return { status: res.status, gacha: json.gacha, msg: msg, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
-        return { status: null, json: null, msg: "Failed to create Gacha.", err: err };
+        return { status: null, gacha: null, msg: "Failed to create Gacha.", err: err };
     }
 }
 
@@ -84,10 +84,10 @@ export const fetchPatchGacha = async (id, body) => {
         });
         const json = await res.json();
         let msg = errorMatch(res);
-        return { status: res.status, json: json, msg: msg, err: msg };
+        return { status: res.status, gacha: json.gacha, msg: msg, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
-        return { status: null, json: null, msg: "Failed to patch Gacha.", err: err };
+        return { status: null, gacha: null, msg: "Failed to patch Gacha.", err: err };
     }
 }
 
@@ -107,7 +107,7 @@ export const createNewGacha = async (body) => {
                 gacha: null };
         }
 
-        const gacha = postRes.json.gacha;
+        const gacha = postRes.gacha;
 
         if (body.coverPic || body.iconPic) {
             const uploadRes = await uploadPicsForNewObj(gachaFolder, gacha._id, body);
@@ -121,24 +121,22 @@ export const createNewGacha = async (body) => {
             }
 
             const patchRes = await fetchPatchGacha(gacha._id, uploadRes);
-            if (patchRes.status !== 200 || patchRes.json === undefined) {
+            if (patchRes.status !== 200 || patchRes.gacha === null) {
                 msg.push(patchRes.msg);
                 return { status: postRes.status, msg: msg, 
                     err: "fetchPatchGacha failed" + (patchRes.err ? ": " + patchRes.err : "."),
                     gacha: gacha };
             } else {
                 return { status: postRes.status, msg: msg, err: null,
-                    gacha: patchRes.json };
+                    gacha: patchRes.gacha };
             }
         }
     } catch (err) {
-        /**TODO: handle error with catch */
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, msg: "Failed to create Gacha.", err: err, gacha: null };
     }
 }
 
-/**TODO: edit gacha*/
 export const editGacha = async (id, body) => {
     const msg = [];
     const editBody = Object.assign({}, body);
@@ -147,7 +145,6 @@ export const editGacha = async (id, body) => {
         //upload pictures
         let coverPicUpload = null;
         let iconPicUpload = null;
-        /**TODO: make this a helper method in filehelpers */
         if (body.coverPic) {
             coverPicUpload = await replaceFile(body.coverPic, id, gachaFolder, true);
             if (coverPicUpload.newURL !== null) {
@@ -163,11 +160,11 @@ export const editGacha = async (id, body) => {
 
         //patch res
         const patchRes = await fetchPatchGacha(id, editBody);
-        if (patchRes.status !== 200 || patchRes.json === undefined) {
+        if (patchRes.status !== 200 || patchRes.gacha === null) {
             msg.push(patchRes.msg);
             return { status: patchRes.status, msg: msg, 
                 err: "fetchPatchGacha failed" + (patchRes.err ? ": " + patchRes.err : "."),
-                gacha: patchRes.json };
+                gacha: patchRes.gacha, deleteCoverPic: null, deleteIconPic: null };
         } else {
             let deleteCoverPic;
             let deleteIconPic;
@@ -178,12 +175,11 @@ export const editGacha = async (id, body) => {
                 deleteIconPic = await deleteFile(body.iconPic.oldURL.replace(s3URL, ""));
             }
             return { status: patchRes.status, msg: msg, err: null,
-                gacha: patchRes.json,
+                gacha: patchRes.gacha,
                 deleteCoverPic: deleteCoverPic, 
                 deleteIconPic: deleteIconPic };
         }
     } catch (err) {
-        /**TODO: handle error with catch */
         console.log('fetch failed, ', err);
         return { status: null, gacha: null, msg: "Failed to patch Gacha.", err: err, deleteCoverPic: null,
             deleteIconPic: null };
@@ -209,9 +205,8 @@ export const addStatsToGacha = async (id, body) => {
         });
         const json = await res.json();
         let msg = errorMatch(res);
-        return { status: res.status, gacha: (json.gacha ? json.gacha : null), msg: msg, err: msg };
+        return { status: res.status, gacha: json.gacha, msg: msg, err: json.err };
     } catch (err) {
-        /**TODO: handle error with catch */
         console.log('fetch failed, ', err);
         return { status: null, gacha: null, msg: "Failed to add stats to gacha.", err: err };
     }
@@ -235,9 +230,8 @@ export const updateStatsOnGacha = async (id, body) => {
         });
         const json = await res.json();
         let msg = errorMatch(res);
-        return { status: res.status, gacha: (json.gacha ? json.gacha : null), msg: msg, err: msg };
+        return { status: res.status, gacha: json.gacha, msg: msg, err: json.err };
     } catch (err) {
-        /**TODO: handle error with catch */
         console.log('fetch failed, ', err);
         return { status: null, gacha: null, msg: "Failed to update stats on gacha.", err: err };
     }
@@ -261,9 +255,8 @@ export const deleteStatsOnGacha = async (id, body) => {
         });
         const json = await res.json();
         let msg = errorMatch(res);
-        return { status: res.status, gacha: (json.gacha ? json.gacha : null), msg: msg, err: msg };
+        return { status: res.status, gacha: json.gacha, msg: msg, err: json.err };
     } catch (err) {
-        /**TODO: handle error with catch */
         console.log('fetch failed, ', err);
         return { status: null, gacha: null, msg: "Failed to delete stats on gacha.", err: err };
     }
