@@ -151,9 +151,9 @@ class GachaSummon extends BaseReactComponent {
                                     });
                                     retries = 0;
                                 } else { //if it doesn't exist, reload the gacha information
-                                    const getGacha = await getGachaById(id);
+                                    const getGacha = await getGachaById(this.state.gacha._id);
                                     if (!getGacha || getGacha.gacha) {
-                                        console.log("Failed to get gacha " + id);
+                                        console.log("Failed to get gacha " + this.state.gacha._id);
                                         return;
                                     }
                                     const reloadGacha = getGacha.gacha;
@@ -378,11 +378,7 @@ class GachaSummon extends BaseReactComponent {
 
                 <div className="mainBodyContainer">
                     {alert ?
-                        <AlertDialogue parent={this} title={alert.title} text={alert.text} yesNo={alert.yesNo} 
-                        handleYes={alert.handleYes} handleNo={alert.handleNo} handleOk={alert.handleOk} 
-                        yesText={alert.yesText} noText={alert.noText} okText={alert.okText} image={alert.image}
-                        checkbox={alert.checkbox} checkboxText={alert.checkboxText} inputOn={alert.inputOn}
-                        inputParameters={alert.inputParameters}/> :
+                        <AlertDialogue parent={this} alert={alert}/> :
                         null
                     }
                     {isGachaLoaded ?

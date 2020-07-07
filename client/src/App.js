@@ -5,6 +5,7 @@ import BaseReactComponent from "./react-components/other/BaseReactComponent";
 
 import Login from "./react-components/base-pages/Login";
 import Signup from "./react-components/base-pages/Signup";
+import ErrorPage from "./react-components/base-pages/ErrorPage";
 import Dashboard from "./react-components/base-pages/Dashboard";
 import Inventory from "./react-components/base-pages/Inventory";
 import YourGachas from "./react-components/base-pages/YourGachas";
@@ -43,6 +44,7 @@ class App extends BaseReactComponent {
                 <Switch>
                     <Route path={["/", "/login"]} exact component={Login} />
                     <Route path="/signup" exact component={Signup} />
+                    <Route path="/error" exact component={ErrorPage} />
                     <Route path="/dashboard" exact component={Dashboard} />
                     <Route path="/inventory" exact component={Inventory} />
                     <Route path="/yourGachas" exact component={YourGachas} />

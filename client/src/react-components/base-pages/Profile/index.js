@@ -97,11 +97,7 @@ class Profile extends BaseReactComponent {
 
                 <div className="mainBodyContainer">
                     { alert ? 
-                        <AlertDialogue parent={this} title={alert.title} text={alert.text} yesNo={alert.yesNo} 
-                        handleYes={alert.handleYes} handleNo={alert.handleNo} handleOk={alert.handleOk} 
-                        yesText={alert.yesText} noText={alert.noText} okText={alert.okText} image={alert.image}
-                        checkbox={alert.checkbox} checkboxText={alert.checkboxText} inputOn={alert.inputOn}
-                        inputParameters={alert.inputParameters}/> :
+                        <AlertDialogue parent={this} alert={alert}/> :
                         null
                     }
                     <div className="mainBody">

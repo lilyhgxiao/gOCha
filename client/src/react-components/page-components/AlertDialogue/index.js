@@ -56,9 +56,11 @@ class AlertDialogue extends React.Component {
     }
 
     render() {
-        const { parent, title, text, yesNo, handleYes, handleNo, handleOk, yesText, noText, okText, 
-            image, checkbox, checkboxText, inputOn, inputParameters } = this.props;
+        const { parent, alert } = this.props;
         const { inputText } = this.state;
+
+        const { title, text, yesNo, handleYes, handleNo, handleOk, yesText, noText, okText, 
+            image, checkbox, checkboxText, inputOn, inputParameters } = alert;
 
         return (
             <div className="alertDialogueContainer">

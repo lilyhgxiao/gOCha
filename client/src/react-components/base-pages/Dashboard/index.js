@@ -1,5 +1,6 @@
 /*  Full Dashboard component */
 import React from "react";
+import { Redirect } from 'react-router';
 import { Link } from 'react-router-dom';
 
 import "./styles.css";
@@ -23,7 +24,8 @@ import dashboard_placeholder from './../../../images/dashboard_placeholder.jpg';
 class Dashboard extends BaseReactComponent {
 
     state = {
-        alert: null
+        alert: null,
+        error: null
     }
 
     constructor(props) {
@@ -60,9 +62,24 @@ class Dashboard extends BaseReactComponent {
         })
     }
 
+    redirectError = () => {
+        this.setState({
+            error: {code: 500, msg: "Hi there", toDashboard: true}
+        });
+    }
+
     render() {
         const { history } = this.props;
-        const { currUser, alert } = this.state;
+        const { currUser, alert, error } = this.state;
+
+        if (error) {
+            return (
+                <Redirect push to={{
+                    pathname: "/error",
+                    state: { error: error }
+                }} />
+            );
+        }
 
         return (
             <div className="App">
@@ -73,11 +90,7 @@ class Dashboard extends BaseReactComponent {
 
                 <div className="mainBodyContainer">
                     { alert ? 
-                        <AlertDialogue parent={this} title={alert.title} text={alert.text} yesNo={alert.yesNo} 
-                        handleYes={alert.handleYes} handleNo={alert.handleNo} handleOk={alert.handleOk} 
-                        yesText={alert.yesText} noText={alert.noText} okText={alert.okText} image={alert.image}
-                        checkbox={alert.checkbox} checkboxText={alert.checkboxText} inputOn={alert.inputOn}
-                        inputParameters={alert.inputParameters}/> :
+                        <AlertDialogue parent={this} alert={alert}/> :
                         null
                     }
                     <div className="mainBody">
@@ -85,7 +98,7 @@ class Dashboard extends BaseReactComponent {
                         <div className="dashboardTopMenu">
                             <div className="currencyDisplay">Star Fragments: {currUser ? currUser.starFrags: 0}</div>
                             <div className="currencyDisplay">Silvers: {currUser ? currUser.silvers : 0}</div>
-                            <div className="mailContainer" onClick={this.createAlertDialogue}> 
+                            <div className="mailContainer" onClick={this.redirectError}> 
                                 <div className="mailNotif">3</div>
                                 <div className="mailIcon"> 
                                     Mail
