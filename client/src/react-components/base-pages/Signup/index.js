@@ -3,6 +3,7 @@ import { Redirect } from 'react-router';
 
 //helper functions
 import { signup, getUserByUsername, getUserByEmail } from "../../../actions/userhelpers"
+import { login, logout, updateLoginForm } from "../../../actions/loginHelpers"
 
 //constants
 import { minUserLength, maxUserLength, minEmailLength, 
@@ -20,7 +21,7 @@ class Signup extends React.Component {
         email: "",
         password: "",
         confirmPassword: "",
-        signupSuccessful: false,
+        loginSuccess: false,
         backToLogin: false
     };
 
@@ -75,12 +76,12 @@ class Signup extends React.Component {
         } else {
             try {
                 const userByUsername =  await getUserByUsername(this.state.username);
-                if (userByUsername !== null) {
+                if (userByUsername && userByUsername.user !== null) {
                     alert('Failed to sign up: Username already taken. Please try another username.');
                     return;
                 }
                 const userByEmail =  await getUserByEmail(this.state.email);
-                if (userByEmail !== null) {
+                if (userByEmail && userByEmail.user !== null) {
                     alert('Failed to sign up: This email is already in use. Please try another email.');
                     return;
                 }
@@ -91,15 +92,19 @@ class Signup extends React.Component {
                     isAdmin: false
                 });
 
-                this.setState({
-                    signupSuccessful: signupRes.signupSuccess
-                });
-
-                /**TODO: put login request here */
-
-                if (!signupRes.signupSuccess) {
+                if (!signupRes.user) {
                     alert("Failed to sign up: " + signupRes.msg);
+                    return;
                 }
+
+                const loginRes = await login({username: signupRes.user.username, password: signupRes.user.password});
+                if (!loginRes.loginSuccess) {
+                    alert("Signed up but failed to login: " + loginRes.msg);
+                    return;
+                }
+                this.setState({
+                    loginSuccess: true
+                });
             } catch (err) {
                 console.log('signup failed, ', err);
             }
@@ -114,7 +119,7 @@ class Signup extends React.Component {
 
     render() {
 
-        if (this.state.signupSuccessful) {
+        if (this.state.loginSuccess) {
             return (
                 <Redirect push to={{
                     pathname: "/dashboard"

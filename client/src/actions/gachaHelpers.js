@@ -42,17 +42,10 @@ export const fetchNewGacha = async (body) => {
     const url = "http://localhost:3001/gachas";
     //const url = "/gachas";
 
-    const postBody = {};
-    if (body.name) postBody.name = body.name;
-    if (body.desc) postBody.desc = body.desc;
-    if (body.stats) postBody.stats = body.stats;
-    if (body.gacha) postBody.gacha = body.gacha;
-    if (body.creator) postBody.creator = body.creator;
-
     try {
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(postBody),
+            body: JSON.stringify(body),
             headers: {
                 'Accept': 'application/json, text/plain, */*',
                 'Content-Type': 'application/json'
@@ -97,9 +90,16 @@ export const createNewGacha = async (body) => {
     //const url = "/gachas"
     const msg = [];
 
+    const postBody = {};
+    if (body.name) postBody.name = body.name;
+    if (body.desc) postBody.desc = body.desc;
+    if (body.stats) postBody.stats = body.stats;
+    if (body.gacha) postBody.gacha = body.gacha;
+    if (body.creator) postBody.creator = body.creator;
+
     try {
         //post request
-        const postRes = await fetchNewGacha(body);
+        const postRes = await fetchNewGacha(postBody);
         if (postRes.status !== 200) {
             return { status: postRes.status, 
                 msg: postRes.msg,

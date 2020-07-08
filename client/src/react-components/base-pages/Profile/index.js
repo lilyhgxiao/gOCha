@@ -58,12 +58,13 @@ class Profile extends BaseReactComponent {
         const username = this.props.match.params.username;
 
         try {
-            const user = await getUserByUsername(username);
-            if (!user) {
+            const getUser = await getUserByUsername(username);
+            if (!getUser || !getUser.user) {
                 /**TODO: handle if failed to get user */
                 console.log("Failed to get user " + username);
                 return;
             }
+            const user = getUser.user;
             this.setState({
                 user: user,
                 isUserLoaded: true

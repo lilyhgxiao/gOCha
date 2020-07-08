@@ -1,60 +1,78 @@
-import { setState, setEmptyState, convertJSON, coverFileName, iconFileName } from "./helpers";
+import { setState, setEmptyState, convertJSON, coverFileName, iconFileName, errorMatch } from "./helpers";
 
-import { uploadFile, deleteFile } from "./fileHelpers";
+import { uploadFile, deleteFile, replaceFile } from "./fileHelpers";
 
 import { s3URL } from "./../constants";
 
 const fetch = require('node-fetch');
 
 /**TODO: delete most console.logs */
-
-export const signup = async function (newUser) {
-    const url = "http://localhost:3001/users"
-    //const url = "/users"
+export const fetchNewUser = async (body) => {
+    const url = "http://localhost:3001/users";
+    //const url = "/users";
 
     try {
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(convertJSON(newUser)),
+            body: JSON.stringify(body),
             headers: {
                 'Accept': 'application/json, text/plain, */*',
                 'Content-Type': 'application/json'
-            }
+            },
+            credentials: "include",
         });
-        if (res.status === 400) { //bad request error
-            /**TODO: handle 400 error */
-            const json = await res.json();
-            return {signupSuccess: false, msg: json.message};
-        }
-        const user = await res.json();
-        if (user !== undefined) {
-            setState("currUser", user);
-
-            //create session to login user upon creation
-            /**TODO: move this to the signup page. */
-            const loginBody = { username: newUser.username, password: newUser.password }
-            const loginRes = await fetch("http://localhost:3001/users/login", {
-                method: 'POST',
-                body: JSON.stringify(convertJSON(loginBody)),
-                headers: {
-                    'Accept': 'application/json, text/plain, */*',
-                    'Content-Type': 'application/json'
-                }
-            });
-            if (loginRes.status === 400) {
-                /**TODO: handle 400 error */
-                console.log("login unsuccessful")
-            } else {
-                console.log("login succeeded")
-            }
-            return { signupSuccess: true, msg: "Successful signup" };
-        }
-        return { signupSuccess: true, msg: "Successful signup" };
-        /**TODO: handle if user is undefined */
+        const json = await res.json();
+        let msg = errorMatch(res);
+        return { status: res.status, user: json.user, msg: msg, err: json.err };
     } catch (err) {
-        /**TODO: handle error */
         console.log('fetch failed, ', err);
-        return {signupSuccess: false, msg: err};
+        return { status: null, user: null, msg: "Failed to create User.", err: err };
+    }
+}
+
+export const fetchPatchUser = async (id, body) => {
+    const url = "http://localhost:3001/users" + id;
+    //const url = "/users" + id;
+
+    try {
+        const res = await fetch(url, {
+            method: 'PATCH',
+            body: JSON.stringify(body),
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            credentials: "include",
+        });
+        const json = await res.json();
+        let msg = errorMatch(res);
+        return { status: res.status, user: json.user, msg: msg, err: json.err };
+    } catch (err) {
+        console.log('fetch failed, ', err);
+        return { status: null, user: null, msg: "Failed to patch User.", err: err };
+    }
+}
+
+export const signup = async function (newUser) {
+    try {
+        const postRes = await fetchNewUser(newUser);
+        if (postRes.status !== 200) {
+            return { status: postRes.status, 
+                msg: postRes.msg,
+                err: "signup failed: " + (postRes.err ? ": " + postRes.err : "."),
+                user: null };
+        } else {
+            return { status: postRes.status, 
+                msg: postRes.msg,
+                err: null,
+                user: postRes.user };
+        }
+    } catch (err) {
+        console.log('fetch failed, ', err);
+        return { status: 500, 
+            msg: "Failed to create User.",
+            err: "signup failed: " + err,
+            user: null };
     }
 }
 
@@ -64,18 +82,12 @@ export const getUserById = async function (id) {
 
     try {
         const res = await fetch(url);
-        if (res.status === 404) { //resource not found
-             /**TODO: handle 404 error */
-             return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            return null;
-        }
-        const user = await res.json();
-        return user;
+        const json = await res.json();
+        let msg = errorMatch(res);
+        return { status: res.status, user: json.user, msg: msg, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, user: null, msg: "Failed to get User.", err: err };
     }
 }
 
@@ -85,18 +97,12 @@ export const getUserByUsername = async function (username) {
 
     try {
         const res = await fetch(url);
-        if (res.status === 404) { //resource not found
-             /**TODO: handle 404 error */
-             return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            return null;
-        }
-        const user = await res.json();
-        return user;
+        const json = await res.json();
+        let msg = errorMatch(res);
+        return { status: res.status, user: json.user, msg: msg, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, user: null, msg: "Failed to get User.", err: err };
     }
 }
 
@@ -106,78 +112,50 @@ export const getUserByEmail = async function (email) {
 
     try {
         const res = await fetch(url);
-        if (res.status === 404) { //resource not found
-             /**TODO: handle 404 error */
-             return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            return null;
-        }
-        const user = await res.json();
-        return user;
+        const json = await res.json();
+        let msg = errorMatch(res);
+        return { status: res.status, user: json.user, msg: msg, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, user: null, msg: "Failed to get User.", err: err };
     }
 }
 
 export const editUser = async function (id, body) {
-    const url = "http://localhost:3001/users/" + id;
-    //const url = "/gachas/" + id; 
-
+    const msg = [];
     const editBody = Object.assign({}, body);
 
     try {
         //upload pictures
         let iconPicUpload = null;
-        let newIconVer = 0;
         if (body.iconPic) {
-            const oldIconVer = parseInt(body.iconPic.oldURL.substring(body.iconPic.oldURL.lastIndexOf("_v") + 2, body.iconPic.oldURL.lastIndexOf(".")));
-            newIconVer = isNaN(oldIconVer) ? 0 : (oldIconVer + 1) % 50;
-            iconPicUpload = body.iconPic ? await uploadFile(body.iconPic.raw, iconFileName(id, body.iconPic.raw, newIconVer)) : null;
-            if (!iconPicUpload.message) {
-                editBody.iconPic = s3URL + iconFileName(id, body.iconPic.raw, newIconVer);
-                const iconPicDelete = deleteFile(body.iconPic.oldURL.replace(s3URL,""));
-            } else {
-                console.log("Error with uploading icon pic."); //icon pic failed
+            iconPicUpload = await replaceFile(body.iconPic, id, gachaFolder, false);
+            if (iconPicUpload.newURL !== null) {
+                editBody.iconPic = iconPicUpload.newURL;
             }
         }
 
         //patch res
-        const res = await fetch(url, {
-            method: 'PATCH',
-            body: JSON.stringify(convertJSON(editBody)),
-            headers: {
-                'Accept': 'application/json, text/plain, */*',
-                'Content-Type': 'application/json'
-            },
-            credentials: "include",
-        });
-        if (res.status === 401) { //unauthorized
-            /**TODO: handle 401 error */
-            console.log(res)
-            return null;
-        } else if (res.status === 404) { //resource not found
-            /**TODO: handle 404 error */
-            console.log(res)
-            return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            console.log(res)
-            return null;
-        }
-
-        const json = await res.json();
-        if (json === undefined) { //patch failed
-            return null;
+        const patchRes = await fetchNewUser(editBody);
+        if (patchRes.status !== 200 || patchRes.user === null) {
+            msg.push(patchRes.msg);
+            return { status: patchRes.status, msg: msg, 
+                err: "editUser failed" + (patchRes.err ? ": " + patchRes.err : "."),
+                user: patchRes.user, deleteIconPic: null };
         } else {
-            return { user: json };
+            let deleteIconPic;
+            if (body.iconPic && iconPicUpload.newURL !== null) {
+                deleteIconPic = await deleteFile(body.iconPic.oldURL.replace(s3URL, ""));
+            }
+            return { status: patchRes.status, msg: msg, err: null,
+                user: patchRes.user,
+                deleteIconPic: deleteIconPic };
         }
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, user: null, msg: "Failed to edit User.", err: err, 
+            deleteIconPic: null };
     }
-    
 }
 
 export const summonChara = async function (id, chara, cost) {
@@ -196,30 +174,17 @@ export const summonChara = async function (id, chara, cost) {
             },
             credentials: "include",
         });
-        if (res.status === 400) {
-            /**TODO: handle 400 error */
-            return null;
-        } else if  (res.status === 404) {
-            /**TODO: handle 404 error */
-            return null;
-        } else if  (res.status === 401) {
-            /**TODO: handle 401 error */
-            return null;
-        } else if (res.status === 500) {
-            /**TODO: handle 500 error */
-            return null;
+        const json = await res.json();
+        let msg = errorMatch(res);
+        if (res.status !== 200 || json.user === null) {
+            return { status: res.status, user: null, msg: msg, err: json.err };
+        } else {
+            setState("currUser", json.user);
+            return { status: res.status, user: json.user, msg: msg, err: null };
         }
-        const user = await res.json();
-        if (user !== undefined) {
-            console.log(user)
-            setState("currUser", user);
-            return true;
-        }
-        /**TODO: handle user undefined case */
-        return null;
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, user: null, msg: "Failed to summon.", err: err };
     }
 }
 
@@ -238,27 +203,17 @@ export const incCurrency = async function (id, starFrags, silvers) {
             },
             credentials: "include",
         });
-        if (res.status === 404) {
-            /**TODO: handle 404 error */
-            return null;
-        } else if  (res.status === 401) {
-            /**TODO: handle 401 error */
-            return null;
-        } else if (res.status === 500) {
-            /**TODO: handle 500 error */
-            return null;
+        const json = await res.json();
+        let msg = errorMatch(res);
+        if (res.status !== 200 || json.user === null) {
+            return { status: res.status, user: null, msg: msg, err: json.err };
+        } else {
+            setState("currUser", json.user);
+            return { status: res.status, user: json.user, msg: msg, err: null };
         }
-        const user = await res.json();
-        if (user !== undefined) {
-            console.log(user)
-            setState("currUser", user);
-            return true;
-        }
-        /**TODO: handle user undefined case */
-        return null;
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, user: null, msg: "Failed to increase currency.", err: err };
     }
 } 
 
@@ -275,26 +230,17 @@ export const pushUserInfo = async function (id, body) {
             },
             credentials: "include",
         });
-        if (res.status === 404) {
-            /**TODO: handle 404 error */
-            return null;
-        } else if  (res.status === 401) {
-            /**TODO: handle 401 error */
-            return null;
-        } else if (res.status === 500) {
-            /**TODO: handle 500 error */
-            return null;
+        const json = await res.json();
+        let msg = errorMatch(res);
+        if (res.status !== 200 || json.user === null) {
+            return { status: res.status, user: null, msg: msg, err: json.err };
+        } else {
+            setState("currUser", json.user);
+            return { status: res.status, user: json.user, msg: msg, err: null };
         }
-        const user = await res.json();
-        if (user !== undefined) {
-            setState("currUser", user);
-            return true;
-        }
-        /**TODO: handle user undefined case */
-        return null;
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, user: null, msg: "Failed to patch user.", err: err };
     }
 }
 
@@ -311,26 +257,17 @@ export const pullUserInfo = async function (id, body) {
             },
             credentials: "include",
         });
-        if (res.status === 404) {
-            /**TODO: handle 404 error */
-            return null;
-        } else if  (res.status === 401) {
-            /**TODO: handle 401 error */
-            return null;
-        } else if (res.status === 500) {
-            /**TODO: handle 500 error */
-            return null;
+        const json = await res.json();
+        let msg = errorMatch(res);
+        if (res.status !== 200 || json.user === null) {
+            return { status: res.status, user: null, msg: msg, err: json.err };
+        } else {
+            setState("currUser", json.user);
+            return { status: res.status, user: json.user, msg: msg, err: null };
         }
-        const user = await res.json();
-        if (user !== undefined) {
-            setState("currUser", user);
-            return true;
-        }
-        /**TODO: handle user undefined case */
-        return null;
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, user: null, msg: "Failed to patch user.", err: err };
     }
 }
 
@@ -352,30 +289,21 @@ export const deleteUser = async function (id) {
             },
             credentials: "include",
         });
-        if (res.status === 404) {
-            /**TODO: handle 404 error */
-            return null;
-        } else if  (res.status === 401) {
-            /**TODO: handle 401 error */
-            return null;
-        } else if (res.status === 500) {
-            /**TODO: handle 500 error */
-            return null;
-        }
-        const user = await res.json();
-        if (user !== undefined) {
+        const json = await res.json();
+        let msg = errorMatch(res);
+        if (res.status !== 200 || json.user === null) {
+            return { status: res.status, user: null, msg: msg, err: json.err };
+        } else {
             setEmptyState();
             const toDeletePics = getGachasRes.gachas.concat(getCharasRes.charas);
             toDeletePics.forEach(obj => {
                 deleteFile(obj.coverPic.replace(s3URL, ""));
                 deleteFile(obj.iconPic.replace(s3URL, ""));
             });
-            return true;
+            return { status: res.status, user: json.user, msg: msg, err: null };
         }
-        /**TODO: handle user undefined case */
-        return null;
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, user: null, msg: "Failed to delete user.", err: err };
     }
 }

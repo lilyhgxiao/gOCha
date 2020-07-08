@@ -81,11 +81,12 @@ class EditGacha extends BaseReactComponent {
                 console.log("Failed to get gacha " + id);
                 return;
             }
-            const creator = await getUserById(gacha.creator);
-            if (!creator) {
-                console.log("Failed to get creator " + id);
+            const getCreator = await getUserById(gacha.creator);
+            if (!getCreator || !getCreator.user) {
+                console.log("Failed to get creator " + gacha.creator);
                 return;
             }
+            const creator = getCreator.user;
             if (creator._id.toString() !== this.state.currUser._id.toString()) {
                 //do not have permission. redirect to 401 error page
                 return;

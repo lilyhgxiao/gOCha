@@ -65,16 +65,15 @@ export const updateSession = async function () {
     }
 }
 
-export const login = async function () {
+export const login = async function (body) {
     //const url = "/users/login";
     const url = "http://localhost:3001/users/login";
-    const reqBody = JSON.stringify(getState("loginForm"));
 
     // Send the request with fetch()
     try {
         const res = await fetch(url, { 
             method: 'POST', 
-            body: reqBody,
+            body: JSON.stringify(body),
             headers: {
                 Accept: "application/json, text/plain, */*",
                 "Content-Type": "application/json"

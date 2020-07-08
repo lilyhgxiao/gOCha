@@ -90,6 +90,7 @@ exports.createGacha = async function(req, res) {
         if (!ObjectID.isValid(req.body.creator)) {
             res.status(404).send({ gacha: null, 
                 err: "createGacha failed: mongodb id not valid"}); //check for a valid mongodb id
+            return;
         }
         //check if the creator exists
         const user = await userModel.User.findById(req.body.creator).exec();
@@ -131,6 +132,7 @@ exports.getGachaById = function(req, res) {
 
     if (!ObjectID.isValid(id)) {
         res.status(404).send({ gacha: null, err: "getGachaById failed: mongodb id not valid"}); //not found error
+        return;
     }
 
     // Otherwise, findById
@@ -138,7 +140,7 @@ exports.getGachaById = function(req, res) {
         .then(result => {
             if (!result) {
                 res.status(404).send({ gacha: null, 
-                    err: "getGachaById failed: could not find creator"}); // could not find this gacha
+                    err: "getGachaById failed: could not find gacha"}); // could not find this gacha
             } else {
                 //send result
                 res.status(200).send({ gacha: result, err: null });
@@ -155,6 +157,7 @@ exports.getGachasByCreator = function(req, res) {
     if (!ObjectID.isValid(id)) {
         res.status(404).send({ gacha: null, 
             err: "getGachasByCreator failed: mongodb id not valid"}); //send 404 not found error if id is invalid
+        return;
     }
 
     Gacha.find({ creator: id }).then(
@@ -180,6 +183,7 @@ exports.updateGachaInfo = async function(req, res) {
     if (!ObjectID.isValid(id)) {
         res.status(404).send({ gacha: null, 
             err: "updateGachaInfo failed: mongodb id not valid"}); //send 404 not found error if id is invalid
+        return;
     }
 
     try {
@@ -228,6 +232,7 @@ exports.pushGachaInfo = async function(req, res) {
 	if (!req.session.user) {
         res.status(401).send({ gacha: null, 
             err: "pushGachaInfo failed: session can't be found"}); //send 401 unauthorized error if not logged in
+        return;
     }
     //get id from the url
     const id = req.params.id;
@@ -236,6 +241,7 @@ exports.pushGachaInfo = async function(req, res) {
     if (!ObjectID.isValid(id)) {
         res.status(404).send({ gacha: null, 
             err: "pushGachaInfo failed: mongodb id not valid"}); //send 404 not found error if id is invalid
+        return;
     }
 
     try {
@@ -271,6 +277,7 @@ exports.addStats = async function(req, res) {
     if (!req.session.user) {
         res.status(401).send({ gacha: null, charaWriteResult: null, 
             err: "addStats failed: session can't be found"}); //send 401 unauthorized error if not logged in
+        return;
     }
     //get id from the url
     const id = req.params.id;
@@ -279,6 +286,7 @@ exports.addStats = async function(req, res) {
     if (!ObjectID.isValid(id)) {
         res.status(404).send({ gacha: null, charaWriteResult: null, 
             err: "addStats failed: mongodb id not valid"}); //send 404 not found error if id is invalid
+        return;
     }
 
     try {
@@ -328,6 +336,7 @@ exports.updateStat = async function(req, res) {
     if (!req.session.user) {
         res.status(401).send({ gacha: null, charaWriteResult: null,
              err: "updateStat failed: session can't be found"}); //send 401 unauthorized error if not logged in
+        return;
     }
     //get id from the url
     const id = req.params.id;
@@ -386,6 +395,7 @@ exports.deleteStats = async function(req, res) {
     if (!req.session.user) {
         res.status(401).send({ gacha: null, charaWriteResult: null, 
             err: "deleteStats failed: session can't be found"}); //send 401 unauthorized error if not logged in
+        return;
     }
     //get id from the url
     const id = req.params.id;
@@ -394,6 +404,7 @@ exports.deleteStats = async function(req, res) {
     if (!ObjectID.isValid(id)) {
         res.status(404).send({ gacha: null, charaWriteResult: null, 
             err: "deleteStats failed: mongodb id not valid"}); //send 404 not found error if id is invalid
+        return;
     }
 
     try {
@@ -441,10 +452,9 @@ exports.deleteGacha = async function(req, res) {
     if (!req.session.user) {
         res.status(401).send({ gacha: null, charasDeleted: null, 
             err: "deleteGacha failed: session can't be found",
-            usersUpdated: {
-				inventory: null, 
-                favGachas: null
-            }}); //send 401 unauthorized error if not logged in
+            usersUpdated: { inventory: null, favGachas: null}
+        }); //send 401 unauthorized error if not logged in
+        return;
     }
     //get id from the url
     const id = req.params.id;
@@ -452,10 +462,9 @@ exports.deleteGacha = async function(req, res) {
     if (!ObjectID.isValid(id)) {
         res.status(404).send({ gacha: null, charasDeleted: null, 
             err: "deleteGacha failed: mongodb id not valid",
-            usersUpdated: {
-				inventory: null, 
-                favGachas: null
-            }}); //send 404 not found error if id is invalid
+            usersUpdated: { inventory: null, favGachas: null }
+        }); //send 404 not found error if id is invalid
+        return;
     }
 
     try {
@@ -464,10 +473,8 @@ exports.deleteGacha = async function(req, res) {
         if (!gacha) {
             res.status(404).send({ gacha: null, charasDeleted: null, 
                 err: "deleteGacha failed: could not find gacha",
-                usersUpdated: {
-                    inventory: null, 
-                    favGachas: null
-                }}); // could not find this gacha
+                usersUpdated: { inventory: null, favGachas: null }
+            }); // could not find this gacha
             return;
         }
 
@@ -475,10 +482,8 @@ exports.deleteGacha = async function(req, res) {
         if (gacha.creator.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
             res.status(401).send({ gacha: null, charasDeleted: null, 
                 err: "deleteGacha failed: user does not have permissions",
-                usersUpdated: {
-                    inventory: null, 
-                    favGachas: null
-                }}); // unauthorized
+                usersUpdated: { inventory: null, favGachas: null }
+            }); // unauthorized
             return;
         }
 
@@ -489,14 +494,10 @@ exports.deleteGacha = async function(req, res) {
         const chara = await charaModel.Chara.deleteMany({gacha: id}).exec();
         //pull all characters belonging to the gacha from the inventories of users
         const usersInventory = await userModel.User.updateMany(
-            {"inventory.gacha": id }, 
-            { $pull: {"inventory": { "gacha": id }} 
-        }).exec();
+            {"inventory.gacha": id }, { $pull: {"inventory": { "gacha": id }} }).exec();
         //pull gacha from all favGacha lists of users
         const usersFavGachas = await userModel.User.updateMany(
-            {"favGachas._id": id }, 
-            { $pull: {"favGachas": { "_id": id }} 
-        }).exec();
+            {"favGachas._id": id }, { $pull: {"favGachas": { "_id": id }} }).exec();
 
         //send result
         res.status(200).send({gacha: result, charasDeleted: chara, err: null,
@@ -506,13 +507,10 @@ exports.deleteGacha = async function(req, res) {
             }});
 
     } catch (err) {
-        console.log(err);
         res.status(500).send({ gacha: null, charasDeleted: null, 
             err: "deleteGacha failed: " + err,
-            usersUpdated: {
-                inventory: null, 
-                favGachas: null
-            }});
+            usersUpdated: { inventory: null, favGachas: null }
+        });
     }
 };
 

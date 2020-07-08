@@ -65,12 +65,13 @@ class EditProfile extends BaseReactComponent {
         const { currUser } = this.state;
 
         try {
-            const user = await getUserByUsername(username);
-            if (!user) {
+            const getUser = await getUserByUsername(username);
+            if (!getUser || !getUser.user) {
                 /**TODO: handle if failed to get user */
                 console.log("Failed to get user " + username);
                 return;
             }
+            const user = getUser.user;
 
             if (user.username !== currUser.username) {
                 //do not have permission. redirect to 401 error page
@@ -279,7 +280,7 @@ class EditProfile extends BaseReactComponent {
         if (checked) {
             /**TODO: delete the user and redirect back to login */
             const deleteUserReq = await deleteUser(user._id);
-            if (!deleteUserReq) {
+            if (!deleteUserReq.user) {
                 this.setState({
                     alert: {
                         text: ["Something went wrong..."]

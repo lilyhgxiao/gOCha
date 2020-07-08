@@ -32,7 +32,7 @@ class Login extends React.Component {
             username: "",
             password: "",
             isAdmin: false,
-            loginSuccessful: false,
+            loginSuccess: false,
             user: null,
             signup: false
         });
@@ -60,23 +60,24 @@ class Login extends React.Component {
     /**TODO: use alert dialogue here */
     /**TODO: validate input...? */
     tryLogin = async () => {
-        const result = await login();
-        const { isAdmin, loginSuccessful } = result;
-        if (loginSuccessful === false) {
+        const { username, password } = this.state;
+        const result = await login({username, password});
+        const { isAdmin, loginSuccess } = result;
+        if (loginSuccess === false) {
             alert('Invalid username/password combination. Please try again.');
-        } else if (loginSuccessful === null) {
+        } else if (loginSuccess === null) {
             alert('Could not login in. Please check your connection.');
         }
         this.setState({
             isAdmin: isAdmin,
-            loginSuccessful: loginSuccessful
+            loginSuccess: loginSuccess
         })
     }
 
     render() {
 
         /*Redirect */
-        if (this.state.loginSuccessful) {
+        if (this.state.loginSuccess) {
             if (this.state.isAdmin) {
                 return(
                     <Redirect push to={{

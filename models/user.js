@@ -141,29 +141,41 @@ const User = mongoose.model('User', UserSchema, 'Users')
 
 /* User resource API methods *****************/
 exports.createUser = async function(req, res) {
-	const user = new User({
-        username: req.body.username,
-        email: req.body.email,
-        password: req.body.password,
-        isAdmin: req.body.isAdmin,
-        lastLoginDate: new Date()
-    });
+	//create new gacha with Gacha model
+    const userBody = cleanNewUserBody(req);
+    if (!userBody.username) {
+        res.status(400).send({ user: null, err: "createUser failed: user requires a name"});
+        return;
+    } 
+    if (!userBody.email)  {
+        res.status(400).send({ user: null, err: "createUser failed: user requires a creator"});
+        return;
+	} 
+	if (!userBody.password)  {
+        res.status(400).send({ user: null, err: "createUser failed: user requires a password"});
+        return;
+	} 
+	if (!userBody.isAdmin)  {
+        res.status(400).send({ user: null, err: "createUser failed: user requires admin flag"});
+        return;
+    } 
+	const user = new Gacha(userBody);
 
 	// Save the user
 	try {
 		const result = await user.save();
-		res.status(200).send(result);
+		res.status(200).send({ user: result, err: null });
 	} catch (err) {
-		res.status(400).send(err);
+		res.status(400).send({ user: null, err: "createUser failed: " + err});
 	}
 };
 
 exports.getAllUsers = async function(req, res) {
 	try {
 		const result = await User.find().exec();
-		res.status(200).send({ result });
+		res.status(200).send({ users: result, err: null });
 	} catch (err) {
-		res.status(500).send(err);
+		res.status(500).send({ users: null, err: "getAllUsers failed: " + err});
 	}
 };
 
@@ -171,17 +183,22 @@ exports.getUserById = async function(req, res) {
     const id = req.params.id;
 
     //check for a valid mongodb id
-	if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
-	
+	if (!ObjectID.isValid(id)) {
+		res.status(404).send({ user: null, 
+			err: "getUserById failed: mongodb id not valid"}); //send 404 not found error if id is invalid
+		return;
+	}
+
 	try {
 		const result = await User.findById(id).exec();
 		if (!result) {
-            res.status(404).send(/**TODO: send error */);
+            res.status(404).send({ user: null, 
+				err: "getUserById failed: could not find user"});
         } else {
-            res.status(200).send(result);
+            res.status(200).send({ user: result, err: null});
         }
 	} catch (err) {
-		res.status(500).send(err);
+		res.status(500).send({ user: null, err: "getUserById failed: " + err});
 	}
 };
 
@@ -191,12 +208,13 @@ exports.getUserByUsername = async function(req, res) {
 	try {
 		const result = await User.findOne({ username: username }).exec();
 		if (!result) {
-            res.status(404).send(/**TODO: send error */);
+            res.status(404).send({ user: null, 
+				err: "getUserByUsername failed: could not find user"});
         } else {
-            res.status(200).send(result);
+            res.status(200).send({ user: result, err: null});
         }
 	} catch (err) {
-		res.status(500).send(err);
+		res.status(500).send({ user: null, err: "getUserByUsername failed: " + err});
 	}
 };
 
@@ -206,38 +224,46 @@ exports.getUserByEmail = async function(req, res) {
 	try {
 		const result = await User.findOne({ email: email }).exec();
 		if (!result) {
-            res.status(404).send(/**TODO: send error */);
+            res.status(404).send({ user: null, 
+				err: "getUserByEmail failed: could not find user"});
         } else {
-            res.status(200).send(result);
+            res.status(200).send({ user: result, err: null});
         }
 	} catch (err) {
-		res.status(500).send(err);
+		res.status(500).send({ user: null, err: "getUserByEmail failed: " + err});
 	}
 };
 
 
 exports.updateUserInfo = async function(req, res) {
     if (!req.session.user) {
-		res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
+		res.status(401).send({ user: null, 
+            err: "updateUserInfo failed: session can't be found"}); //send 401 unauthorized error if not logged in
 		return;
     }
     //get id from the url
     const id = req.params.id;
 
     //check for a valid mongodb id
-	if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
-	
+	if (!ObjectID.isValid(id)) {
+		res.status(404).send({ user: null, 
+			err: "updateUserInfo failed: mongodb id not valid"}); //send 404 not found error if id is invalid
+		return;
+	}
+
 	try {
 		//find user by id
 		const user = await User.findById(id).exec();
 		//if user doesn't exist, return 404
 		if (!user) {
-			res.status(404).send(/**TODO: send error */);
+			res.status(404).send({ user: null, 
+				err: "updateUserInfo failed: could not find user"});
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
 		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
-			res.status(401).send(/**TODO: send error */);
+			res.status(401).send({ user: null, 
+				err: "updateUserInfo failed: user does not have permissions"});
 			return;
 		}
 
@@ -259,35 +285,42 @@ exports.updateUserInfo = async function(req, res) {
 		if (user._id.toString() === req.session.user._id.toString()) {
 			req.session.user = result;
 		}
-		res.status(200).send(result);
+		res.status(200).send({ user: result, err: null});
 	} catch (err) {
-		res.status(500).send(err);
+		res.status(500).send({ user: null, err: "updateUserInfo failed: " + err});
 	}
 
 };
 
 exports.incCurrency = async function(req, res) {
 	if (!req.session.user) {
-		res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
+		res.status(401).send({ user: null, 
+            err: "incCurrency failed: session can't be found"}); //send 401 unauthorized error if not logged in
 		return;
     }
     //get id from the url
     const id = req.params.id;
 
     //check for a valid mongodb id
-	if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
+	if (!ObjectID.isValid(id)) {
+		res.status(404).send({ user: null, 
+			err: "incCurrency failed: mongodb id not valid"}); //send 404 not found error if id is invalid
+		return;
+	} 
 	
 	try {
 		//find user by id
 		const user = await User.findById(id).exec();
 		//if user doesn't exist, return 404
 		if (!user) {
-			res.status(404).send(/**TODO: send error */);
+			res.status(404).send({ user: null, 
+				err: "incCurrency failed: could not find user"});
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
 		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
-			res.status(401).send(/**TODO: send error */);
+			res.status(401).send({ user: null, 
+				err: "incCurrency failed: user does not have permissions"});
 			return;
 		}
 
@@ -301,93 +334,62 @@ exports.incCurrency = async function(req, res) {
 		if (user._id.toString() === req.session.user._id.toString()) {
 			req.session.user = result;
 		}
-		res.status(200).send(result);
+		res.status(200).send({ user: result, err: null});
 
 	} catch(err) {
-		res.status(500).send(err);
+		res.status(500).send({ user: null, err: "incCurrency failed: " + err});
 	}
 };
 
-exports.summonChara = async function(req, res) {	
+exports.summonChara = async function(req, res) {
+	const fullCharaIdList = [];
+	if (req.body.chara) {
+		if (typeof req.body.chara[0] !== 'undefined') {
+			req.body.chara.forEach(chara => fullCharaIdList.push(chara._id ? chara._id : "No id"));
+		} else {
+			fullCharaIdList.push(req.body.chara._id ? req.body.chara._id : "No id");
+		}
+	}
+	
 	if (!req.session.user) {
-		res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
+		res.status(401).send({ user: null, 
+			err: "summonChara failed: session can't be found",
+			failedCharas: fullCharaIdList }); //send 401 unauthorized error if not logged in
 		return;
     }
     //get id from the url
     const id = req.params.id;
 
     //check for a valid mongodb id
-	if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
+	if (!ObjectID.isValid(id)) {
+		res.status(404).send({ user: null, 
+			err: "summonChara failed: mongodb id not valid",
+			failedCharas: fullCharaIdList }); //send 404 not found error if id is invalid
+		return;
+	}
 	
 	try {
 		//find user by id
 		const user = await User.findById(id).exec();
 		//if user doesn't exist, return 404
 		if (!user) {
-			res.status(404).send(/**TODO: send error */);
+			res.status(404).send({ user: null, 
+				err: "summonChara failed: could not find user",
+				failedCharas: fullCharaIdList});
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
 		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
-			res.status(401).send(/**TODO: send error */);
+			res.status(401).send({ user: null, 
+				err: "summonChara failed: user does not have permissions",
+				failedCharas: fullCharaIdList});
 			return;
 		}
 
 		//clean request body
-		const updateQuery = { "$inc": {}, "$push": {} };
-		let requestValid = true;
-		if (req.body.starFrags) {
-			updateQuery.$inc.starFrags = req.body.starFrags;
-		} else {
-			requestValid = false; //not valid request, there is no price on the character
-		}
-		if (req.body.chara) {
-			//check if the user already has the character or not.
-			const inventory = [];
-			let validCharaCheck;
-			if (typeof req.body.chara[0] !== 'undefined') {
-				let i;
-				for (i = 0; i < req.body.chara.length; i++) {
-					validCharaCheck = await checkIfCharaValid(req.body.chara[i]);
-					if (validCharaCheck.valid === true) {
-						if (checkIfInInventory(req.body.chara[i], user.inventory) === -1) {
-							inventory.push({_id: req.body.chara[i]._id, 
-								creator: req.body.chara[i].creator, 
-								gacha: req.body.chara[i].gacha});
-						} else {
-							console.log("The user already has this character.")
-						}
-					} else {
-						requestValid = false; //not valid request, chara does not have the required fields
-						console.log(validCharaCheck.msg)
-						break;
-					}
-
-				}
-			} else {
-				if (checkIfInInventory(req.body.chara, user.inventory) === -1) {
-					validCharaCheck = await checkIfCharaValid(req.body.chara);
-					if (validCharaCheck.valid === true) {
-						inventory.push({_id: req.body.chara._id, 
-							creator: req.body.chara.creator, 
-							gacha: req.body.chara.gacha});
-					} else {
-						requestValid = false; //not valid request, chara does not have the required fields
-						console.log(validCharaCheck.msg)
-					}
-				} else {
-					console.log("The user already has this character.");
-					requestValid = false;
-				}
-			}
-			updateQuery.$push.inventory = inventory;
-		} else {
-			requestValid = false;
-		}
-		
-		if (!requestValid) {
-			res.status(400).send(/**TODO: send error */); //bad request
-			return;
+		const prep = prepareSummon(req);
+		if (prep.err) {
+			res.status(prep.status).send({ user: null, err: prep.err, failedCharas: fullCharaIdList });
 		}
 
 		//update user
@@ -395,36 +397,41 @@ exports.summonChara = async function(req, res) {
 		if (user._id.toString() === req.session.user._id.toString()) {
 			req.session.user = result;
 		}
-		res.status(200).send(result);
-
+		res.status(200).send({ user: result, err: null, failedCharas: prep.failedCharas });
 	} catch(err) {
-		console.log(err);
-		res.status(500).send(err);
+		res.status(500).send({ user: null, err: "summonChara failed:" + err, failedCharas: fullCharaIdList });
 	}
 };
 
 exports.pushUserInfo = async function(req, res) {
 	if (!req.session.user) {
-		res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
+		res.status(401).send({ user: null, 
+            err: "pushUserInfo failed: session can't be found"}); //send 401 unauthorized error if not logged in
 		return;
     }
     //get id from the url
     const id = req.params.id;
 
     //check for a valid mongodb id
-	if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
-	
+	if (!ObjectID.isValid(id)) {
+		res.status(404).send({ user: null, 
+			err: "pushUserInfo failed: mongodb id not valid"}); //send 404 not found error if id is invalid
+		return;
+	}
+
 	try {
 		//find user by id
 		const user = await User.findById(id).exec();
 		//if user doesn't exist, return 404
 		if (!user) {
-			res.status(404).send(/**TODO: send error */);
+			res.status(404).send({ user: null, 
+				err: "pushUserInfo failed: could not find user"});
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
 		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
-			res.status(401).send(/**TODO: send error */);
+			res.status(401).send({ user: null, 
+				err: "pushUserInfo failed: user does not have permissions"});
 			return;
 		}
 
@@ -438,35 +445,42 @@ exports.pushUserInfo = async function(req, res) {
 		if (user._id.toString() === req.session.user._id.toString()) {
 			req.session.user = result;
 		}
-		res.status(200).send(result);
+		res.status(200).send({ user: result, err: null});
 
 	} catch(err) {
-		res.status(500).send(err);
+		res.status(500).send({ user: null, err: "pushUserInfo failed: " + err});
 	}
 };
 
 exports.pullUserInfo = async function(req, res) {
 	if (!req.session.user) {
-		res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
+		res.status(401).send({ user: null, 
+            err: "pullUserInfo failed: session can't be found"}); //send 401 unauthorized error if not logged in
 		return;
     }
     //get id from the url
     const id = req.params.id;
 
     //check for a valid mongodb id
-	if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
+	if (!ObjectID.isValid(id)) {
+		res.status(404).send({ user: null, 
+			err: "pullUserInfo failed: mongodb id not valid"}); //send 404 not found error if id is invalid
+		return;
+	}
 	
 	try {
 		//find user by id
 		const user = await User.findById(id).exec();
 		//if user doesn't exist, return 404
 		if (!user) {
-			res.status(404).send(/**TODO: send error */);
+			res.status(404).send({ user: null, 
+				err: "pullUserInfo failed: could not find user"});
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
 		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
-			res.status(401).send(/**TODO: send error */);
+			res.status(401).send({ user: null, 
+				err: "pullUserInfo failed: user does not have permissions"});
 			return;
 		}
 
@@ -480,36 +494,45 @@ exports.pullUserInfo = async function(req, res) {
 		if (user._id.toString() === req.session.user._id.toString()) {
 			req.session.user = result;
 		}
-		res.status(200).send(result);
+		res.status(200).send({ user: result, err: null});
 
 	} catch(err) {
-		res.status(500).send(err);
+		res.status(500).send({ user: null, err: "pullUserInfo failed: " + err});
 	}
 };
 
 exports.deleteUser = async function(req, res) {
 	if (!req.session.user) {
-		res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
+		res.status(401).send({ user: null, gachasDeleted: null, charasDeleted: null, 
+			usersUpdated: { inventory: null, favGachas: null },
+            err: "deleteUser failed: session can't be found"}); //send 401 unauthorized error if not logged in
 		return;
 	}
-	
     //get id from the url
     const id = req.params.id;
-
     //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) response.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
-	
+    if (!ObjectID.isValid(id)) {
+		res.status(404).send({ user: null, gachasDeleted: null, charasDeleted: null, 
+			usersUpdated: { inventory: null, favGachas: null },
+			err: "deleteUser failed: mongodb id not valid"}); //send 404 not found error if id is invalid
+		return;
+	}
+
 	try {
 		//find user by id
 		const user = await User.findById(id).exec();
 		//if user doesn't exist, return 404
 		if (!user) {
-			res.status(404).send(/**TODO: send error */);
+			res.status(404).send({ user: null, gachasDeleted: null, charasDeleted: null, 
+				usersUpdated: { inventory: null, favGachas: null },
+				err: "deleteUser failed: could not find user"});
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
 		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
-			res.status(401).send(/**TODO: send error */);
+			res.status(401).send({ user: null, gachasDeleted: null, charasDeleted: null, 
+				usersUpdated: { inventory: null, favGachas: null },
+				err: "deleteUser failed: user does not have permissions"});
 			return;
 		}
 
@@ -520,9 +543,11 @@ exports.deleteUser = async function(req, res) {
 		//remove all characters this user created
 		const chara = await charaModel.Chara.deleteMany({creator: id}).exec();
 		//remove all characters this user created in the inventory of all users
-		const usersInventory = await User.updateMany({"inventory.creator": id }, { $pull: {"inventory": { "creator": id }} }).exec();
+		const usersInventory = await User.updateMany({"inventory.creator": id }, 
+			{ $pull: {"inventory": { "creator": id }} }).exec();
 		//remove all gachas this user created in the favourite gachas of all users
-		const usersFavGachas = await User.updateMany({"favGachas.creator": id }, { $pull: {"favGachas": { "creator": id }} }).exec();
+		const usersFavGachas = await User.updateMany({"favGachas.creator": id }, 
+			{ $pull: {"favGachas": { "creator": id }} }).exec();
 
 		//send result
 		res.status(200).send({user: result, 
@@ -534,10 +559,13 @@ exports.deleteUser = async function(req, res) {
 			});
 
 	} catch(err) {
-		res.status(500).send(err);
+		res.status(500).send({ user: null, gachasDeleted: null, charasDeleted: null, 
+			usersUpdated: { inventory: null, favGachas: null },
+			err: "deleteUser failed: " + err});
 	}
-	
 };
+
+exports.User = User;
 
 /*Helpers */
 async function checkIfCharaValid(chara) {
@@ -578,4 +606,75 @@ function checkIfInInventory(chara, inventory) {
 	return compareResult;
 }
 
-exports.User = User;
+function cleanNewUserBody(req) {
+	const userBody = {};
+
+    userBody.username = req.body.username || null;
+    userBody.email = req.body.email || null;
+	userBody.password = req.body.password || null;
+	userBody.isAdmin = req.body.isAdmin || null;
+	userBody.iconPic = req.body.iconPic || "";
+	userBody.starFrags = req.body.starFrags || defaultStars;
+	userBody.silvers = req.body.silvers || defaultSilvers;
+	userBody.bio = req.body.bio || "";
+	userBody.favGachas = req.body.favGachas || [];
+	userBody.inventory = req.body.inventory || [];
+	userBody.lastLoginDate = req.body.lastLoginDate || new Date();
+
+    return userBody;
+}
+
+function prepareSummon(req) {
+	const failedCharas = [];
+	const updateQuery = { "$inc": {}, "$push": {} };
+	if (req.body.starFrags) {
+		updateQuery.$inc.starFrags = req.body.starFrags;
+	} else {
+		return { status: 400, 
+			err: "summonChara failed: body requires starFrags" };
+	}
+	if (req.body.chara) {
+		//check if the user already has the character or not.
+		const inventory = [];
+		let validCharaCheck;
+		if (typeof req.body.chara[0] !== 'undefined') {
+			let i;
+			for (i = 0; i < req.body.chara.length; i++) {
+				validCharaCheck = await checkIfCharaValid(req.body.chara[i]);
+				if (validCharaCheck.valid === true) {
+					if (checkIfInInventory(req.body.chara[i], user.inventory) === -1) {
+						inventory.push({
+							_id: req.body.chara[i]._id,
+							creator: req.body.chara[i].creator,
+							gacha: req.body.chara[i].gacha
+						});
+					}
+				} else {
+					failedCharas.push((req.body.chara[i]._id ? req.body.chara[i]._id : "No id"));
+				}
+			}
+		} else {
+			if (checkIfInInventory(req.body.chara, user.inventory) === -1) {
+				validCharaCheck = await checkIfCharaValid(req.body.chara);
+				if (validCharaCheck.valid === true) {
+					inventory.push({
+						_id: req.body.chara._id,
+						creator: req.body.chara.creator,
+						gacha: req.body.chara.gacha
+					});
+				} else {
+					return { status: 400, 
+						err: "summonChara failed: chara doesn't have required fields" };
+				}
+			} else {
+				return { status: 200, 
+					err: "summonChara not executed: user has chara" };
+			}
+		}
+		updateQuery.$push.inventory = inventory;
+	} else {
+		return { status: 400, 
+			err: "summonChara failed: body requires chara" };
+	}
+	return { updateQuery, failedCharas };
+}

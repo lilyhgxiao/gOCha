@@ -72,7 +72,7 @@ class GachaSmnResult extends BaseReactComponent {
                         //if the user doesnt have the character, add it to inventory
                         /**TODO: handle when request fails */
                         const summonCharaRes = await summonChara(currUser._id, charaToAdd, summonCost);
-                        if (summonCharaRes) {
+                        if (summonCharaRes.user) {
                             this.setState({
                                 chara: locationState.rolledCharacter,
                                 isLoaded: true
@@ -94,7 +94,7 @@ class GachaSmnResult extends BaseReactComponent {
                         if (silversToAdd > 0) {
                             /**TODO: handle when request fails */
                             const addSilversRes = await incCurrency(currUser._id, summonCost * (-1), silversToAdd);
-                            if (addSilversRes) {
+                            if (addSilversRes.user) {
                                 this.setState({
                                     chara: locationState.rolledCharacter,
                                     isLoaded: true,

@@ -85,11 +85,12 @@ class CreateChara extends BaseReactComponent {
                 console.log("Failed to get chara " + id);
                 return;
             }
-            const creator = await getUserById(chara.creator);
-            if (!creator) {
-                console.log("Failed to get creator " + id);
+            const getCreator = await getUserById(chara.creator);
+            if (!getCreator || !getCreator.user) {
+                console.log("Failed to get creator " + chara.creator);
                 return;
             }
+            const creator = getCreator.user;
             if (creator._id.toString() !== this.state.currUser._id.toString()) {
                 //do not have permission. redirect to 401 error page
                 return;

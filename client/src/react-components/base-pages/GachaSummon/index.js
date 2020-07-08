@@ -87,11 +87,12 @@ class GachaSummon extends BaseReactComponent {
                 isGachaLoaded: true
             });
             /**TODO: handle when request fails */
-            const creator = await getUserById(gacha.creator);
-            if (!creator) {
-                console.log("Failed to get creator " + id);
+            const getCreator = await getUserById(gacha.creator);
+            if (!getCreator || !getCreator.user) {
+                console.log("Failed to get creator " + gacha.creator);
                 return;
             }
+            const creator = getCreator.user;
             this.setState({
                 creator: creator,
                 isCreatorLoaded: true
@@ -299,7 +300,7 @@ class GachaSummon extends BaseReactComponent {
 
         if (currUser.favGachas.findIndex(favGacha => favGacha._id.toString() === gacha._id.toString()) === -1) {
             const addFavRes = await pushUserInfo(currUser._id, { favGachas: {_id: gacha._id, creator: gacha.creator } });
-            if (addFavRes) {
+            if (addFavRes.user) {
                 alertText = gacha.name + " has been added to your favourite gacha list!";
                 favourite = true;
             } else {
@@ -309,7 +310,7 @@ class GachaSummon extends BaseReactComponent {
             }
         } else {
             const removeFavRes = await pullUserInfo(currUser._id, { favGachas: {_id: gacha._id, creator: gacha.creator } });
-            if (removeFavRes) {
+            if (removeFavRes.user) {
                 alertText = gacha.name + " has been removed from your favourite gacha list.";
                 favourite = false;
             } else {

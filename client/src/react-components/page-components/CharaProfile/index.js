@@ -54,7 +54,7 @@ class CharaProfile extends BaseReactComponent {
       /**TODO: handle when get gacha and creator fail */
       this.setState({
           gacha: res[0].gacha,
-          creator: res[1],
+          creator: res[1].user,
           gachaCreatorLoaded: true
       });
     }).catch((err) => {
