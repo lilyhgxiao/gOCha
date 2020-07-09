@@ -43,4 +43,5 @@ exports.userFolder = "user_images/";
 
 //urls
 exports.loginURL = "/";
+exports.signupURL = "/signup";
 exports.dashboardURL = "/dashboard";

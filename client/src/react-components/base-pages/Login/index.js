@@ -1,6 +1,9 @@
 import React from "react";
 import { Redirect } from 'react-router';
 
+// Importing components
+import AlertDialogue from "./../../page-components/AlertDialogue";
+
 // Importing actions/required methods
 //import { updateLoginForm, login } from "../../actions/user";
 import { login, logout, updateLoginForm } from "../../../actions/loginHelpers"
@@ -11,28 +14,30 @@ import { getState } from "statezero";
 import logo from './../../../images/logo_placeholder.png';
 
 //Importing constants
-import { loginURL, dashboardURL } from "../../../constants";
+import { loginURL, dashboardURL, signupURL } from "../../../constants";
 
 import "./../../../App.css";
 import "./styles.css";
 
 class Login extends React.Component {
 
-    state = {
-        username: "",
-        password: "",
-        isAdmin: false,
-        loginSuccess: false,
-        user: null,
-        signup: false,
-        error: null
-    };
+    _isMounted = false;
 
     constructor(props) {
         super(props);
         this.props.history.push(loginURL);
 
         this._isMounted = false;
+        this.state = {
+            username: "",
+            password: "",
+            isAdmin: false,
+            loginSuccess: false,
+            user: null,
+            signup: false,
+            error: null,
+            alert: null
+        };
     }
 
     filterState({ currUser }) {
@@ -54,7 +59,7 @@ class Login extends React.Component {
         const name = target.name;
     
         // 'this' is bound to the component in this arrow function.
-        this.setState({
+        this._isMounted && this.setState({
           [name]: value  // [name] sets the object property name to the value of the 'name' variable.
         });
     }
@@ -70,18 +75,33 @@ class Login extends React.Component {
     tryLogin = async () => {
         const { username, password } = this.state;
         const result = await login({username, password});
-        console.log(result);
         if (!result || !result.currUser) {
-            alert(result.msg ? result.msg : "Something went wrong.");
+            this._isMounted && this.setState({
+                alert: {
+                    title: "Could not log in",
+                    text: [result.msg ? result.msg : "Something went wrong."]
+                }
+            });
             return;
         } 
-        this.setState({
-            isAdmin: result.currUser.isAdmin,
-            loginSuccess: true
-        });
+        if (result.status === 200) {
+            this._isMounted && this.setState({
+                isAdmin: result.currUser.isAdmin,
+                loginSuccess: true
+            });
+        } else {
+            this._isMounted && this.setState({
+                alert: {
+                    title: "Could not log in",
+                    text: [result.msg ? result.msg : "Something went wrong."]
+                }
+            });
+        }
+        
     }
 
     render() {
+        const { alert } = this.state;
 
         /*Redirect */
         if (this.state.loginSuccess || this.state.currUser) {
@@ -105,7 +125,7 @@ class Login extends React.Component {
         if (this.state.signup) {
             return(
                 <Redirect push to={{
-                    pathname: "/SignUp"
+                    pathname: signupURL
                 }} />
             );
         }
@@ -114,6 +134,10 @@ class Login extends React.Component {
         /**TODO: add alertdialogue */
         return (
             <div className='center'>
+                { alert ? 
+                        <AlertDialogue parent={this} alert={alert}/> :
+                        null
+                    }
                 <img id='logo' src={logo} alt='logo'/>
 
                 <div className='loginForm'>

@@ -78,8 +78,9 @@ export const login = async function (body) {
             credentials: "include",
         });
         const json = await res.json();
+        console.log(json);
         let msg;
-        if (res.status === 400) { //unauthorized
+        if (res.status === 400) {
             msg = "Invalid username/password combination. Please try again.";
         } else if (res.status === 500) {
             msg = "Could not login in. Please check your connection.";
