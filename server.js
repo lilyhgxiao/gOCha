@@ -94,9 +94,9 @@ app.get("/users/logout", (req, res) => {
     // Remove the session
     req.session.destroy(error => {
         if (error) {
-            res.status(500).send(error);
+            res.status(500).send({ err: error });
         } else {
-            res.status(200).send()
+            res.status(200).send({ err: null });
         }
     });
 });

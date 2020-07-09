@@ -6,11 +6,6 @@ const fetch = require('node-fetch');
 
 /**TODO: get rid of most console.logs */
 
-export const updateLoginForm = field => {
-    const { name, value } = field;
-    setState(`loginForm.${name}`, value);
-};
-
 export const readSession = async function () {
     //const url = "/users/check-session";
     const url = "http://localhost:3001/users/check-session";
@@ -101,11 +96,21 @@ export const logout = async function () {
     const url = "http://localhost:3001/users/logout";
 
     try {
-        const res = await fetch(url);
+        const res = await fetch(url, { 
+            method: 'GET',
+            headers: {
+                Accept: "application/json, text/plain, */*",
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+        });
+        const json = await res.json();
         if (res.status === 200) {
             setEmptyState();
-        }
+        } 
+        return { status: res.status, msg: null, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
+        return { status: 500, msg: "Could not logout user", err: "logout failed: " + err };
     }
 };

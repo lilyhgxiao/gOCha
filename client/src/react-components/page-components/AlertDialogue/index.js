@@ -8,10 +8,23 @@ import exit_icon from './../../../images/exit.png';
 
 class AlertDialogue extends React.Component {
 
-    state = {
-        checked: false,
-        inputText: ""
-    };
+    _isMounted = false;
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            checked: false,
+            inputText: ""
+        };
+    }
+
+    componentDidMount () {
+        this._isMounted = true;
+    }
+
+    componentWillUnmount () {
+        this._isMounted = false;
+    }
 
     handleExit = (parent) => {
         parent.setState({
@@ -20,7 +33,7 @@ class AlertDialogue extends React.Component {
     }
 
     handleCheck = () => {
-        this.setState({
+        this._isMounted && this.setState({
             checked: !this.state.checked
         });
     }
@@ -31,7 +44,7 @@ class AlertDialogue extends React.Component {
         const name = target.name;
     
         // 'this' is bound to the component in this arrow function.
-        this.setState({
+        this._isMounted && this.setState({
           [name]: value  // [name] sets the object property name to the value of the 'name' variable.
         });
     }
@@ -68,15 +81,15 @@ class AlertDialogue extends React.Component {
                 </div>
                 <div className="alertDialogueWindow">
                     <div className="iconBar">
-                        <img className="exitButton" src={exit_icon} onClick={this.handleExit.bind(this, parent)} alt={'Exit Profile'} />
+                        <img className="exitButton" src={exit_icon} 
+                            onClick={this.handleExit.bind(this, parent)} alt={'Exit Profile'} />
                     </div>
                     { title ?
                         <div className="alertDialogueTitle">{title}</div> : null
                     }
                     <div className="alertDialogueContent">
                         { image ? 
-                            <img className="alertDialogueImage" src={image.src} alt={image.alt}/> :
-                            null
+                            <img className="alertDialogueImage" src={image.src} alt={image.alt}/> : null
                         }
                         <div className="alertDialogueText">{text ? 
                             text.map((textOrHTML, index) => <span key={index}>{textOrHTML}</span>)
@@ -91,28 +104,30 @@ class AlertDialogue extends React.Component {
                             placeholder={inputParameters.placeholder} /> 
                             : null
                         }
-                        {checkbox ?
-                        <div className="alertCheckbox">
-                            <input type="checkbox" onClick={this.handleCheck}/>{checkboxText ? checkboxText.map((textOrHTML, index) => <span key={index}>{textOrHTML}</span>) : "Checkbox text goes here"}
-                        </div> : null
+                        { checkbox ?
+                            <div className="alertCheckbox">
+                                <input type="checkbox" onClick={this.handleCheck} />
+                                {checkboxText ?
+                                    checkboxText.map((textOrHTML, index) => 
+                                        <span key={index}>{textOrHTML}</span>)
+                                    : "Checkbox text goes here"
+                                }
+                            </div> : null
                         }
                     </div>
                     { yesNo ?
                         <div className="alertDialogueButtonContainer">
-                            <button
-                                className="alertDialogueButton"
+                            <button className="alertDialogueButton"
                                 onClick={this.handleChoice.bind(this, handleYes ? handleYes : this.handleExit.bind(this, parent))}>
                                 {yesText ? yesText : "Yes"}
                             </button> 
-                            <button 
-                                className="alertDialogueButton" 
+                            <button className="alertDialogueButton" 
                                 onClick={this.handleChoice.bind(this, handleNo ? handleNo : this.handleExit.bind(this, parent))}>
                                     {noText ? noText : "No"}
                             </button>
                         </div> :
                         <div className="alertDialogueButtonContainer">
-                            <button 
-                                className="alertDialogueButton" 
+                            <button className="alertDialogueButton" 
                                 onClick={this.handleChoice.bind(this, handleOk ? handleOk : this.handleExit.bind(this, parent))}>
                                     {okText ? okText : "Ok"}
                             </button>

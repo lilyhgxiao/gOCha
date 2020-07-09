@@ -66,7 +66,7 @@ export const checkAndUpdateSession = async function (callback) {
             });
         }
     }
-    this.setState({
+    this._isMounted && this.setState({
         currUser: readSessRes.currUser
     }, callback);
 }

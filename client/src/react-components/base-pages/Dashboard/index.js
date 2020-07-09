@@ -20,32 +20,38 @@ import { getCharaById } from "../../../actions/charaHelpers";
 import dashboard_placeholder from './../../../images/dashboard_placeholder.jpg';
 
 //Importing constants
-
 import { dashboardURL } from "../../../constants";
 
 /**TODO: implement random character selection for cover pic */
 
 class Dashboard extends BaseReactComponent {
 
-    state = {
-        alert: null,
-        error: null,
-        mainPic: dashboard_placeholder,
-        welcomePhrase: null,
-        chara: null
-    }
+    _isMounted = false;
 
     constructor(props) {
         super(props);
         this.props.history.push(dashboardURL);
+
+        this.state = {
+            alert: null,
+            error: null,
+            mainPic: dashboard_placeholder,
+            welcomePhrase: null,
+            chara: null
+        };    
     }
 
     filterState({ currUser }) {
         return { currUser };
     }
 
-    componentDidMount = async () => {
-        await checkAndUpdateSession.bind(this)(this.fetchRandChara);
+    async componentDidMount () {
+        this._isMounted = true;
+        this._isMounted && await checkAndUpdateSession.bind(this)(this.fetchRandChara);
+    }
+
+    componentWillUnmount () {
+        this._isMounted = false;
     }
 
     fetchRandChara = async () => {
@@ -56,9 +62,11 @@ class Dashboard extends BaseReactComponent {
             const randChara = currUser.inventory[index];
             const getChara = await getCharaById(randChara._id);
             if (!getChara || !getChara.chara || !getChara.chara.coverPic || !getChara.chara.coverPic === ""){
-                this.setState({
-                    mainPic: dashboard_placeholder
-                });
+                if (this._isMounted) {
+                    this.setState({
+                        mainPic: dashboard_placeholder
+                    });
+                }
             } else {
                 this.setState({
                     mainPic: getChara.chara.coverPic,
@@ -69,6 +77,7 @@ class Dashboard extends BaseReactComponent {
         }
     }
 
+    /**TODO: delete this */
     createAlertDialogue = () => {
         this.setState({
             alert: {
@@ -95,12 +104,12 @@ class Dashboard extends BaseReactComponent {
             );
         }
 
+        /**TODO: add link to inventory and character if you click on the main pic */
+
         return (
             <div className="App">
                 {/* Header component. */}
-                <Header username={currUser ? currUser.username: ""} 
-                    starFrags={currUser ? currUser.starFrags: 0} 
-                    silvers={currUser ? currUser.silvers : 0}/>
+                <Header currUser={currUser}/>
 
                 <div className="mainBodyContainer">
                     { alert ? 
@@ -115,7 +124,7 @@ class Dashboard extends BaseReactComponent {
                         <div className="dashboardTopMenu">
                             <div className="currencyDisplay">Star Fragments: {currUser ? currUser.starFrags: 0}</div>
                             <div className="currencyDisplay">Silvers: {currUser ? currUser.silvers : 0}</div>
-                            <div className="mailContainer" onClick={this.redirectError}> 
+                            <div className="mailContainer" onClick={this.createAlertDialogue}> 
                                 <div className="mailNotif">3</div>
                                 <div className="mailIcon"> 
                                     Mail

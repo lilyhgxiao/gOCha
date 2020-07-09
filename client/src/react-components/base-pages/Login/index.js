@@ -4,10 +4,14 @@ import { Redirect } from 'react-router';
 // Importing actions/required methods
 //import { updateLoginForm, login } from "../../actions/user";
 import { login, logout, updateLoginForm } from "../../../actions/loginHelpers"
+import { checkAndUpdateSession } from "../../../actions/helpers";
 import { getState } from "statezero";
 
 /**TODO: replace placeholder images */
 import logo from './../../../images/logo_placeholder.png';
+
+//Importing constants
+import { loginURL, dashboardURL } from "../../../constants";
 
 import "./../../../App.css";
 import "./styles.css";
@@ -18,32 +22,36 @@ class Login extends React.Component {
         username: "",
         password: "",
         isAdmin: false,
-        loginSuccessful: false,
+        loginSuccess: false,
         user: null,
-        signup: false
+        signup: false,
+        error: null
     };
 
-    componentDidMount() {
-        const currUser = getState("currUser");
-        if (currUser !== null) {
-            logout();
-        }
-        this.setState({
-            username: "",
-            password: "",
-            isAdmin: false,
-            loginSuccess: false,
-            user: null,
-            signup: false
-        });
+    constructor(props) {
+        super(props);
+        this.props.history.push(loginURL);
+
+        this._isMounted = false;
+    }
+
+    filterState({ currUser }) {
+        return { currUser };
+    }
+
+    async componentDidMount () {
+        this._isMounted = true;
+        this._isMounted && await checkAndUpdateSession.bind(this)(function() {});
+    }
+
+    componentWillUnmount () {
+        this._isMounted = false;
     }
 
     handleInputChange = (event) => {
         const target = event.target;
         const value = target.value;
         const name = target.name;
-
-        updateLoginForm(target);
     
         // 'this' is bound to the component in this arrow function.
         this.setState({
@@ -76,8 +84,8 @@ class Login extends React.Component {
     render() {
 
         /*Redirect */
-        if (this.state.loginSuccess) {
-            if (this.state.isAdmin) {
+        if (this.state.loginSuccess || this.state.currUser) {
+            if (this.state.isAdmin || (this.state.currUser && this.state.currUser.isAdmin)) {
                 return(
                     <Redirect push to={{
                         pathname: "/admin/dashboard",
@@ -87,7 +95,7 @@ class Login extends React.Component {
             } else {
                 return(
                     <Redirect push to={{
-                        pathname: "/dashboard",
+                        pathname: dashboardURL,
                         state: { user: this.state.user }
                     }} />
                 );

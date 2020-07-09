@@ -42,4 +42,5 @@ exports.charaFolder = "chara_images/";
 exports.userFolder = "user_images/";
 
 //urls
+exports.loginURL = "/";
 exports.dashboardURL = "/dashboard";

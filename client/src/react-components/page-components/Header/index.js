@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 
 import { logout } from "../../../actions/loginHelpers";
 
@@ -11,26 +12,59 @@ import logo from './../../../images/logo_placeholder.png';
 import starFrag_placeholder from './../../../images/starFrag_placeholder.png';
 import silvers_placeholder from './../../../images/silvers_placeholder.png';
 
+//Importing constants
+import { loginURL } from "../../../constants";
+
 /* The Header Component */
 class Header extends React.Component {
 
-    state = {
-        redirect: false
+    _isMounted = false;
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            toLogin: false
+        };
+    }
+
+    componentDidMount () {
+        this._isMounted = true;
+    }
+
+    componentWillUnmount () {
+        this._isMounted = false;
+    }
+
+
+    logoutUser = async () => {
+        const logoutRes = await logout();
+        console.log(logoutRes);
+        if (!logoutRes || logoutRes.status !== 200) {
+            alert("Something went wrong in logging out.");
+        } else {
+            this._isMounted && this.setState({
+                toLogin: true
+            });
+        }
     };
 
-    logoutUser = () => {
-        this.props.history.push("/");
-        logout();
-    };
-
-    /**search function to be coming? */
+    /**TODO: search function to be coming? */
     search = () => {
 
     }
 
     render() {
         /**TODO: handle when props are empty */
-        const { starFrags, silvers, username } = this.props;
+        const { currUser } = this.props;
+        const { toLogin } = this.state;
+
+        if (toLogin) {
+            return (
+                <Redirect push to={{
+                    pathname: loginURL
+                }} />
+            );
+        }
 
         return (
             <div className="headerContainer">
@@ -52,15 +86,17 @@ class Header extends React.Component {
                             </div> */}
                             <div className="hdrCurrency">
                                 <img className="hdrCurrencyIcon" src={starFrag_placeholder} alt="StarFrag Placeholder"/>
-                                {starFrags}
+                                {currUser ? currUser.starFrags: 0}
                             </div>
                             <div className="hdrCurrency">
                                 <img className="hdrCurrencyIcon" src={silvers_placeholder} alt="StarFrag Placeholder"/>
-                                {silvers}
+                                {currUser ? currUser.silvers : 0}
                             </div>
-                            <Link className="hdrProfile" to={'/profile/' + username}>{username}</Link>
+                            <Link className="hdrProfile" to={'/profile/' + (currUser ? currUser.username: "")}>
+                                {currUser ? currUser.username: ""}
+                            </Link>
                             <Link className="hdrSettings" to={'/settings'}>Settings</Link>
-                            <Link className="hdrLogout" onClick={ this.logoutUser } to={'/login'}>Log Out</Link>        
+                            <span className="hdrLogout" onClick={ this.logoutUser }>Log Out</span> 
                         </div>
 
                         <div className ="headerLine2"> 

@@ -23,6 +23,8 @@ import { readSession } from "./actions/loginHelpers";
 
 import "./App.css";
 
+import { loginURL, dashboardURL } from "./constants";
+
 class App extends BaseReactComponent {
     // Access the global state paths required by your component
     // using filterState. filterState puts these state paths on
@@ -42,10 +44,10 @@ class App extends BaseReactComponent {
         return (
             <BrowserRouter>
                 <Switch>
-                    <Route path={["/", "/login"]} exact component={Login} />
+                    <Route path={loginURL} exact component={Login} />
                     <Route path="/signup" exact component={Signup} />
                     <Route path="/error" exact component={ErrorPage} />
-                    <Route path="/dashboard" exact component={Dashboard} />
+                    <Route path={dashboardURL} exact component={Dashboard} />
                     <Route path="/inventory" exact component={Inventory} />
                     <Route path="/yourGachas" exact component={YourGachas} />
                     <Route path="/favourites" exact component={FavGachas} />
