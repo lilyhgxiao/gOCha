@@ -69,21 +69,21 @@ class GachaSummon extends BaseReactComponent {
         try {
             /**TODO: handle when request fails */
             const getGacha = await getGachaById(id);
-            if (!getGacha || getGacha.gacha) {
+            if (!getGacha || !getGacha.gacha) {
                 console.log("Failed to get gacha " + id);
                 return;
             }
             const gacha = getGacha.gacha;
             const getAllCharasRes = await getAllCharasInGacha(id);
-            if (!getAllCharasRes) {
+            if (!getAllCharasRes || !getAllCharasRes.charas) {
                 console.log("Failed to get charas of gacha " + id);
                 return;
             }
             this.setState({
                 gacha: gacha,
-                threeStars: getAllCharasRes.filter(chara => chara.rarity === 3),
-                fourStars: getAllCharasRes.filter(chara => chara.rarity === 4),
-                fiveStars: getAllCharasRes.filter(chara => chara.rarity === 5),
+                threeStars: getAllCharasRes.charas.filter(chara => chara.rarity === 3),
+                fourStars: getAllCharasRes.charas.filter(chara => chara.rarity === 4),
+                fiveStars: getAllCharasRes.charas.filter(chara => chara.rarity === 5),
                 isGachaLoaded: true
             });
             /**TODO: handle when request fails */

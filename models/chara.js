@@ -86,137 +86,149 @@ const Chara = mongoose.model('Chara', CharaSchema, 'Charas');
 /* Chara resource API methods *****************/
 
 exports.createChara = async function(req, res) {
-    if (!req.session.user) {
-        res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
+    if (!req.session.user) { //send 401 unauthorized error if not logged in
+        res.status(401).send({ chara: null, err: "createChara failed: session cannot be found"}); 
         return;
     }
 
     const id = req.params.id;
-
-    //create a new Chara
-    /**TODO: clean request body */
-    /**TODO: set 401 error if logged in user is not the one creating it */
-    const chara = new Chara({
-        name: req.body.name, 
-        rarity: req.body.rarity,
-        desc: req.body.desc,
-        coverPic: req.body.coverPic,
-        iconPic: req.body.iconPic,
-        stats: req.body.stats,
-        welcomePhrase: req.body.welcomePhrase,
-        summonPhrase: req.body.summonPhrase,
-        gacha: mongoose.Types.ObjectId(id),
-        creator: mongoose.Types.ObjectId(req.body.creator)
-    })
+    if (!ObjectID.isValid(id)) { //check for a valid mongodb id
+        res.status(404).send({ chara: null, err: "createChara failed: gacha id not valid"}); 
+        return;
+    }
+    if (!req.body.name) {
+        res.status(400).send({ chara: null, err: "createChara failed: chara requires a name"});
+        return;
+    } 
+    if (!req.body.creator)  {
+        res.status(400).send({ chara: null, err: "createChara failed: chara requires a creator"});
+        return;
+    } 
+    if (!req.body.rarity)  {
+        res.status(400).send({ chara: null, err: "createChara failed: chara requires a rarity"});
+        return;
+    } 
 
     try {
-        if (!ObjectID.isValid(req.body.creator)) res.status(404).send(/**TODO: send error */); //check for a valid mongodb id
+        if (!ObjectID.isValid(req.body.creator)) { //check for a valid mongodb id
+            res.status(404).send({ chara: null, err: "createChara failed: creator id not valid"}); 
+            return;
+        }
         //check if the creator exists
         const user = await userModel.User.findById(req.body.creator).exec();
         if (!user) {
-            res.status(404).send(/**TODO: send error */);
+            res.status(404).send({ chara: null, err: "createChara failed: could not find creator"});
             return;
         } 
+        // check if nauthorized
+        if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
+            res.status(401).send({ chara: null, err: "createChara failed: user does not have permissions"});
+            return; 
+        }
         //check if gacha this chara belongs to exists
         const gacha = await gachaModel.Gacha.findById(id).exec();
         if (!gacha) {
-            res.status(404).send({msg: "The gacha this character belongs to does not exist."});
+            res.status(404).send({ chara: null, err: "createChara failed: could not find gacha"});
             return;
         }
-        /**TODO: if stats are not added to the character, add stats from the gacha to the character with value of 0 */
-
+        const chara = new Chara(cleanNewCharaBody(req, id, gacha));
         //save the character
         const newChara = await chara.save();
-
         //send result
-        res.status(200).send({chara: newChara});
-
+        res.status(200).send({ chara: newChara, err: null});
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send({ chara: null, err: "createChara failed: " + err });
     }
-    
 };
 
-exports.getCharasByGacha = function(req, res) {
-    const id = req.params.id; 
-    
+exports.getCharasByGacha = async function (req, res) {
+    const id = req.params.id;
+
     //check for a valid mongodb id
-     if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
-
-     /**TODO: check if gacha exists */
-
-     Chara.find({ gacha: id }).then(
-        result => {
-             res.status(200).send({ result });
-        },
-        err => {
-            res.status(500).send(err)
+    if (!ObjectID.isValid(id)) {
+        res.status(404).send({ charas: null, err: "getCharasByGacha failed: gacha id not valid" });
+        return;
+    }
+    try {
+        const gacha = await gachaModel.Gacha.findById(id).exec();
+        if (!gacha) {
+            res.status(404).send({ charas: null, err: "getCharasByGacha failed: could not find gacha" });
+            return;
         }
-     );
+
+        const charas = await Chara.find({ gacha: id }).exec();
+        res.status(200).send({ charas: charas, err: null });
+    } catch (err) {
+        res.status(500).send({ charas: null, err: "getCharasByGacha failed: " + err })
+    }
 };
 
-exports.getCharasByCreator = function(req, res) {
-    const id = req.params.id; 
-    
+exports.getCharasByCreator = async function (req, res) {
+    const id = req.params.id;
+
     //check for a valid mongodb id
-     if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
+    if (!ObjectID.isValid(id)) {
+        res.status(404).send({ charas: null, err: "getCharasByCreator failed: creator id not valid" });
+        return;
+    }
 
-     /**TODO: check if gacha exists */
+    try {
+        const user = await userModel.User.findById(id).exec();
+        if (!user) {
+            res.status(404).send({ charas: null, err: "getCharasByCreator failed: could not find creator" });
+            return;
+        } 
 
-     Chara.find({ creator: id }).then(
-        result => {
-             res.status(200).send({ result });
-        },
-        err => {
-            res.status(500).send(err)
-        }
-     );
+        const charas = await Chara.find({ creator: id }).exec();
+        res.status(200).send({ charas: charas, err: null });
+    } catch (err) {
+        res.status(500).send({ charas: null, err: "getCharasByGacha failed: " + err })
+    }
 }
 
 exports.getCharaById = function(req, res) {
     const id = req.params.id;
 
     //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
+    if (!ObjectID.isValid(id)) {
+        res.status(404).send({ chara: null, err: "getCharaById failed: chara id not valid" });
+        return;
+    }
 
     Chara.findById(id).then((result) => {
         if (!result) {
-            res.status(404).send(/**TODO: send error */);
+            res.status(404).send({ chara: null, err: "getCharaById failed: could not find chara" });
         } else {
-            res.status(200).send(result);
+            res.status(200).send({ chara: result, err: null });
         }
     }).catch((err) => {
-        res.status(500).send(err);
+        res.status(500).send({ chara: null, err: "getCharaById failed: " + err });
     });
 };
 
 exports.updateCharaInfo = async function (req, res) {
-    if (!req.session.user) {
-        res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
+    if (!req.session.user) { //send 401 unauthorized error if not logged in
+        res.status(401).send({ chara: null, err: "updateCharaInfo failed: session cannot be found"}); 
         return;
     }
-    //get id from the url
-    const id = req.params.id;
-
-    //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
+    const id = req.params.id; //get id from the url
+    if (!ObjectID.isValid(id)) { //check for a valid mongodb id
+        res.status(404).send({ chara: null, err: "updateCharaInfo failed: chara id not valid"}); 
+        return;
+    }
 
     try {
-        //find chara by id
-        const chara = await Chara.findById(id).exec();
+        const chara = await Chara.findById(id).exec(); //find chara by id
         if (!chara) {
-            res.status(404).send(/**TODO: send error */); // could not find this chara
+            res.status(404).send({ chara: null, err: "updateCharaInfo failed: could not find chara" }); // could not find this chara
             return;
         }
-
-        //if current user on session does not match creator on chara to be edited, AND the user is not an admin
+        //check if authorized
         if (chara.creator.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
-            res.status(401).send(/**TODO: send error */); // unauthorized
+            res.status(401).send({ chara: null, err: "updateCharaInfo failed: user does not have permissions"}); // unauthorized
             return;
         }
 
-        //save rarity in case character needs to change rarity lists on gacha
-        const oldRarity = chara.rarity;
         //edit chara
         if (req.body.name) chara.name = req.body.name;
         if (req.body.rarity) chara.rarity = req.body.rarity;
@@ -224,98 +236,150 @@ exports.updateCharaInfo = async function (req, res) {
         if (req.body.stats) chara.stats = req.body.stats;
         if (req.body.coverPic) chara.coverPic = req.body.coverPic;
         if (req.body.iconPic) chara.iconPic = req.body.iconPic;
-        /**TODO: check if gacha exists */
-        if (req.body.gacha) chara.gacha = req.body.gacha;
-        /**TODO: check if creator exists */
-        if (req.body.creator) chara.creator = req.body.creator;
         if (req.body.welcomePhrase) chara.welcomePhrase = req.body.welcomePhrase;
         if (req.body.summonPhrase) chara.summonPhrase = req.body.summonPhrase;
+        if (req.body.gacha) { //check if gacha exists
+            const gacha = await gachaModel.Gacha.findById(id).exec();
+            if (!gacha) {
+                res.status(404).send({ chara: null, err: "updateCharaInfo failed: could not find gacha"});
+                return;
+            } else {
+                chara.gacha = req.body.gacha;
+            }
+        }
+        if (req.body.creator) { //check if creator exists
+            const user = await userModel.User.findById(req.body.creator).exec();
+            if (!user) {
+                res.status(404).send({ chara: null, err: "updateCharaInfo failed: could not find creator"});
+                return;
+            } else {
+                chara.creator = req.body.creator;
+            }
+        }
 
-        //save chara
-        const newChara = await chara.save();
-        res.status(200).send({result: newChara});
-        //if chara changed rarities, gacha needs to change rarity lists
+        const result = await chara.save(); //save chara
+        res.status(200).send({chara: result, err: null}); //send result
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send({ chara: null, err: "updateCharaInfo failed: " + err });
     }
-
 };
 
 exports.pushCharaInfo = async function (req, res) {
-    if (!req.session.user) {
-        res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
+    if (!req.session.user) { //send 401 unauthorized error if not logged in
+        res.status(401).send({ chara: null, err: "pushCharaInfo failed: session cannot be found"}); 
         return;
     }
-    //get id from the url
-    const id = req.params.id;
-
-    //check for a valid mongodb id
-    if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
+    
+    const id = req.params.id; //get id from the url
+    if (!ObjectID.isValid(id)) { //check for a valid mongodb id
+        res.status(404).send({ chara: null, err: "pushCharaInfo failed: chara id not valid"}); 
+        return
+    }
 
     try {
-        //find chara by id
-        const chara = await Chara.findById(id).exec();
-        if (!chara) {
-            res.status(404).send(/**TODO: send error */); // could not find this chara
+        const chara = await Chara.findById(id).exec(); //find chara by id
+        if (!chara) { // could not find this chara
+            res.status(404).send({ chara: null, err: "pushCharaInfo failed: could not find chara" }); 
             return;
         }
-
-        //if current user on session does not match creator on chara to be edited, AND the user is not an admin
+        //check if authorized
         if (chara.creator.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
-            res.status(401).send(/**TODO: send error */); // unauthorized
+            res.status(401).send({ chara: null, err: "pushCharaInfo failed: user does not have permissions"}); // unauthorized
             return;
         }
 
         //edit chara
+        /**TODO: verify stat on gacha? */
         if (req.body.stats) chara.stats.push(req.body.stats);
 
-        //save chara
-        const result = await chara.save();
-        //send result
-        res.status(200).send(result);
+        const result = await chara.save(); //save chara
+        res.status(200).send({ chara: result , err: null}); //send result
  
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send({ chara: null, err: "pushCharaInfo failed: " + err });
     }
 
 };
 
 exports.deleteChara = async function(req, res) {
     if (!req.session.user) {
-        res.status(401).send(/**TODO: send error */); //send 401 unauthorized error if not logged in
+        res.status(401).send({ chara: null, usersUpdated: null, 
+            err: "createChara failed: session cannot be found"}); //send 401 unauthorized error if not logged in
         return;
     }
     const id = req.params.id;
 
-    if (!ObjectID.isValid(id)) res.status(404).send(/**TODO: send error */); //send 404 not found error if id is invalid
-
+    if (!ObjectID.isValid(id)) { //check for a valid mongodb id
+        res.status(404).send({ chara: null, usersUpdated: null, 
+            err: "createChara failed: chara id not valid"}); 
+        return;
+    }
     try {
         //find chara by id
         const chara = await Chara.findById(id).exec();
-        if (!chara) {
-            res.status(404).send(/**TODO: send error */); // could not find this chara
+        if (!chara) { // could not find this chara
+            res.status(404).send({ chara: null, usersUpdated: null, 
+                err: "pushCharaInfo failed: could not find chara" }); 
             return;
         }
 
-        //if current user on session does not match creator on chara to be edited, AND the user is not an admin
+        //check if authorized
         if (chara.creator.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
-            res.status(401).send(/**TODO: send error */); // unauthorized
+            res.status(401).send({ chara: null, usersUpdated: null, 
+                err: "createChara failed: user does not have permissions"});
             return;
         }
 
-        //remove chara
-        const removedChara = await chara.remove();
+        const removedChara = await chara.remove(); //remove chara
 
         //pull character from the inventories of the users
         const users = await userModel.User.updateMany({"inventory._id": removedChara._id }, 
             { $pull: {"inventory": { "_id": removedChara._id } }, $inc: {"starFrags": summonCost} }).exec();
 
         //send result
-        res.status(200).send({chara: removedChara, usersUpdated: users});
+        res.status(200).send({chara: removedChara, usersUpdated: users, err: null});
  
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send({ chara: null, usersUpdated: null, err: "pushCharaInfo failed: " + err });
     }
 };
 
 exports.Chara = Chara;
+
+/**Helpers */
+function cleanNewCharaBody(req, id, gacha) {
+    const charaBody = {};
+
+    charaBody.name = req.body.name || null;
+    charaBody.creator = req.body.creator || null;
+    charaBody.gacha = id || null;
+    charaBody.rarity = req.body.rarity || null;
+    charaBody.desc = req.body.desc || "";
+    charaBody.coverPic = req.body.coverPic || "";
+    charaBody.iconPic = req.body.iconPic || "";
+    charaBody.welcomePhrase = req.body.welcomePhrase || "";
+    charaBody.summonPhrase = req.body.summonPhrase || "";
+    charaBody.stats = [];
+
+    let checkStat;
+    let newStat;
+    gacha.stats.forEach(gachaStat => {
+        newStat = {};
+        checkStat = req.body.stats.filter(charaStat => 
+            { return charaStat._id.toString() === gachaStat._id.toString()});
+        if (checkStat.length < 1) {
+            newStat = { _id: gachaStat._id, name: gachaStat.name, value: 0 };
+        } else {
+            newStat._id = gachaStat._id;
+            newStat.name = gachaStat.name;
+            if (!checkStat[0].value || checkStat[0].value < 0 || checkStat[0].value > 5) {
+                newStat.value = 0;
+            } else {
+                newStat.value = checkStat[0].value;
+            }
+        }
+        charaBody.stats.push(newStat);
+    });
+
+    return charaBody;
+}

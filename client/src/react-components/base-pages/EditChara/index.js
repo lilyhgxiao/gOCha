@@ -80,11 +80,12 @@ class CreateChara extends BaseReactComponent {
         const id = this.props.match.params.id;
 
         try {
-            const chara = await getCharaById(id);
-            if (!chara) {
+            const getChara = await getCharaById(id);
+            if (!getChara || !getChara.chara) {
                 console.log("Failed to get chara " + id);
                 return;
             }
+            const chara = getChara.chara;
             const getCreator = await getUserById(chara.creator);
             if (!getCreator || !getCreator.user) {
                 console.log("Failed to get creator " + chara.creator);
@@ -95,7 +96,7 @@ class CreateChara extends BaseReactComponent {
                 //do not have permission. redirect to 401 error page
                 return;
             }
-            const getGacha = await getGachaById(id);
+            const getGacha = await getGachaById(chara.gacha);
             if (!getGacha || !getGacha.gacha) {
                 console.log("Failed to get gacha " + id);
                 return;
@@ -125,15 +126,15 @@ class CreateChara extends BaseReactComponent {
     fetchCharas = async () => {
         const { gacha } = this.state;
         const getAllCharasRes = await getAllCharasInGacha(gacha._id);
-        if (!getAllCharasRes) {
+        if (!getAllCharasRes || !getAllCharasRes.charas) {
             console.log("Failed to get charas of gacha.")
             return;
         }
 
         this.setState({
-            threeStars: getAllCharasRes.filter(chara => chara.rarity === 3),
-            fourStars: getAllCharasRes.filter(chara => chara.rarity === 4),
-            fiveStars: getAllCharasRes.filter(chara => chara.rarity === 5),
+            threeStars: getAllCharasRes.charas.filter(chara => chara.rarity === 3),
+            fourStars: getAllCharasRes.charas.filter(chara => chara.rarity === 4),
+            fiveStars: getAllCharasRes.charas.filter(chara => chara.rarity === 5),
             isLoaded: true
         ,}, this.resizeMainContainer);
     }
@@ -249,7 +250,7 @@ class CreateChara extends BaseReactComponent {
 
         const patchCharaReq = await editChara(chara._id, editCharaBody);
         /**TODO: handle response */
-        if (!patchCharaReq.chara) {
+        if (!patchCharaReq || !patchCharaReq.chara) {
             console.log(patchCharaReq)
             console.log("something went wrong")
             success = false;

@@ -387,17 +387,18 @@ exports.summonChara = async function(req, res) {
 		}
 
 		//clean request body
-		const prep = prepareSummon(req);
+		const prep = await prepareSummon(req, user);
 		if (prep.err) {
 			res.status(prep.status).send({ user: null, err: prep.err, failedCharas: fullCharaIdList });
 		}
+		const { updateQuery, failedCharas } = prep;
 
 		//update user
 		const result = await User.findByIdAndUpdate(id, updateQuery, {new: true}).exec();
 		if (user._id.toString() === req.session.user._id.toString()) {
 			req.session.user = result;
 		}
-		res.status(200).send({ user: result, err: null, failedCharas: prep.failedCharas });
+		res.status(200).send({ user: result, err: null, failedCharas: failedCharas });
 	} catch(err) {
 		res.status(500).send({ user: null, err: "summonChara failed:" + err, failedCharas: fullCharaIdList });
 	}
@@ -543,6 +544,7 @@ exports.deleteUser = async function(req, res) {
 		//remove all characters this user created
 		const chara = await charaModel.Chara.deleteMany({creator: id}).exec();
 		//remove all characters this user created in the inventory of all users
+		/**TODO: find a way to add star fragments to the users */
 		const usersInventory = await User.updateMany({"inventory.creator": id }, 
 			{ $pull: {"inventory": { "creator": id }} }).exec();
 		//remove all gachas this user created in the favourite gachas of all users
@@ -624,7 +626,7 @@ function cleanNewUserBody(req) {
     return userBody;
 }
 
-function prepareSummon(req) {
+async function prepareSummon(req, user) {
 	const failedCharas = [];
 	const updateQuery = { "$inc": {}, "$push": {} };
 	if (req.body.starFrags) {

@@ -83,18 +83,18 @@ export const login = async function (body) {
 
         if (res.status === 400) {
             /**TODO: handle 400 error */
-            return { isAdmin: null, loginSuccessful: false};
+            return { isAdmin: null, loginSuccess: false};
         }
         const json = await res.json();
         const currUser = json.currUser;
         if (currUser !== undefined) {
             await setState("currUser", currUser);
-            return { isAdmin: currUser.isAdmin, loginSuccessful: true };
+            return { isAdmin: currUser.isAdmin, loginSuccess: true };
         }
-        return { isAdmin: null, loginSuccessful: false};
+        return { isAdmin: null, loginSuccess: false};
     } catch (err) {
         console.log('fetch failed, ', err);
-        return { isAdmin: null, loginSuccessful: false};
+        return { isAdmin: null, loginSuccess: false};
     }
 };
 

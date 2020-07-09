@@ -2,7 +2,7 @@ import { setState, setEmptyState, convertJSON, coverFileName, iconFileName, erro
 
 import { uploadFile, deleteFile, replaceFile } from "./fileHelpers";
 
-import { s3URL } from "./../constants";
+import { s3URL, userFolder } from "./../constants";
 
 const fetch = require('node-fetch');
 
@@ -129,7 +129,7 @@ export const editUser = async function (id, body) {
         //upload pictures
         let iconPicUpload = null;
         if (body.iconPic) {
-            iconPicUpload = await replaceFile(body.iconPic, id, gachaFolder, false);
+            iconPicUpload = await replaceFile(body.iconPic, id, userFolder, false);
             if (iconPicUpload.newURL !== null) {
                 editBody.iconPic = iconPicUpload.newURL;
             }
@@ -176,7 +176,9 @@ export const summonChara = async function (id, chara, cost) {
         });
         const json = await res.json();
         let msg = errorMatch(res);
+        console.log(json);
         if (res.status !== 200 || json.user === null) {
+            
             return { status: res.status, user: null, msg: msg, err: json.err };
         } else {
             setState("currUser", json.user);

@@ -70,8 +70,17 @@ class Inventory extends BaseReactComponent {
 
         /**TODO: handle failed requests...? */
         Promise.all(charaReqs).then(res => {
+            const charaList = [];
+            res.forEach(charaRes => {
+                console.log()
+                if (!charaRes || !charaRes.chara) {
+                    console.log("error retrieving chara" + (charaRes ? ": " + charaRes.err : ""));
+                } else {
+                    charaList.push(charaRes.chara);
+                }
+            });
             this.setState({
-                charaList: res,
+                charaList: charaList,
                 isLoaded: true
             });
         }).catch((err) => {

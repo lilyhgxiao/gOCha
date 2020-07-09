@@ -186,22 +186,27 @@ class CreateChara extends BaseReactComponent {
                 rarity: rarity,
                 welcomePhrase: welcomePhrase,
                 summonPhrase: summonPhrase,
-                coverPicRaw: coverPicRaw,
-                iconPicRaw: iconPicRaw,
+                coverPic: coverPicRaw,
+                iconPic: iconPicRaw,
             };
-            /**TODO: handle if create gacha fails */
+            /**TODO: handle if create chara fails */
             const createCharaRes = await createNewChara(gacha._id, createCharaBody);
-            if (createCharaRes) {
-                console.log(createCharaRes);
-                if (createCharaRes.chara) {
-                    this.setState({
-                        alert: {
-                            title: "Chara created successfully!",
-                            handleOk: this.redirectEdit.bind(this, createCharaRes.chara.gacha),
-                            okText: "Go back to Edit Gacha"
-                        }
-                    });
-                }
+            if (createCharaRes && createCharaRes.chara) {
+                this.setState({
+                    alert: {
+                        title: "Chara created successfully!",
+                        handleOk: this.redirectEdit.bind(this, createCharaRes.chara.gacha),
+                        okText: "Go back to Edit Gacha"
+                    }
+                });
+            } else {
+                console.log(createCharaRes)
+                this.setState({
+                    alert: {
+                        title: "Chara could not be created",
+                        text: [createCharaRes.msg]
+                    }
+                })
             }
         } else {
             this.setState({

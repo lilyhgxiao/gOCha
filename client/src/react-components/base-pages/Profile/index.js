@@ -76,7 +76,7 @@ class Profile extends BaseReactComponent {
                 /**TODO: handle when req fails */
             }
             this.setState({
-                gachaList: getGachasReq.gachas.result,
+                gachaList: getGachasReq.gachas,
                 isGachaLoaded: true
             });
 

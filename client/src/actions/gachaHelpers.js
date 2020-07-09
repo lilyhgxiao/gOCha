@@ -86,15 +86,12 @@ export const fetchPatchGacha = async (id, body) => {
 
 
 export const createNewGacha = async (body) => {
-    const url = "http://localhost:3001/gachas";
-    //const url = "/gachas"
     const msg = [];
 
     const postBody = {};
     if (body.name) postBody.name = body.name;
     if (body.desc) postBody.desc = body.desc;
     if (body.stats) postBody.stats = body.stats;
-    if (body.gacha) postBody.gacha = body.gacha;
     if (body.creator) postBody.creator = body.creator;
 
     try {

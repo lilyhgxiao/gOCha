@@ -47,13 +47,15 @@ class YourGachas extends BaseReactComponent {
 
         try {
             const getGachasReq = await getGachasByCreator(currUser._id);
+
+            console.log(getGachasReq)
             if (!getGachasReq) {
                 /**TODO: handle when req fails */
                 console.log("getGachasReq failed");
                 return;
             }
             this.setState({
-                gachaList: getGachasReq.gachas.result,
+                gachaList: getGachasReq.gachas,
                 isLoaded: true
             });
         } catch (err) {

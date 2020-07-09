@@ -1,6 +1,6 @@
-import { setState, convertJSON, coverFileName, iconFileName } from "./helpers";
+import { setState, convertJSON, errorMatch } from "./helpers";
 
-import { uploadFile, deleteFile, replaceFile } from "./fileHelpers";
+import { uploadPicsForNewObj, deleteFile, replaceFile } from "./fileHelpers";
 
 import { s3URL, charaFolder } from "./../constants";
 
@@ -12,18 +12,12 @@ export const getCharaById = async (id) => {
 
     try {
         const res = await fetch(url);
-        if (res.status === 404) { //resource not found
-            /**TODO: handle 404 error */
-            return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            return null;
-        }
-        const chara = await res.json();
-        return chara;
+        const json = await res.json();
+        let msg = errorMatch(res);
+        return { status: res.status, chara: json.chara, msg: msg, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, chara: null, msg: "Failed to get Chara.", err: err };
     }
 }
 
@@ -33,27 +27,20 @@ export const getAllCharasInGacha = async (id) => {
 
     try {
         const res = await fetch(url);
-        if (res.status === 404) { //resource not found
-            /**TODO: handle 404 error */
-            return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            return null;
-        }
-        const charas = await res.json();
-        return charas.result;
+        const json = await res.json();
+        let msg = errorMatch(res);
+        return { status: res.status, charas: json.charas, msg: msg, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: 500, charas: null, msg: "Failed to get Charas.", err: err };
     }
 }
 
-export const createNewChara = async (id, body) => {
+export const fetchNewChara = async (id, body) => {
     const url = "http://localhost:3001/charas/" + id;
-    //const url = "/charas/" + id
+    //const url = "/charas/" + id;
 
     try {
-        //post request
         const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(body),
@@ -63,107 +50,100 @@ export const createNewChara = async (id, body) => {
             },
             credentials: "include",
         });
-        if (res.status === 401) { //unauthorized
-            /**TODO: handle 401 error */
-            console.log(res)
-            return null;
-        } else if (res.status === 404) { //resource not found
-            /**TODO: handle 404 error */
-            console.log(res)
-            return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            console.log(await res.json())
-            return null;
-        }
         const json = await res.json();
-        if (json === undefined) {
-            /**TODO: handle if json is not defined */
-            return null;
-        }
-
-        setState("currUser", json.user)
-        const chara = json.chara;
-        const gacha = json.gacha;
-
-        /**TODO: handle if coverPic and iconPic don't exist */
-        //uploading pictures to s3
-        const newCoverPicName = coverFileName(charaFolder, chara._id, body.coverPicRaw, 0);
-        const newIconPicName = iconFileName(charaFolder, chara._id, body.iconPicRaw, 0);
-        const uploadCoverRes = uploadFile(body.coverPicRaw, newCoverPicName);
-        const uploadIconRes = uploadFile(body.iconPicRaw, newIconPicName);
-
-        //check the upload responses
-        return Promise.all([uploadCoverRes, uploadIconRes]).then(async (res) => {
-            console.log(res);
-            const patchBody = {};
-            if (!res[0]) { //cover pic failed
-                /**TODO: handle cover pic failure */
-                console.log("Error with uploading cover pic.");
-            } else {
-                patchBody.coverPic = s3URL + newCoverPicName;
-            }
-            if (!res[1]) { //icon pic failed
-                /**TODO: handle icon pic failure */
-                console.log("Error with uploading icon pic.");
-            } else {
-                patchBody.iconPic = s3URL + newIconPicName;
-            }
-
-            //patch gacha to include the cover and icon pic urls
-            const patchUrl = "http://localhost:3001/charas/" + chara._id;
-            //const patchUrl = "/charas/" + chara._id;
-
-            //patch res
-            const patchRes = await fetch(patchUrl, {
-                method: 'PATCH',
-                body: JSON.stringify(patchBody),
-                headers: {
-                    'Accept': 'application/json, text/plain, */*',
-                    'Content-Type': 'application/json'
-                },
-                credentials: "include",
-            });
-            if (patchRes.status === 401) { //unauthorized
-                /**TODO: handle 401 error */
-                console.log(patchRes)
-                return { chara: chara, gacha: gacha };
-            } else if (patchRes.status === 404) { //resource not found
-                /**TODO: handle 404 error */
-                console.log(patchRes)
-                return { chara: chara, gacha: gacha };
-            } else if (patchRes.status === 500) { //internal server error
-                /**TODO: handle 500 error */
-                console.log(patchRes)
-                return { chara: chara, gacha: gacha };
-            }
-
-            const patchJson = await patchRes.json();
-            if (patchJson === undefined) { //patch failed
-                return { chara: chara, gacha: gacha };
-            } else {
-                return { chara: patchJson, gacha: gacha };
-            }
-        }).catch((err) => {
-            /**TODO: handle error with promise all */
-            console.log("Error with Promise.all in createNewChara " + err);
-            return null;
-        });
+        let msg = errorMatch(res);
+        return { status: res.status, chara: json.chara, msg: msg, err: json.err };
     } catch (err) {
-        /**TODO: handle error with catch */
         console.log('fetch failed, ', err);
-        return null;
+        return { status: null, chara: null, msg: "Failed to create Chara.", err: err };
     }
 }
 
-/**TODO: edit gacha*/
-export const editChara = async (id, body) => {
+export const fetchPatchChara = async (id, body) => {
     const url = "http://localhost:3001/charas/" + id;
-    //const url = "/charas/" + id; 
+    //const url = "/charas/" + id;
 
     try {
-        const editBody = Object.assign({}, body);
+        const res = await fetch(url, {
+            method: 'PATCH',
+            body: JSON.stringify(body),
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            credentials: "include",
+        });
+        const json = await res.json();
+        let msg = errorMatch(res);
+        return { status: res.status, chara: json.chara, msg: msg, err: json.err };
+    } catch (err) {
+        console.log('fetch failed, ', err);
+        return { status: null, chara: null, msg: "Failed to patch Chara.", err: err };
+    }
+}
 
+export const createNewChara = async (id, body) => {
+    const msg = [];
+
+    const postBody = {};
+    if (body.name) postBody.name = body.name;
+    if (body.creator) postBody.creator = body.creator;
+    if (body.rarity) postBody.rarity = body.rarity;
+    if (body.desc) postBody.desc = body.desc;
+    if (body.stats) postBody.stats = body.stats;
+    if (body.welcomePhrase) postBody.welcomePhrase = body.welcomePhrase;
+    if (body.summonPhrase) postBody.summonPhrase = body.summonPhrase;
+
+    try {
+        //post request
+        const postRes = await fetchNewChara(id, postBody);
+        if (postRes.status !== 200) {
+            return { status: postRes.status, 
+                msg: postRes.msg,
+                err: ["fetchNewChara failed" + (postRes.err ? ": " + postRes.err : ".")] , 
+                chara: null };
+        }
+
+        /**TODO: handle if coverPic and iconPic don't exist */
+        const chara = postRes.chara;
+        if (body.coverPic || body.iconPic) {
+            const uploadRes = await uploadPicsForNewObj(charaFolder, chara._id, body);
+
+            if (!uploadRes.coverPic || !uploadRes.iconPic) {
+                msg.push("There was an error uploading the ");
+                if (!uploadRes.coverPic) msg.push("cover image");
+                if (!uploadRes.coverPic && !uploadRes.iconPic) msg.push(" and ");
+                if (!uploadRes.iconPic) msg.push("icon image");
+                msg.push(". Please reupload the image in the edit page.");
+            }
+
+            const patchRes = await fetchPatchChara(chara._id, uploadRes);
+            if (patchRes.status !== 200 || patchRes.chara === null) {
+                msg.push(patchRes.msg);
+                console.log()
+                return { status: postRes.status, msg: msg, 
+                    err: "fetchPatchChara failed" + (patchRes.err ? ": " + patchRes.err : "."),
+                    chara: chara };
+            } else {
+                return { status: postRes.status, msg: msg, err: null,
+                    chara: patchRes.chara };
+            }
+        } else {
+            return { status: postRes.status, msg: msg, 
+                err: null, chara: chara };
+        }
+    } catch (err) {
+        console.log('fetch failed, ', err);
+        return { status: 500, msg: "Failed to create Chara.", err: err, chara: null };
+    }
+}
+
+/**TODO: edit chara*/
+export const editChara = async (id, body) => {
+    const msg = [];
+    const editBody = Object.assign({}, body);
+
+    try {
         //upload pictures
         let coverPicUpload = null;
         let iconPicUpload = null;
@@ -181,33 +161,12 @@ export const editChara = async (id, body) => {
         }
 
         //patch res
-        const res = await fetch(url, {
-            method: 'PATCH',
-            body: JSON.stringify(convertJSON(editBody)),
-            headers: {
-                'Accept': 'application/json, text/plain, */*',
-                'Content-Type': 'application/json'
-            },
-            credentials: "include",
-        });
-        const json = await res.json();
-        if (res.status === 401) { //unauthorized
-            /**TODO: handle 401 error */
-            console.log(json)
-            return null;
-        } else if (res.status === 404) { //resource not found
-            /**TODO: handle 404 error */
-            console.log(json)
-            return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            console.log(json)
-            return null;
-        }
-
-        console.log(json)
-        if (json === undefined) { //patch failed
-            return null;
+        const patchRes = await fetchPatchChara(id, editBody);
+        if (patchRes.status !== 200 || patchRes.chara === null) {
+            msg.push(patchRes.msg);
+            return { status: patchRes.status, msg: msg, 
+                err: "fetchPatchGacha failed" + (patchRes.err ? ": " + patchRes.err : "."),
+                chara: patchRes.chara, deleteCoverPic: null, deleteIconPic: null };
         } else {
             let deleteCoverPic;
             let deleteIconPic;
@@ -215,13 +174,17 @@ export const editChara = async (id, body) => {
                 deleteCoverPic = await deleteFile(body.coverPic.oldURL.replace(s3URL, ""));
             }
             if (body.iconPic && iconPicUpload.newURL !== null) {
-                deleteIconPic = await deleteFile(body.coverPic.oldURL.replace(s3URL, ""));
+                deleteIconPic = await deleteFile(body.iconPic.oldURL.replace(s3URL, ""));
             }
-            return { chara: json.result, deleteCoverPic: deleteCoverPic, deleteIconPic: deleteIconPic };
+            return { status: patchRes.status, msg: msg, err: null,
+                chara: patchRes.chara,
+                deleteCoverPic: deleteCoverPic, 
+                deleteIconPic: deleteIconPic };
         }
     } catch (err) {
         console.log(err);
-        return null;
+        return { status: null, chara: null, msg: "Failed to patch Chara.", err: err, deleteCoverPic: null,
+            deleteIconPic: null };
     }
 
 }
@@ -240,20 +203,21 @@ export const deleteCharaById = async (id) => {
             },
             credentials: "include",
         });
-        if (res.status === 404) { //resource not found
-            /**TODO: handle 404 error */
-            return null;
-        } else if (res.status === 401) { //unauthorized
-            /**TODO: handle 401 error */
-            return null;
-        } else if (res.status === 500) { //internal server error
-            /**TODO: handle 500 error */
-            return null;
-        }
         const json = await res.json();
-        return json;
+        let msg = errorMatch(res);
+        let deleteCoverPic;
+        let deleteIconPic;
+        if (json.chara && json.chara.coverPic && json.chara.coverPic !== "") {
+            deleteCoverPic = await deleteFile(json.chara.coverPic.replace(s3URL, ""));
+        }
+        if (json.chara && json.chara.iconPic && json.chara.iconPic !== "") {
+            deleteIconPic = await deleteFile(json.chara.iconPic.replace(s3URL, ""));
+        }
+        return { status: res.status, chara: json.chara, msg: msg, err: json.err,
+            deleteCoverPic: deleteCoverPic, deleteIconPic: deleteIconPic };
     } catch (err) {
         console.log('fetch failed, ', err);
-        return null;
+        return { status: null, chara: null, msg: "Failed to delete Chara.", err: err,
+            deleteCoverPic: null, deleteIconPic: null };
     }
 }

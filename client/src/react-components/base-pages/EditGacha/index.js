@@ -76,11 +76,12 @@ class EditGacha extends BaseReactComponent {
         const id = this.props.match.params.id;
 
         try {
-            const gacha = await getGachaById(id);
-            if (!gacha) {
+            const getGacha = await getGachaById(id);
+            if (!getGacha || !getGacha.gacha) {
                 console.log("Failed to get gacha " + id);
                 return;
             }
+            const gacha = getGacha.gacha;
             const getCreator = await getUserById(gacha.creator);
             if (!getCreator || !getCreator.user) {
                 console.log("Failed to get creator " + gacha.creator);
@@ -111,15 +112,15 @@ class EditGacha extends BaseReactComponent {
     fetchCharas = async () => {
         const { gacha } = this.state;
         const getAllCharasRes = await getAllCharasInGacha(gacha._id);
-        if (!getAllCharasRes) {
+        if (!getAllCharasRes || !getAllCharasRes.charas) {
             console.log("Failed to get charas of gacha.")
             return;
         }
 
         this.setState({
-            threeStars: getAllCharasRes.filter(chara => chara.rarity === 3),
-            fourStars: getAllCharasRes.filter(chara => chara.rarity === 4),
-            fiveStars: getAllCharasRes.filter(chara => chara.rarity === 5),
+            threeStars: getAllCharasRes.charas.filter(chara => chara.rarity === 3),
+            fourStars: getAllCharasRes.charas.filter(chara => chara.rarity === 4),
+            fiveStars: getAllCharasRes.charas.filter(chara => chara.rarity === 5),
             isLoaded: true
         ,}, this.resizeMainContainer);
     }
@@ -340,7 +341,7 @@ class EditGacha extends BaseReactComponent {
 
         removeCharaReqs.forEach(res => {
             /**TODO: check res and handle if any returned null */
-            if (res === null) {
+            if (!res || !res.chara) {
                 success = false;
                 console.log("A character was not deleted properly.")
             }

@@ -151,23 +151,27 @@ exports.getGachaById = function(req, res) {
         });
 };
 
-exports.getGachasByCreator = function(req, res) {
+exports.getGachasByCreator = async function(req, res) {
     const id = req.params.id;
 
+    //check for a valid mongodb id
     if (!ObjectID.isValid(id)) {
-        res.status(404).send({ gacha: null, 
-            err: "getGachasByCreator failed: mongodb id not valid"}); //send 404 not found error if id is invalid
+        res.status(404).send({ gachas: null, err: "getGachasByCreator failed: creator id not valid" });
         return;
     }
 
-    Gacha.find({ creator: id }).then(
-        result => {
-            res.status(200).send({ gachas: result, err: null });
-        },
-        err => {
-            res.status(500).send({ gachas: null, err: "getGachasByCreator failed: " + err }); // server error
-        }
-    );
+    try {
+        const user = await userModel.User.findById(id).exec();
+        if (!user) {
+            res.status(404).send({ gachas: null, err: "getGachasByCreator failed: could not find creator" });
+            return;
+        } 
+
+        const gachas = await Gacha.find({ creator: id }).exec();
+        res.status(200).send({ gachas: gachas, err: null });
+    } catch (err) {
+        res.status(500).send({ gachas: null, err: "getGachasByCreator failed: " + err })
+    }
 }
 
 exports.updateGachaInfo = async function(req, res) {
@@ -493,6 +497,7 @@ exports.deleteGacha = async function(req, res) {
         //delete all characters belonging to the gacha
         const chara = await charaModel.Chara.deleteMany({gacha: id}).exec();
         //pull all characters belonging to the gacha from the inventories of users
+        /**TODO: find a way to add star fragments to the users */
         const usersInventory = await userModel.User.updateMany(
             {"inventory.gacha": id }, { $pull: {"inventory": { "gacha": id }} }).exec();
         //pull gacha from all favGacha lists of users
