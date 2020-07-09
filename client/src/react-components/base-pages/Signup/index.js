@@ -97,7 +97,7 @@ class Signup extends React.Component {
                     return;
                 }
 
-                const loginRes = await login({username: signupRes.user.username, password: signupRes.user.password});
+                const loginRes = await login({username: signupRes.user.username, password: this.state.password});
                 if (!loginRes.loginSuccess) {
                     alert("Signed up but failed to login: " + loginRes.msg);
                     return;

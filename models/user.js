@@ -62,7 +62,8 @@ const UserSchema = new mongoose.Schema({
 	},
 	isAdmin: {
 		type: Boolean,
-		required: true
+		required: true,
+		default: false
 	},
 	iconPic: {
 		type: String,
@@ -155,11 +156,7 @@ exports.createUser = async function(req, res) {
         res.status(400).send({ user: null, err: "createUser failed: user requires a password"});
         return;
 	} 
-	if (!userBody.isAdmin)  {
-        res.status(400).send({ user: null, err: "createUser failed: user requires admin flag"});
-        return;
-    } 
-	const user = new Gacha(userBody);
+	const user = new User(userBody);
 
 	// Save the user
 	try {
@@ -614,7 +611,7 @@ function cleanNewUserBody(req) {
     userBody.username = req.body.username || null;
     userBody.email = req.body.email || null;
 	userBody.password = req.body.password || null;
-	userBody.isAdmin = req.body.isAdmin || null;
+	userBody.isAdmin = req.body.isAdmin || false;
 	userBody.iconPic = req.body.iconPic || "";
 	userBody.starFrags = req.body.starFrags || defaultStars;
 	userBody.silvers = req.body.silvers || defaultSilvers;
