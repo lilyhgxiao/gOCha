@@ -12,12 +12,16 @@ import BaseReactComponent from "../../other/BaseReactComponent";
 import AlertDialogue from "./../../page-components/AlertDialogue";
 
 // Importing actions/required methods
-import { updateSession } from "../../../actions/loginHelpers";
-
+import { checkAndUpdateSession } from "../../../actions/helpers";
+import { getCharaById } from "../../../actions/charaHelpers";
 
 //images
 /**TODO: replace placeholder images */
 import dashboard_placeholder from './../../../images/dashboard_placeholder.jpg';
+
+//Importing constants
+
+import { dashboardURL } from "../../../constants";
 
 /**TODO: implement random character selection for cover pic */
 
@@ -25,26 +29,42 @@ class Dashboard extends BaseReactComponent {
 
     state = {
         alert: null,
-        error: null
+        error: null,
+        mainPic: dashboard_placeholder,
+        welcomePhrase: null,
+        chara: null
     }
 
     constructor(props) {
         super(props);
-        this.props.history.push("/dashboard");
+        this.props.history.push(dashboardURL);
     }
 
     filterState({ currUser }) {
         return { currUser };
     }
 
-    async componentDidMount() {
-        /**TODO: redirect back to login if session is not there */
-        const readSessRes = await updateSession();
-        if (readSessRes) {
-            if (readSessRes.currUser) {
+    componentDidMount = async () => {
+        await checkAndUpdateSession.bind(this)(this.fetchRandChara);
+    }
+
+    fetchRandChara = async () => {
+        const { currUser } = this.state;
+        const numCharas = currUser.inventory.length;
+        if (numCharas > 0) {
+            const index = Math.floor(Math.random() * numCharas);
+            const randChara = currUser.inventory[index];
+            const getChara = await getCharaById(randChara._id);
+            if (!getChara || !getChara.chara || !getChara.chara.coverPic || !getChara.chara.coverPic === ""){
                 this.setState({
-                    currUser: readSessRes.currUser
-                }, this.fetchInv);
+                    mainPic: dashboard_placeholder
+                });
+            } else {
+                this.setState({
+                    mainPic: getChara.chara.coverPic,
+                    welcomePhrase: getChara.chara.welcomePhrase,
+                    chara: getChara.chara
+                });
             }
         }
     }
@@ -62,15 +82,9 @@ class Dashboard extends BaseReactComponent {
         })
     }
 
-    redirectError = () => {
-        this.setState({
-            error: {code: 500, msg: "Hi there", toDashboard: true}
-        });
-    }
-
     render() {
         const { history } = this.props;
-        const { currUser, alert, error } = this.state;
+        const { currUser, alert, error, welcomePhrase, mainPic, chara } = this.state;
 
         if (error) {
             return (
@@ -94,7 +108,10 @@ class Dashboard extends BaseReactComponent {
                         null
                     }
                     <div className="mainBody">
-                        <img className="dashboardMainPic" src={dashboard_placeholder} alt='Dashboard Main'/>
+                        { welcomePhrase ?
+                            <div className="dashboardWelcPhrase">{ welcomePhrase }</div> : null
+                        }
+                        <img className="dashboardMainPic" src={mainPic} alt='Dashboard Main'/>
                         <div className="dashboardTopMenu">
                             <div className="currencyDisplay">Star Fragments: {currUser ? currUser.starFrags: 0}</div>
                             <div className="currencyDisplay">Silvers: {currUser ? currUser.silvers : 0}</div>

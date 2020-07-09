@@ -24,17 +24,16 @@ export const readSession = async function () {
             },
             credentials: "include",
         });
-        if (res.status === 401) { //unauthorized
-            /**TODO: handle 401 error */
-            return null;
-        }
         const json = await res.json();
-        if (json && json.currUser) {
-            setState("currUser", json.currUser);
-            return { currUser: json.currUser };
+        let msg;
+        if (res.status === 401) { //unauthorized
+            msg = "You are not logged in, or your session has expired.";
         }
+        return { status: res.status, currUser: json.currUser, msg: msg, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
+        return { status: 500, currUser: null, msg: "Could not read session.", 
+            err: "readSession failed: " + err };
     }
 };
 
@@ -51,17 +50,20 @@ export const updateSession = async function () {
             },
             credentials: "include",
         });
-        if (res.status === 401) { //unauthorized
-            /**TODO: handle 401 error */
-            return null;
-        }
         const json = await res.json();
-        if (json && json.currUser) {
-            setState("currUser", json.currUser);
-            return { currUser: json.currUser };
+        let msg;
+        if (res.status === 401) { //unauthorized
+            msg = "You are not logged in, or your session has expired.";
+        } else if (res.status === 404) {
+            msg = "The current logged in user could not be found.";
+        } else if (res.status === 500) {
+            msg = "Could not update the user.";
         }
+        return { status: res.status, currUser: json.currUser, msg: msg, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
+        return { status: 500, currUser: null, msg: "Could not update session.", 
+            err: "updateSession failed: " + err };
     }
 }
 
@@ -80,21 +82,17 @@ export const login = async function (body) {
             },
             credentials: "include",
         });
-
-        if (res.status === 400) {
-            /**TODO: handle 400 error */
-            return { isAdmin: null, loginSuccess: false};
-        }
         const json = await res.json();
-        const currUser = json.currUser;
-        if (currUser !== undefined) {
-            await setState("currUser", currUser);
-            return { isAdmin: currUser.isAdmin, loginSuccess: true };
+        let msg;
+        if (res.status === 400) { //unauthorized
+            msg = "Invalid username/password combination. Please try again.";
+        } else if (res.status === 500) {
+            msg = "Could not login in. Please check your connection.";
         }
-        return { isAdmin: null, loginSuccess: false};
+        return { status: res.status, currUser: json.currUser, msg: msg, err: json.err };
     } catch (err) {
         console.log('fetch failed, ', err);
-        return { isAdmin: null, loginSuccess: false};
+        return { status: 500, currUser: null, msg: "Could not login.", err: "login failed: " + err};
     }
 };
 

@@ -1,5 +1,6 @@
 import set from "lodash-es/set";
 import { action } from "statezero";
+import { updateSession } from "./loginHelpers";
 
 // Initialize all state paths used by your app as empty.
 // These are the states that you can filter using filterState()
@@ -49,4 +50,23 @@ export const errorMatch = (res) => {
     } else {
         return null;
     }
+}
+
+export const checkAndUpdateSession = async function (callback) {
+    const readSessRes = await updateSession();
+    if (!readSessRes || !readSessRes.currUser) {
+        if (readSessRes && readSessRes.status && readSessRes.msg) {
+            this.setState({
+                error: { code: readSessRes.status, msg: readSessRes.msg, toLogin: true }
+            });
+        } else {
+            this.setState({
+                error: { code: 500, msg: "Something went wrong and your session has expired." +
+                    "Please log in again.", toLogin: true }
+            });
+        }
+    }
+    this.setState({
+        currUser: readSessRes.currUser
+    }, callback);
 }

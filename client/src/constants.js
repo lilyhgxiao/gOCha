@@ -40,3 +40,6 @@ exports.s3URL = "https://gocha.s3.ca-central-1.amazonaws.com/";
 exports.gachaFolder = "gacha_images/";
 exports.charaFolder = "chara_images/";
 exports.userFolder = "user_images/";
+
+//urls
+exports.dashboardURL = "/dashboard";

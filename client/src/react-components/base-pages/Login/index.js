@@ -62,16 +62,15 @@ class Login extends React.Component {
     tryLogin = async () => {
         const { username, password } = this.state;
         const result = await login({username, password});
-        const { isAdmin, loginSuccess } = result;
-        if (loginSuccess === false) {
-            alert('Invalid username/password combination. Please try again.');
-        } else if (loginSuccess === null) {
-            alert('Could not login in. Please check your connection.');
-        }
+        console.log(result);
+        if (!result || !result.currUser) {
+            alert(result.msg ? result.msg : "Something went wrong.");
+            return;
+        } 
         this.setState({
-            isAdmin: isAdmin,
-            loginSuccess: loginSuccess
-        })
+            isAdmin: result.currUser.isAdmin,
+            loginSuccess: true
+        });
     }
 
     render() {

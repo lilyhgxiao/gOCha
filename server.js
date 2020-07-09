@@ -75,17 +75,17 @@ app.post("/users/login", (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
-    log(username, password);
-    // Use the static method on the User model to find a user
     user.User.findByUsernamePassword(username, password)
         .then(user => {
-            // Add the user's id to the session cookie.
-            // We can check later if this exists to ensure we are logged in.
-            req.session.user = user;
-            res.status(200).send({ currUser: user });
+            if (!user) {
+                res.status(400).send({ currUser: user, err: "login failed: incorrect username/password combination"});
+            } else {
+                req.session.user = user;
+                res.status(200).send({ currUser: user, err: null });
+            }
         })
         .catch(err => {
-            res.status(400).send();
+            res.status(500).send({ currUser: user, err: "login failed: " + err });
         });
 });
 
@@ -104,9 +104,9 @@ app.get("/users/logout", (req, res) => {
 // A route to check if a use is logged in on the session cookie
 app.get("/users/check-session", (req, res) => {
     if (req.session.user) {
-        res.status(200).send({ currUser: req.session.user });
+        res.status(200).send({ currUser: req.session.user, err: null });
     } else {
-        res.status(401).send();
+        res.status(401).send({ currUser: null, err: "check-session failed: no session" });
     }
 });
 
@@ -115,16 +115,16 @@ app.get("/users/update-session", async (req, res) => {
 		try {
 			const result = await user.User.findById(req.session.user._id).exec();
 			if (!result) {
-				res.status(404).send();
+				res.status(404).send({ currUser: null, err: "update-session failed: could not find user" });
 			} else {
 				req.session.user = result;
-				res.status(200).send({ currUser: result });
+				res.status(200).send({ currUser: req.session.user, err: null });
 			}
 		} catch (err) {
-			res.status(500).send(err);
+			res.status(500).send({ currUser: null, err: "update-session failed: could not update user" });
 		}
     } else {
-        res.status(401).send();
+        res.status(401).send({ currUser: null, err: "update-session failed: no session" });
     }
 });
 

@@ -1,3 +1,9 @@
+.dashboardWelcPhrase {
+    position: absolute;
+    z-index: 4;
+    top: 200px;
+}
+
 .dashboardMainPic {
     width: 800px;
     height: 800px;
