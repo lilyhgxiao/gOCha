@@ -23,7 +23,7 @@ import { readSession } from "./actions/loginHelpers";
 
 import "./App.css";
 
-import { loginURL, signupURL, errorURL, dashboardURL, collectionURL } from "./constants";
+import { loginURL, signupURL, errorURL, dashboardURL, collectionURL, gachasURL } from "./constants";
 
 class App extends BaseReactComponent {
     // Access the global state paths required by your component
@@ -49,7 +49,7 @@ class App extends BaseReactComponent {
                     <Route path={errorURL} exact component={ErrorPage} />
                     <Route path={dashboardURL} exact component={Dashboard} />
                     <Route path={collectionURL} exact component={Collection} />
-                    <Route path="/yourGachas" exact component={YourGachas} />
+                    <Route path={gachasURL} exact component={YourGachas} />
                     <Route path="/favourites" exact component={FavGachas} />
                     <Route path="/summon/info/:id" render={(props => <GachaSummon key={props.match.params.id} {...props}/>)} />
                     <Route path="/summon/result/:id" render={(props => <GachaSmnResult key={props.match.params.id} {...props}/>)} />

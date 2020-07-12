@@ -133,7 +133,7 @@ class Dashboard extends BaseReactComponent {
                         </div>
                         <div className="dashboardBottomMenu">
                             <Link className="dashboardInventory" to={collectionURL}>Collection</Link>
-                            <Link className="dashboardOwnGachas" to={'./yourGachas'}>Your Gachas</Link>
+                            <Link className="dashboardOwnGachas" to={gachasURL}>Your Gachas</Link>
                             <Link className="dashboardFavGachas" to={'./favourites'}>Favourites</Link>
                         </div>
                         <div className="newsBanner">

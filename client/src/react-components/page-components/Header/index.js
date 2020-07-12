@@ -102,7 +102,7 @@ class Header extends React.Component {
                         <div className ="headerLine2"> 
                             <Link className="hdr2Link" to={'/dashboard'}>Home</Link>   
                             <Link className="hdr2Link" to={collectionURL}>Collection</Link>  
-                            <Link className="hdr2Link" to={'/yourGachas'}>Your Gachas</Link>  
+                            <Link className="hdr2Link" to={gachasURL}>Your Gachas</Link>  
                             <Link className="hdr2Link" to={'/favourites'}>Favourites</Link>  
                             <Link className="hdr2Link" to={'/news'}>News</Link> 
                         </div>
