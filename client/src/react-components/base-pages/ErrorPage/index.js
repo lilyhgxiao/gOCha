@@ -8,32 +8,30 @@ import "./../../../App.css"
 // Importing components
 import Header from "./../../page-components/Header";
 import BaseReactComponent from "../../other/BaseReactComponent";
-import AlertDialogue from "./../../page-components/AlertDialogue";
 
 // Importing actions/required methods
-import { updateSession } from "../../../actions/loginHelpers";
-
+import { checkAndUpdateSession } from "../../../actions/helpers";
 
 //images
-/**TODO: replace placeholder images */
-import dashboard_placeholder from './../../../images/dashboard_placeholder.jpg';
 
-/**TODO: implement random character selection for cover pic */
+//Importing constants
+import { errorURL } from "../../../constants";
 
 class ErrorPage extends BaseReactComponent {
 
-    state = {
-        error: {
-            code: 404,
-            msg: "Resource not found.",
-            toDashboard: true,
-            toLogin: false
-        }
-    };
+    _isMounted = false;
 
     constructor(props) {
         super(props);
-        this.props.history.push("/error");
+        this.props.history.push(errorURL);
+        this.state = {
+            error: {
+                code: 404,
+                msg: "Resource not found.",
+                toDashboard: true,
+                toLogin: false
+            }
+        };
     }
 
     filterState({ currUser }) {
@@ -42,22 +40,20 @@ class ErrorPage extends BaseReactComponent {
 
     async componentDidMount() {
         const locationState = this.props.location.state;
-        /**TODO: redirect back to login if session is not there */
-        const readSessRes = await updateSession();
-        if (readSessRes) {
-            if (readSessRes.currUser) {
-                this.setState({
-                    currUser: readSessRes.currUser
-                });
-            }
-        }
-        
+        let success = false;
+
+        this._isMounted = true;
+        this._isMounted && (success = await checkAndUpdateSession.bind(this)(this.fetchInv));
+
         if (locationState && locationState.error) {
-            console.log("hi")
-            this.setState({
+            this._isMounted && this.setState({
                 error: locationState.error
             });
         }
+    }
+
+    componentWillUnmount () {
+        this._isMounted = false;
     }
 
     render() {
