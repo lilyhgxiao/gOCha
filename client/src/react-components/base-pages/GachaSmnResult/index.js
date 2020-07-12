@@ -16,7 +16,7 @@ import { updateSession } from "../../../actions/loginHelpers";
 import { summonChara, incCurrency } from "../../../actions/userhelpers";
 
 //Importing constants
-import { summonCost, threeStarSilvers, fourStarSilvers, fiveStarSilvers } from "../../../constants";
+import { summonCost, threeStarSilvers, fourStarSilvers, fiveStarSilvers, collectionURL } from "../../../constants";
 
 //images
 /**TODO: replace placeholder images */
@@ -145,7 +145,7 @@ class GachaSmnResult extends BaseReactComponent {
                                     <Link to={'/summon/info/' + chara.gacha}>
                                         <button className="charaSmnButton">Go back to the Gacha</button>
                                     </Link>
-                                    <Link to={{pathname: '/inventory', state: {showChara: chara}}}>
+                                    <Link to={{pathname: collectionURL, state: {showChara: chara}}}>
                                         <button className="charaSmnButton">Check them out in your inventory!</button>
                                     </Link>
                                 </div>

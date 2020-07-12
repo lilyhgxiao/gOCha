@@ -23,11 +23,16 @@ import { getGachaById } from "../../../actions/gachaHelpers";
 
 class CharaProfile extends BaseReactComponent {
 
-  state = {
-    gachaCreatorLoaded: false,
-    gacha: null,
-    creator: null
-  };
+  _isMounted = false;
+
+    constructor(props) {
+        super(props);
+        this.state = {
+          gachaCreatorLoaded: false,
+          gacha: null,
+          creator: null
+        };
+    }
 
   filterState({ currUser }) {
     return { currUser };
@@ -76,7 +81,7 @@ class CharaProfile extends BaseReactComponent {
                 <div className="iconBar">
                   <img className="charaProfExitButton" src={exit_icon} onClick={handleExitWindowClick} alt={'Exit Profile'}/>
                   {
-                    chara.creator === currUser._id ?
+                    currUser && chara.creator === currUser._id ?
                     <Link to={'/edit'}>
                         <input
                             className="charaProfEditButton"
