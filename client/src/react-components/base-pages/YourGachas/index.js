@@ -13,7 +13,7 @@ import AlertDialogue from "./../../page-components/AlertDialogue";
 import PageNumNav from "./../../page-components/PageNumNav";
 
 // Importing actions/required methods
-import { checkAndUpdateSession } from "../../../actions/helpers";
+import { checkAndUpdateSession, processError } from "../../../actions/helpers";
 import { getGachasByCreator } from "../../../actions/gachaHelpers";
 
 //Importing constants
@@ -55,15 +55,8 @@ class YourGachas extends BaseReactComponent {
 
         try {
             const getGachas = await getGachasByCreator(currUser._id);
-
             if (!getGachas || !getGachas.gachas) {
-                this._isMounted && this.setState({
-                    error: {
-                        code: getGachas ? getGachas.status : 500,
-                        msg: getGachas ? getGachas.msg : "Something went wrong.",
-                        toDashboard: true
-                    }
-                });
+                this._isMounted && processError.bind(this)(getGachas, true, false);
                 return;
             }
             this._isMounted && this.setState({

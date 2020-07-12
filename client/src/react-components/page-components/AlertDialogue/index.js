@@ -27,7 +27,7 @@ class AlertDialogue extends React.Component {
     }
 
     handleExit = (parent) => {
-        parent.setState({
+        parent._isMounted && parent.setState({
             alert: null
         });
     }

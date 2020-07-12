@@ -12,10 +12,11 @@ import GachaSmnList from "./../../page-components/GachaSmnList";
 import AlertDialogue from "./../../page-components/AlertDialogue";
 
 // Importing actions/required methods
+import { checkAndUpdateSession, processError, summon } from "../../../actions/helpers";
 import { updateSession } from "../../../actions/loginHelpers";
 import { getGachaById } from "../../../actions/gachaHelpers";
 import { getUserById, pullUserInfo, pushUserInfo } from "../../../actions/userhelpers";
-import { getCharaById, getAllCharasInGacha } from "../../../actions/charaHelpers";
+import { getAllCharasInGacha } from "../../../actions/charaHelpers";
 
 //images
 /**TODO: replace placeholder images */
@@ -24,27 +25,32 @@ import favourited from './../../../images/stat_filled.png';
 import notFavourited from './../../../images/stat_unfilled.png';
 
 //Importing constants
-import { summonCost, threeStarChance, fourStarChance, fiveStarChance } from "../../../constants";
+import { smnInfoURL, dashboardURL, profileURL, smnResultURL, errorURL, summonCost } from "../../../constants";
 
 class GachaSummon extends BaseReactComponent {
 
-    state = {
-        isGachaLoaded: false,
-        isCreatorLoaded: false,
-        currUser: null,
-        gacha: null,
-        threeStars: [],
-        fourStars: [],
-        fiveStars: [],
-        alert: null,
-        rolledCharacter: null,
-        redirectDashboard: false,
-        favourite: false
-    };
+    _isMounted = false;
 
     constructor(props) {
         super(props);
-        this.props.history.push("/summon/info/" + props.match.params.id);
+        this.props.history.push(smnInfoURL + props.match.params.id);
+
+        this.state = {
+            isGachaLoaded: false,
+            isCreatorLoaded: false,
+            currUser: null,
+            gacha: null,
+            creator: null,
+            threeStars: [],
+            fourStars: [],
+            fiveStars: [],
+            rolledCharacter: null,
+            favourite: false,
+            toDashboard: false,
+            toCreator: false,
+            alert: null,
+            error: null
+        };
     }
 
     filterState({ currUser }) {
@@ -53,228 +59,147 @@ class GachaSummon extends BaseReactComponent {
 
     async componentDidMount() {
         /**TODO: redirect back to login if session is not there */
-        const readSessRes = await updateSession();
-        if (readSessRes) {
-            if (readSessRes.currUser) {
-                this.setState({
-                    currUser: readSessRes.currUser
-                }, this.fetchGachaInfo);
-            }
-        }
+        this._isMounted = true;
+        this._isMounted && await checkAndUpdateSession.bind(this)(this.fetchGachaInfo);
+    }
+
+    componentWillUnmount () {
+        this._isMounted = false;
     }
 
     fetchGachaInfo = async () => {
         const id = this.props.match.params.id;
 
         try {
-            /**TODO: handle when request fails */
             const getGacha = await getGachaById(id);
             if (!getGacha || !getGacha.gacha) {
-                console.log("Failed to get gacha " + id);
+                this._isMounted && processError.bind(this)(getGacha, true, false);
                 return;
             }
             const gacha = getGacha.gacha;
-            const getAllCharasRes = await getAllCharasInGacha(id);
-            if (!getAllCharasRes || !getAllCharasRes.charas) {
-                console.log("Failed to get charas of gacha " + id);
+            const getAllCharas = await getAllCharasInGacha(id);
+            if (!getAllCharas || !getAllCharas.charas) {
+                this._isMounted && processError.bind(this)(getAllCharas, true, false);
                 return;
             }
-            this.setState({
+            this._isMounted && this.setState({
                 gacha: gacha,
-                threeStars: getAllCharasRes.charas.filter(chara => chara.rarity === 3),
-                fourStars: getAllCharasRes.charas.filter(chara => chara.rarity === 4),
-                fiveStars: getAllCharasRes.charas.filter(chara => chara.rarity === 5),
+                threeStars: getAllCharas.charas.filter(chara => chara.rarity === 3),
+                fourStars: getAllCharas.charas.filter(chara => chara.rarity === 4),
+                fiveStars: getAllCharas.charas.filter(chara => chara.rarity === 5),
                 isGachaLoaded: true
             });
-            /**TODO: handle when request fails */
             const getCreator = await getUserById(gacha.creator);
             if (!getCreator || !getCreator.user) {
-                console.log("Failed to get creator " + gacha.creator);
-                return;
+                this._isMounted && this.setState({
+                    creator: { username: "Error" },
+                    isCreatorLoaded: true
+                });
+            } else {
+                const creator = getCreator.user;
+                this._isMounted && this.setState({
+                    creator: creator,
+                    isCreatorLoaded: true
+                });
             }
-            const creator = getCreator.user;
-            this.setState({
-                creator: creator,
-                isCreatorLoaded: true
-            });
-            if (this.state.currUser.favGachas.findIndex(favGacha => favGacha._id.toString() === gacha._id.toString()) !== -1) {
-                this.setState({
+            if (this.state.currUser.favGachas.findIndex(favGacha => 
+                favGacha._id.toString() === gacha._id.toString()) !== -1) {
+                this._isMounted && this.setState({
                     favourite: true
                 });
             }
         } catch (err) {
             /**TODO: handle when request fails */
             console.log("Error in fetchGachaInfo: " + err);
+            this._isMounted && this.setState({
+                error: { code: 500, msg: "Something went wrong loading the page.", toDashboard: true }
+            });
         }
     }
 
     /**TODO: CLEAN UP THIS FUNCTION TOO MANY NESTS */
-    summon = async () => {
-        const { threeStars, fourStars, fiveStars } = this.state;
+    trySummon = async () => {
+        const { gacha } = this.state;
         //remove the alert
-        this.setState({ 
-            alert: null 
+        this._isMounted && this.setState({
+            alert: null
         });
-
-        /**TODO: redirect back to login if session is not there */
-        /**TODO: handle when request fails */
-        const readSessRes = await updateSession();
-        if (readSessRes) {
-            if (readSessRes.currUser) {
-                this.setState({
-                    currUser: readSessRes.currUser
-                }, async function () {
-                    if (this.state.currUser.starFrags >= summonCost) {
-                        let { gacha } = this.state;
-                        //roll to see which tier character to get
-                        const roll = Math.random();
-                        let rolledCharacter = null;
-                        let retries = 5;
-
-                        let rarityToPickFrom;
-                        if (roll < threeStarChance) { //rolled a three star
-                            rarityToPickFrom = threeStars;
-                        } else if (roll >= threeStarChance && roll < threeStarChance + fourStarChance) { // rolled a four star
-                            rarityToPickFrom = fourStars;
-                        } else { //rolled a five star
-                            rarityToPickFrom = fiveStars;
-                        }
-                        
-                        //try multiple times in case the gacha is changed during the summon
-                        while (retries > 0) {
-                            try {
-                                //pick a random character from the rarity list
-                                const rolledCharacter = rarityToPickFrom[Math.floor(Math.random() * rarityToPickFrom.length)];
-                                //if it exists, stop and set the state
-                                if (rolledCharacter) {
-                                    this.setState({
-                                        rolledCharacter: rolledCharacter
-                                    });
-                                    retries = 0;
-                                } else { //if it doesn't exist, reload the gacha information
-                                    const getGacha = await getGachaById(this.state.gacha._id);
-                                    if (!getGacha || getGacha.gacha) {
-                                        console.log("Failed to get gacha " + this.state.gacha._id);
-                                        return;
-                                    }
-                                    const reloadGacha = getGacha.gacha;
-                                    //if the gacha no longer exists, redirect back to dashboard
-                                    if (!reloadGacha) {
-                                        this.setState({
-                                            alert: {
-                                                title: "Oh no!",
-                                                text: ["This gacha can't be found anymore..."],
-                                                okText: "Go Back to the Dashboard",
-                                                handleOk: this.redirectToDashboard
-                                            }
-                                        });
-                                        retries = 0;
-                                    } else {
-                                        //if the gacha is no longer active, stop and reload gacha information
-                                        if (!reloadGacha.active) {
-                                            this.setState({
-                                                alert: {
-                                                    title: "Oh no!",
-                                                    text: ["This gacha has been set to inactive..."],
-                                                    handleOk: this.refreshPage
-                                                }
-                                            });
-                                            retries = 0;
-                                        } else {
-                                            //if the gacha exists, reroll from the newly retrieved gacha
-                                            gacha = reloadGacha;
-                                        }
-                                    }
-                                }
-                                retries--;
-                            } catch (err) {
-                                console.log("Could not summon: " + err);
-                            }
-                        }
-                        //if all retries used up, reload gacha information
-                        if (retries == 0 && !rolledCharacter) {
-                            this.setState({
-                                alert: {
-                                    title: "Oh no!",
-                                    text: ["Something went wrong during the summon..."],
-                                    handleOk: this.refreshPage
-                                }
-                            });
-                        }
-
-                    } else {
-                        /**TODO: change this LOL */
-                        this.setState({
-                            alert: {
-                                text: [
-                                    "Your a poor bich"
-                                ],
-                                okText: ":("
-                            }
-                        });
-                    }
-                });
-            }
+    
+        try {
+            this._isMounted && (await checkAndUpdateSession.bind(this)(function () {
+                summon.bind(this)(gacha);
+            }));
+        } catch (err) {
+            this._isMounted && this.setState({
+                error: { code: 500, msg: "Something went wrong loading the page.", toDashboard: true }
+            });
         }
     }
 
     redirectToDashboard = () => {
-        this.setState({
+        this._isMounted && this.setState({
             alert: null,
-            redirectDashboard: true
+            toDashboard: true
         });
     }
 
     refreshPage = () => {
-        this.setState({
+        this._isMounted && this.setState({
             alert: null
         }, this.fetchGachaInfo);
     }
 
     handleSummonClick = async () => {
-        /**TODO: redirect back to login if session is not there */
-        /**TODO: handle when request fails */
-        const readSessRes = await updateSession();
-        if (readSessRes) {
-            if (readSessRes.currUser) {
-                this.setState({
-                    currUser: readSessRes.currUser
-                }, function () {
-                    if (this.state.currUser.starFrags >= summonCost) {
-                        this.setState({
-                            alert: {
-                                title: "Summon?",
-                                text: [
-                                    "Summoning costs ", <strong>{summonCost}</strong>, " star fragments.", <br/>,
-                                    "You have ",  <strong>{this.state.currUser.starFrags}</strong>, " star fragments."],
-                                yesNo: true,
-                                yesText: "Summon",
-                                noText: "Cancel",
-                                handleYes: this.summon
-                            }
-                        });
-                    } else {
-                        /**TODO: change this LOL */
-                        this.setState({
-                            alert: {
-                                text: [
-                                    "Your a poor bich"
-                                ],
-                                okText: ":("
-                            }
-                        });
+        this._isMounted && (await checkAndUpdateSession.bind(this)(function () {
+            if (this.state.currUser.starFrags >= summonCost) {
+                this._isMounted && this.setState({
+                    alert: {
+                        title: "Summon?",
+                        text: [
+                            "Summoning costs ", <strong>{summonCost}</strong>, " star fragments.", 
+                            <br/>,"You have ",  <strong>{this.state.currUser.starFrags}</strong>, 
+                            " star fragments."],
+                        yesNo: true,
+                        yesText: "Summon",
+                        noText: "Cancel",
+                        handleYes: this.trySummon
+                    }
+                });
+            } else {
+                /**TODO: change this LOL */
+                this._isMounted && this.setState({
+                    alert: {
+                        text: [
+                            "Your a poor bich"
+                        ],
+                        okText: ":("
                     }
                 });
             }
+        }));
+    }
+
+    handleCreatorClick = () => {
+        const { creator } = this.state;
+        if (creator) {
+            this._isMounted && this.setState({
+                toCreator: true
+            });
+        } else {
+            this._isMounted && this.setState({
+                alert: {
+                    text: ["There was an error loading the creator. Please reload the page."]
+                }
+            });
         }
     }
 
     handleInactiveClick = () => {
-        this.setState({
+        this._isMounted && this.setState({
             alert: {
                 text: [
-                    "This gacha has been set to ", <strong>inactive</strong>, ", so summons are currently unavailable.",
-                    <br/>, "Please check back later!" ]
+                    "This gacha has been set to ", <strong>inactive</strong>, 
+                    ", so summons are currently unavailable.", <br/>, "Please check back later!" ]
             }
         });
     }
@@ -293,7 +218,7 @@ class GachaSummon extends BaseReactComponent {
             /**TODO: redirect back to login if session is not there */
             return;
         }
-        this.setState({
+        this._isMounted && this.setState({
             currUser: readSessRes.currUser
         });  
         const currUser = readSessRes.currUser
@@ -319,7 +244,7 @@ class GachaSummon extends BaseReactComponent {
                 favourite = true;
             }
         }
-        this.setState({
+        this._isMounted && this.setState({
             alert: {
                 text: [ alertText ]
             },
@@ -350,13 +275,30 @@ class GachaSummon extends BaseReactComponent {
     }
 
     render() {
-        const { isGachaLoaded, isCreatorLoaded, gacha, creator, currUser, alert, 
-            redirectDashboard, rolledCharacter, favourite, threeStars, fourStars, fiveStars } = this.state;
+        const { isGachaLoaded, isCreatorLoaded, gacha, creator, currUser, rolledCharacter, 
+            favourite, threeStars, fourStars, fiveStars, toDashboard, toCreator, alert, error  } = this.state;
 
-        if (redirectDashboard) {
+        if (error) {
             return (
                 <Redirect push to={{
-                    pathname: "/dashboard"
+                    pathname: errorURL,
+                    state: { error: error }
+                }} />
+            );
+        }
+
+        if (toDashboard) {
+            return (
+                <Redirect push to={{
+                    pathname: dashboardURL
+                }} />
+            );
+        }
+
+        if (toCreator) {
+            return (
+                <Redirect push to={{
+                    pathname: profileURL + creator._id
                 }} />
             );
         }
@@ -364,7 +306,7 @@ class GachaSummon extends BaseReactComponent {
         if (rolledCharacter) {
             return (
                 <Redirect push to={{
-                    pathname: "/summon/result/" + gacha._id,
+                    pathname: smnResultURL + gacha._id,
                     state: { rolledCharacter: rolledCharacter }
                 }} />
             );
@@ -373,9 +315,7 @@ class GachaSummon extends BaseReactComponent {
         /**TODO: handle when gacha empty */
         return (
             <div className="App">
-                <Header username={currUser ? currUser.username : ""}
-                    starFrags={currUser ? currUser.starFrags : 0}
-                    silvers={currUser ? currUser.silvers : 0} />
+                <Header currUser={currUser} />
 
                 <div className="mainBodyContainer">
                     {alert ?
@@ -401,7 +341,9 @@ class GachaSummon extends BaseReactComponent {
                             }
                         </div>
                         <div className="pageTitle">{ isGachaLoaded ? gacha.name : "" }</div>
-                        <div className="pageSubtitle">{ isCreatorLoaded ? creator.username : "" }</div>
+                        <div className="pageSubtitle" onClick={this.handleCreatorClick}>
+                            { isCreatorLoaded ? creator.username : "" }
+                        </div>
                         {isGachaLoaded ? 
                             <img className="gachaSmnCoverPic" src={gacha.coverPic} alt={gacha.name + " Cover Pic"}/> :
                             <img className="gachaSmnCoverPic" src={skeleton_placeholder} alt="Skeleton Cover Pic"/> 

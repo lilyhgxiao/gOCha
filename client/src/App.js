@@ -23,7 +23,8 @@ import { readSession } from "./actions/loginHelpers";
 
 import "./App.css";
 
-import { loginURL, signupURL, errorURL, dashboardURL, collectionURL, gachasURL } from "./constants";
+import { loginURL, signupURL, errorURL, dashboardURL, collectionURL, 
+    gachasURL, favouritesURL, smnInfoURL, smnResultURL } from "./constants";
 
 class App extends BaseReactComponent {
     // Access the global state paths required by your component
@@ -50,9 +51,9 @@ class App extends BaseReactComponent {
                     <Route path={dashboardURL} exact component={Dashboard} />
                     <Route path={collectionURL} exact component={Collection} />
                     <Route path={gachasURL} exact component={YourGachas} />
-                    <Route path="/favourites" exact component={FavGachas} />
-                    <Route path="/summon/info/:id" render={(props => <GachaSummon key={props.match.params.id} {...props}/>)} />
-                    <Route path="/summon/result/:id" render={(props => <GachaSmnResult key={props.match.params.id} {...props}/>)} />
+                    <Route path={favouritesURL} exact component={FavGachas} />
+                    <Route path={smnInfoURL + ":id"} render={(props => <GachaSummon key={props.match.params.id} {...props}/>)} />
+                    <Route path={smnResultURL + ":id"} render={(props => <GachaSmnResult key={props.match.params.id} {...props}/>)} />
                     <Route path="/create/gacha" exact component={CreateGacha} />
                     <Route path="/edit/gacha/:id" render={(props => <EditGacha key={props.match.params.id} {...props}/>)} />
                     <Route path="/create/chara/:id" render={(props => <CreateChara key={props.match.params.id} {...props}/>)} />

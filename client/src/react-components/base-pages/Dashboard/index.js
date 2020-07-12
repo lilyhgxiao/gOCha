@@ -62,13 +62,11 @@ class Dashboard extends BaseReactComponent {
             const randChara = currUser.inventory[index];
             const getChara = await getCharaById(randChara._id);
             if (!getChara || !getChara.chara || !getChara.chara.coverPic || !getChara.chara.coverPic === ""){
-                if (this._isMounted) {
-                    this.setState({
-                        mainPic: dashboard_placeholder
-                    });
-                }
+                this._isMounted && this.setState({
+                    mainPic: dashboard_placeholder
+                });
             } else {
-                this.setState({
+                this._isMounted && this.setState({
                     mainPic: getChara.chara.coverPic,
                     welcomePhrase: getChara.chara.welcomePhrase,
                     chara: getChara.chara

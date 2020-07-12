@@ -1,6 +1,10 @@
 import set from "lodash-es/set";
 import { action } from "statezero";
 import { updateSession } from "./loginHelpers";
+import { getAllCharasInGacha } from "./charaHelpers";
+import { getGachaById } from "./gachaHelpers";
+
+import { summonCost, threeStarChance, fourStarChance } from "../constants";
 
 // Initialize all state paths used by your app as empty.
 // These are the states that you can filter using filterState()
@@ -72,4 +76,149 @@ export const checkAndUpdateSession = async function (callback) {
         currUser: readSessRes.currUser
     }, callback);
     return true;
+}
+
+export const processError = function (res, toDashboard, toLogin) {
+    this._isMounted && this.setState({
+        error: {
+            code: res ? res.status : 500,
+            msg: res ? res.msg : "Something went wrong.",
+            toDashboard: toDashboard,
+            toLogin: toLogin
+        }
+    });
+}
+
+export const summon = async function (gacha) {
+    if (this.state.currUser.starFrags < summonCost) {
+        this._isMounted && this.setState({
+            alert: {
+                text: ["Your a poor bich"],
+                okText: ":("
+            }
+        });
+        return;
+    }
+    //roll to see which tier character to get
+    const rarityRoll = Math.random();
+
+    //try multiple times in case the gacha is changed during the summon
+    let retries = 5;
+    let rarityList;
+    let randCharaCheck;
+    let rolledCharacter;
+    while (retries > 0) {
+        try {
+            rarityList = await rollRarity(rarityRoll, gacha._id);
+            if (!rarityList.rarityToPickFrom) {
+                retries--;
+                continue;
+            }
+            randCharaCheck = await selectRandomChara.bind(this)(rarityList.rarityToPickFrom, gacha._id);
+            if (!randCharaCheck.retry && !randCharaCheck.rolledCharacter) {
+                this._isMounted && this.setState({
+                    alert: randCharaCheck.alert
+                });
+                return { rolledCharacter: null };
+            }
+            if (randCharaCheck.rolledCharacter) {
+                this._isMounted && this.setState({
+                    rolledCharacter: randCharaCheck.rolledCharacter
+                });
+                return { rolledCharacter: randCharaCheck.rolledCharacter };
+            }
+            if (randCharaCheck.gacha) {
+                this._isMounted && this.setState({
+                    gacha: randCharaCheck.gacha
+                });
+            }
+            retries--;
+        } catch (err) {
+            console.log("Could not summon: " + err);
+            retries--;
+        }
+    }
+    //if all retries used up, reload gacha information
+    if (retries == 0 && !rolledCharacter) {
+        this._isMounted && this.setState({
+            alert: {
+                title: "Oh no!",
+                text: ["Something went wrong during the summon..."],
+                handleOk: this.refreshPage
+            }
+        });
+        return { rolledCharacter: null };
+    }
+    return { rolledCharacter: null };
+}
+
+async function rollRarity (roll, gachaId) {
+    try {
+        const getCharas = await getAllCharasInGacha(gachaId);
+        if (!getCharas || !getCharas.charas) {
+            return { getCharas: getCharas, rarityToPickFrom: null };
+        }
+        let rarityToPickFrom;
+        if (roll < threeStarChance) { //rolled a three star
+            rarityToPickFrom = getCharas.charas.filter(chara => chara.rarity === 3);
+        } else if (roll >= threeStarChance && roll < threeStarChance + fourStarChance) { // rolled a four star
+            rarityToPickFrom = getCharas.charas.filter(chara => chara.rarity === 4);
+        } else { //rolled a five star
+            rarityToPickFrom = getCharas.charas.filter(chara => chara.rarity === 5);
+        }
+        return { getCharas: getCharas, rarityToPickFrom: rarityToPickFrom };
+    } catch (err) {
+        return { getCharas: null, rarityToPickFrom: null };
+    }
+}
+
+async function selectRandomChara (rarityToPickFrom, gachaId) {
+    try {
+        //pick a random character from the rarity list
+        const rolledCharacter = rarityToPickFrom[Math.floor(Math.random() * rarityToPickFrom.length)];
+        //if it exists, stop and set the state
+        if (rolledCharacter) {
+            return { retry: false, rolledCharacter: rolledCharacter, gacha: null, alert: null };
+        } else { //if it doesn't exist, reload the gacha information
+            const getGacha = await getGachaById(gachaId);
+            if (!getGacha || !getGacha.gacha) {
+                return { retry: false, rolledCharacter: null, gacha: null, 
+                    alert: {
+                        title: "Oh no!",
+                        text: ["This gacha can't be found anymore..."],
+                        okText: "Go Back to the Dashboard",
+                        handleOk: this.redirectToDashboard
+                    } 
+                };
+            }
+            const reloadGacha = getGacha.gacha;
+            if (!reloadGacha.active) {
+                return { retry: false, rolledCharacter: null,  gacha: null,
+                    alert: {
+                        title: "Oh no!",
+                        text: ["This gacha has been set to inactive..."],
+                        handleOk: this.refreshPage
+                    } 
+                };
+            } else {
+                //if the gacha exists, reroll from the newly retrieved gacha
+                return { retry: true, rolledCharacter: null,  gacha: reloadGacha,
+                    alert: {
+                        title: "Oh no!",
+                        text: ["This gacha has been set to inactive..."],
+                        handleOk: this.refreshPage
+                    } 
+                };
+            }
+        }
+    } catch (err) {
+        console.log("Could not summon: " + err);
+        return { retry: true, rolledCharacter: null,  gacha: null,
+            alert: {
+                title: "Oh no!",
+                text: ["Something went wrong during the summon..."],
+                handleOk: this.refreshPage
+            }
+        };
+    }
 }
