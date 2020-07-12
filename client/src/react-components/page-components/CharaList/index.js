@@ -21,7 +21,6 @@ class CharaList extends React.Component {
     }
 
     render() {
-        // the filtered states are now on this.state
         const { charaList, handleCharaLinkClick } = this.props;
 
         return (
@@ -29,7 +28,7 @@ class CharaList extends React.Component {
                 <ul className="charaListUL">
                     { charaList.map((chara) => {
                         return ( chara === null ?
-                            <div className="errorRetrvChara" onClick={this}>
+                            <div className="errorRetrvChara" onClick={this.showErrorDialogue}>
                                 <img className="charaLinkIcon" src={icon_placeholder} alt={"Error"} />
                                 <div className="charaLinkName">Error</div>
                             </div> :

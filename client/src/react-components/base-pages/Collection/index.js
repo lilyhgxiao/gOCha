@@ -85,7 +85,6 @@ class Collection extends BaseReactComponent {
             });
             this._isMounted && this.setState({
                 allCharaList: allCharaList,
-                currCharaList: allCharaList.slice(0, Math.min(charasPerPage, allCharaList.length)),
                 isLoaded: true
             });
         }).catch((err) => {

@@ -2,7 +2,7 @@
     max-height: 167px;
 }
 
-.newGachaLink {
+.newGachaLink, .errorRetrvGacha {
     vertical-align: top;
     display: inline-block;
     border: 2px dashed;

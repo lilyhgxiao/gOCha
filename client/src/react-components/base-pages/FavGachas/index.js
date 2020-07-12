@@ -1,5 +1,6 @@
 /*  Inventory component */
 import React from "react";
+import { Redirect } from 'react-router-dom';
 
 import "./styles.css";
 import "./../../../App.css"
@@ -8,22 +9,32 @@ import "./../../../App.css"
 import Header from "./../../page-components/Header";
 import BaseReactComponent from "../../other/BaseReactComponent";
 import GachaList from "./../../page-components/GachaList";
+import AlertDialogue from "./../../page-components/AlertDialogue";
+import PageNumNav from "./../../page-components/PageNumNav";
 
 // Importing actions/required methods
+import { checkAndUpdateSession } from "../../../actions/helpers";
 import { getGachaById } from "../../../actions/gachaHelpers";
-import { updateSession } from "../../../actions/loginHelpers";
+
+//Importing constants
+import { favouritesURL, errorURL, favGachasPerPage } from "../../../constants";
 
 class FavGachas extends BaseReactComponent {
 
-    state = {
-        isLoaded: false,
-        currUser: null,
-        gachaList: null
-    };
+    _isMounted = false;
 
     constructor(props) {
         super(props);
-        this.props.history.push("/favourites");
+        this.props.history.push(favouritesURL);
+
+        this.state = {
+            isLoaded: false,
+            currUser: null,
+            gachaList: [],
+            currPageNum: 0,
+            alert: null,
+            error: null
+        };
     }
 
     filterState({ currUser }) {
@@ -31,65 +42,86 @@ class FavGachas extends BaseReactComponent {
     }
 
     async componentDidMount() {
-        /**TODO: redirect back to login if session is not there */
-        const readSessRes = await updateSession();
-        if (readSessRes) {
-            if (readSessRes.currUser) {
-                this.setState({
-                    currUser: readSessRes.currUser
-                }, this.fetchFavGachas);
-            }
-        }
+        this._isMounted = true;
+        this._isMounted && await checkAndUpdateSession.bind(this)(this.fetchFavGachas);
+    }
+
+    componentWillUnmount () {
+        this._isMounted = false;
     }
 
     fetchFavGachas = async () => {
         const gachaReqs = [];
         const currUser = this.state.currUser;
-        console.log(this.state);
         let i;
         for (i = 0; i < currUser.favGachas.length; i++) {
             gachaReqs.push(getGachaById(currUser.favGachas[i]._id));
         }
 
-        /**TODO: Handle failed reqs...? */
         Promise.all(gachaReqs).then(res => {
             const gachaList = [];
             res.forEach(getGacha => {
                 if (!getGacha || !getGacha.gacha) {
-                    console.log("Failed to get gacha");
-                    return;
+                    gachaList.push(null);
+                } else {
+                    gachaList.push(getGacha.gacha)
                 }
-                gachaList.push(getGacha.gacha)
-            })
-            this.setState({
+            });
+            this._isMounted && this.setState({
                 gachaList: gachaList,
                 isLoaded: true
             });
         }).catch((err) => {
             console.log("Error with Promise.all in fetchFavGachas: " + err);
+            this._isMounted && this.setState({
+                error: { code: 500, msg: "Something went wrong loading the page.", toDashboard: true }
+            });
         })
     }
 
+    switchGachaPages = (index) => {
+        this._isMounted && this.setState({
+            currPageNum: index
+        });
+    }
+
+
     render() {
 
-        const { isLoaded, gachaList, currUser } = this.state;
+        const { isLoaded, gachaList, currUser, currPageNum, alert, error } = this.state;
+
+        if (error) {
+            return (
+                <Redirect push to={{
+                    pathname: errorURL,
+                    state: { error: error }
+                }} />
+            );
+        }
 
         return (
             <div className="App">
-                <Header username={currUser ? currUser.username : ""}
-                    starFrags={currUser ? currUser.starFrags : 0}
-                    silvers={currUser ? currUser.silvers : 0} />
+                <Header currUser={currUser} />
 
                 <div className="mainBodyContainer">
+                    {alert ?
+                        <AlertDialogue parent={this} alert={alert} /> :
+                        null
+                    }
                     <div className="mainBody">
                         <div className="pageTitle">Favourites</div>
-                        <div>
-                            {   isLoaded ?
-                                <GachaList 
-                                gachaList={gachaList}/> : 
-                                null
-                            }
-                        </div>
+                        {isLoaded ?
+                            <GachaList
+                                gachaList={gachaList.slice(currPageNum * favGachasPerPage, 
+                                    Math.min(currPageNum * favGachasPerPage + favGachasPerPage, gachaList.length))}
+                                    currUser={currUser} /> :
+                            null
+                        }
+                        { isLoaded ?
+                            <PageNumNav num={Math.ceil(gachaList.length / favGachasPerPage)}
+                                currPageNum={currPageNum}
+                                handleClick={this.switchGachaPages} /> : null
+                        }
                     </div>
                 </div>
             </div>

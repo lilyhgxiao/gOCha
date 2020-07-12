@@ -11,15 +11,14 @@ import BaseReactComponent from "../../other/BaseReactComponent";
 import icon_placeholder from './../../../images/dashboard_placeholder.jpg';
 import edit_icon from './../../../images/edit.png';
 
-class GachaLink extends BaseReactComponent {
+//Importing constants
+import { editGachaURL, smnInfoURL } from "../../../constants";
+
+class GachaLink extends React.Component {
 
     state = {
         isHovering: false
     };
-
-    filterState({ currUser }) {
-        return { currUser };
-    }
 
     handleMouseHover = () => {
         this.setState(this.toggleHoverState);
@@ -32,15 +31,13 @@ class GachaLink extends BaseReactComponent {
     }
 
     render() {
-        const { gacha } = this.props;
-        const { isHovering, currUser } = this.state;
+        const { gacha, currUser } = this.props;
+        const { isHovering } = this.state;
 
-        /**TODO: turn currUser into prop instead of state */
-        /**TODO: handle if gacha or gacha properties are empty */
         return (
             <div className="gachaLinkContainer" onMouseEnter={this.handleMouseHover} onMouseLeave={this.handleMouseHover}>
                 { isHovering && currUser._id == gacha.creator ?
-                    <Link to={'/edit/gacha/' + gacha._id}>
+                    <Link to={editGachaURL + gacha._id}>
                         <input
                             className="gachaLinkEditButton"
                             type='image'
@@ -50,7 +47,7 @@ class GachaLink extends BaseReactComponent {
                     </Link> :
                     null
                 }
-                <Link to={'/summon/info/' + gacha._id}>
+                <Link to={smnInfoURL + gacha._id}>
                     <img className="gachaLinkIcon" src={gacha.iconPic} alt={gacha.name + " Icon"}/>
                     <div className="gachaLinkName">{gacha.name}</div>
                 </Link>

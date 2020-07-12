@@ -20,7 +20,7 @@ import { getCharaById } from "../../../actions/charaHelpers";
 import dashboard_placeholder from './../../../images/dashboard_placeholder.jpg';
 
 //Importing constants
-import { dashboardURL, errorURL, collectionURL } from "../../../constants";
+import { dashboardURL, errorURL, collectionURL, gachasURL, favouritesURL } from "../../../constants";
 
 /**TODO: implement random character selection for cover pic */
 
@@ -134,7 +134,7 @@ class Dashboard extends BaseReactComponent {
                         <div className="dashboardBottomMenu">
                             <Link className="dashboardInventory" to={collectionURL}>Collection</Link>
                             <Link className="dashboardOwnGachas" to={gachasURL}>Your Gachas</Link>
-                            <Link className="dashboardFavGachas" to={'./favourites'}>Favourites</Link>
+                            <Link className="dashboardFavGachas" to={favouritesURL}>Favourites</Link>
                         </div>
                         <div className="newsBanner">
                         <Link className="dashboardNews" to={'./news'}>News</Link>

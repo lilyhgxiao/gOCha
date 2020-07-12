@@ -58,8 +58,8 @@ exports.editCharaURL = "/edit/chara/";
 exports.profileURL = "/profile/";
 exports.editAccURL = "/edit/acc/";
 
-//collection page constants
-exports.charasPerPage = 20;
-
 //page num nav constants
 exports.pageRange = 5;
+exports.charasPerPage = 20;
+exports.gachasPerPage = 19;
+exports.favGachasPerPage = 20;

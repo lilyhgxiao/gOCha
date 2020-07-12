@@ -1,5 +1,6 @@
 /*  Inventory component */
 import React from "react";
+import { Redirect } from 'react-router-dom';
 
 import "./styles.css";
 import "./../../../App.css"
@@ -8,10 +9,15 @@ import "./../../../App.css"
 import Header from "./../../page-components/Header";
 import BaseReactComponent from "../../other/BaseReactComponent";
 import GachaList from "./../../page-components/GachaList";
+import AlertDialogue from "./../../page-components/AlertDialogue";
+import PageNumNav from "./../../page-components/PageNumNav";
 
 // Importing actions/required methods
+import { checkAndUpdateSession } from "../../../actions/helpers";
 import { getGachasByCreator } from "../../../actions/gachaHelpers";
-import { updateSession } from "../../../actions/loginHelpers";
+
+//Importing constants
+import { errorURL, gachasURL, gachasPerPage } from "../../../constants";
 
 class YourGachas extends BaseReactComponent {
 
@@ -24,7 +30,10 @@ class YourGachas extends BaseReactComponent {
         this.state = {
             isLoaded: false,
             currUser: null,
-            gachaList: []
+            gachaList: [],
+            currPageNum: 0,
+            alert: null,
+            error: null
         };
     }
 
@@ -58,7 +67,8 @@ class YourGachas extends BaseReactComponent {
                 return;
             }
             this._isMounted && this.setState({
-                gachaList: getGachasReq.gachas,
+                gachaList: getGachas.gachas,
+                currPageNum: 0,
                 isLoaded: true
             });
         } catch (err) {
@@ -69,24 +79,48 @@ class YourGachas extends BaseReactComponent {
         }
     }
 
+    switchGachaPages = (index) => {
+        this._isMounted && this.setState({
+            currPageNum: index
+        });
+    }
+
     render() {
-        const { isLoaded, gachaList, currUser } = this.state;
+        const { isLoaded, gachaList, currUser, currPageNum, alert, error } = this.state;
+
+        if (error) {
+            return (
+                <Redirect push to={{
+                    pathname: errorURL,
+                    state: { error: error }
+                }} />
+            );
+        }
 
         return (
             <div className="App">
                 <Header currUser={currUser} />
 
                 <div className="mainBodyContainer">
+                    {alert ?
+                        <AlertDialogue parent={this} alert={alert} /> :
+                        null
+                    }
                     <div className="mainBody">
                         <div className="pageTitle">Gachas</div>
-                        <div>
-                            {   isLoaded ?
-                                <GachaList 
-                                gachaList={gachaList}
-                                newLink={true}/> : 
-                                null
-                            }
-                        </div>
+                        {isLoaded ?
+                            <GachaList
+                                gachaList={gachaList.slice(currPageNum * gachasPerPage, 
+                                    Math.min(currPageNum * gachasPerPage + gachasPerPage, gachaList.length))}
+                                newLink={true}
+                                currUser={currUser} /> :
+                            null
+                        }
+                        {isLoaded ?
+                            <PageNumNav num={Math.ceil(gachaList.length / gachasPerPage)}
+                                currPageNum={currPageNum}
+                                handleClick={this.switchGachaPages} /> : null
+                        }
                     </div>
                 </div>
             </div>

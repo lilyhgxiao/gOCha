@@ -10,35 +10,50 @@ import GachaLink from "./../GachaLink";
 //images
 /**TODO: get new image */
 import new_gacha_placeholder from './../../../images/new_gacha_placeholder.png';
+import icon_placeholder from './../../../images/dashboard_placeholder.jpg';
 
-/* Component for the List of Students */
+//Importing constants
+import { createGachaURL } from "../../../constants";
+
 class GachaList extends React.Component {
-    // Access the global state paths required by your component
-    // using filterState. filterState puts these state paths on
-    // this.state
+
+    showErrorDialogue = () => {
+        const { page } = this.props;
+
+        page.setState({
+            alert: {
+                text: ["There was an error loading this gacha. Please try reloading the page."]
+            }
+        });
+    }
 
     render() {
         // the filtered states are now on this.state
-        const { gachaList, newLink } = this.props;
+        const { currUser, gachaList, newLink } = this.props;
 
         return (
             <div className="gachaListContainer">
                 <ul className="gachaListUL">
-                    { newLink ?
+                    {newLink ?
                         <div className="newGachaLink">
-                            <Link  to={'/create/gacha'}>
-                                <img className="newGachaLinkIcon" src={new_gacha_placeholder} alt={"New Gacha Placeholder"}/>
+                            <Link to={createGachaURL}>
+                                <img className="newGachaLinkIcon" src={new_gacha_placeholder} alt={"New Gacha Placeholder"} />
                                 <div className="newGachaLinkName">Create New</div>
                             </Link>
                         </div> :
                         null
                     }
-                    { gachaList.map((gacha) => {
-                        return (
-                            <GachaLink className="yrGachaLink" key = { uid(gacha) }
-                            gacha={gacha}/>
+                    {gachaList.map((gacha) => {
+                        return (gacha === null ?
+                            <div className="errorRetrvGacha" onClick={this.showErrorDialogue}>
+                                <img className="gachaLinkIcon" src={icon_placeholder} alt={"Error"} />
+                                <div className="gachaLinkName">Error</div>
+                            </div> :
+                            <GachaLink key={uid(gacha)}
+                                gacha={gacha}
+                                currUser={currUser} />
                         )
-                    }) }
+                    })}
                 </ul>
             </div>
         );
