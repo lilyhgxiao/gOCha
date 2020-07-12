@@ -42,12 +42,22 @@ class FavGachas extends BaseReactComponent {
     }
 
     async componentDidMount() {
-        this._isMounted = true;
-        this._isMounted && await checkAndUpdateSession.bind(this)(this.fetchFavGachas);
+        try {
+            this._isMounted = true;
+            this._isMounted && await checkAndUpdateSession.bind(this)(this.fetchFavGachas);
+        } catch (err) {
+            this._isMounted && this.setState({
+                error: { code: 500, msg: "Something went wrong and your session has expired." +
+                    "Please log in again.", toLogin: true }
+            });
+        }
     }
 
     componentWillUnmount () {
         this._isMounted = false;
+        this.setState = (state,callback)=>{
+            return;
+        };
     }
 
     fetchFavGachas = async () => {

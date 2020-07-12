@@ -46,12 +46,22 @@ class Dashboard extends BaseReactComponent {
     }
 
     async componentDidMount () {
-        this._isMounted = true;
-        this._isMounted && await checkAndUpdateSession.bind(this)(this.fetchRandChara);
+        try {
+            this._isMounted = true;
+            this._isMounted && await checkAndUpdateSession.bind(this)(this.fetchRandChara);
+        } catch (err) {
+            this._isMounted && this.setState({
+                error: { code: 500, msg: "Something went wrong and your session has expired." +
+                    "Please log in again.", toLogin: true }
+            });
+        }
     }
 
     componentWillUnmount () {
         this._isMounted = false;
+        this.setState = (state,callback)=>{
+            return;
+        };
     }
 
     fetchRandChara = async () => {

@@ -39,21 +39,31 @@ class ErrorPage extends BaseReactComponent {
     }
 
     async componentDidMount() {
-        const locationState = this.props.location.state;
-        let success = false;
+        try {
+            const locationState = this.props.location.state;
+            let success = false;
 
-        this._isMounted = true;
-        this._isMounted && (success = await checkAndUpdateSession.bind(this)(this.fetchInv));
+            this._isMounted = true;
+            this._isMounted && (success = await checkAndUpdateSession.bind(this)(this.fetchInv));
 
-        if (locationState && locationState.error) {
+            if (locationState && locationState.error) {
+                this._isMounted && this.setState({
+                    error: locationState.error
+                });
+            }
+        } catch (err) {
             this._isMounted && this.setState({
-                error: locationState.error
+                error: { code: 500, msg: "Something went wrong and your session has expired." +
+                    "Please log in again.", toLogin: true }
             });
         }
     }
 
     componentWillUnmount () {
         this._isMounted = false;
+        this.setState = (state,callback)=>{
+            return;
+        };
     }
 
     render() {

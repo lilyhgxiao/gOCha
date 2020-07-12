@@ -54,28 +54,40 @@ class GachaSmnResult extends BaseReactComponent {
     }
 
     async componentDidMount() {
-        this._isMounted = true;
-        const locationState = this.props.location.state;
-        let success = false;
-        this._isMounted && (success = await checkAndUpdateSession.bind(this)(this.fetchGachaInfo));
+        try {
+            this._isMounted = true;
+            const locationState = this.props.location.state;
+            let success = false;
+            this._isMounted && (success = await checkAndUpdateSession.bind(this)(this.fetchGachaInfo));
 
-        if (success && locationState) {
-            this.addCharaToInv(locationState);
-        }
-        if (!locationState || !locationState.rolledCharacter) {
+            if (success && locationState) {
+                this.addCharaToInv(locationState);
+            }
+            if (!locationState || !locationState.rolledCharacter) {
+                this._isMounted && this.setState({
+                    error: {
+                        code: 400,
+                        msg: "This page cannot be accessed without going through the Summon button.",
+                        toDashboard: true
+                    }
+                });
+                return;
+            }
+        } catch (err) {
             this._isMounted && this.setState({
                 error: {
-                    code: 400,
-                    msg: "This page cannot be accessed without going through the Summon button.",
-                    toDashboard: true
+                    code: 500, msg: "Something went wrong and your session has expired." +
+                        "Please log in again.", toLogin: true
                 }
             });
-            return;
         }
     }
 
     componentWillUnmount () {
         this._isMounted = false;
+        this.setState = (state,callback)=>{
+            return;
+        };
     }
 
     fetchGachaInfo = async () => {
@@ -102,38 +114,44 @@ class GachaSmnResult extends BaseReactComponent {
     }
 
     addCharaToInv = async (locationState) => {
-        const { currUser } = this.state;
-        const charaToAdd = locationState ? locationState.rolledCharacter : this.state.rolledCharacter;
-        const charaToCompare = { _id: charaToAdd._id, gacha: charaToAdd.gacha, creator: charaToAdd.creator };
-        const compareResult = currUser.inventory.findIndex(charaInInv => {
-            const charaInInvTemp = { _id: charaInInv._id, gacha: charaInInv.gacha, creator: charaInInv.creator };
-            return (JSON.stringify(charaInInvTemp) === JSON.stringify(charaToCompare));
-        });
-        if (compareResult === -1) {
-            const summonCharaRes = await summonChara(currUser._id, charaToAdd, summonCost);
-            if (summonCharaRes && summonCharaRes.user) {
-                this._isMounted && this.setState({
-                    chara: locationState ? locationState.rolledCharacter : this.state.rolledCharacter,
-                    isLoaded: true
-                });
-            } else {
-                this._isMounted && processError.bind(this)(summonCharaRes, true, false);
-            }
-        } else {
-            let silversToAdd = this.determineSilvers(charaToAdd.rarity);
-            if (silversToAdd > 0) {
-                const addSilversRes = await incCurrency(currUser._id, summonCost * (-1), silversToAdd);
-                if (!addSilversRes || !addSilversRes.user) {
-                    this._isMounted && processError.bind(this)(addSilversRes, true, false);
-                } else {
+        try {
+            const { currUser } = this.state;
+            const charaToAdd = locationState ? locationState.rolledCharacter : this.state.rolledCharacter;
+            const charaToCompare = { _id: charaToAdd._id, gacha: charaToAdd.gacha, creator: charaToAdd.creator };
+            const compareResult = currUser.inventory.findIndex(charaInInv => {
+                const charaInInvTemp = { _id: charaInInv._id, gacha: charaInInv.gacha, creator: charaInInv.creator };
+                return (JSON.stringify(charaInInvTemp) === JSON.stringify(charaToCompare));
+            });
+            if (compareResult === -1) {
+                const summonCharaRes = await summonChara(currUser._id, charaToAdd, summonCost);
+                if (summonCharaRes && summonCharaRes.user) {
                     this._isMounted && this.setState({
                         chara: locationState ? locationState.rolledCharacter : this.state.rolledCharacter,
-                        isLoaded: true,
-                        alreadyHave: true,
-                        silversReceived: silversToAdd
+                        isLoaded: true
                     });
+                } else {
+                    this._isMounted && processError.bind(this)(summonCharaRes, true, false);
+                }
+            } else {
+                let silversToAdd = this.determineSilvers(charaToAdd.rarity);
+                if (silversToAdd > 0) {
+                    const addSilversRes = await incCurrency(currUser._id, summonCost * (-1), silversToAdd);
+                    if (!addSilversRes || !addSilversRes.user) {
+                        this._isMounted && processError.bind(this)(addSilversRes, true, false);
+                    } else {
+                        this._isMounted && this.setState({
+                            chara: locationState ? locationState.rolledCharacter : this.state.rolledCharacter,
+                            isLoaded: true,
+                            alreadyHave: true,
+                            silversReceived: silversToAdd
+                        });
+                    }
                 }
             }
+        } catch (err) {
+            this._isMounted && this.setState({
+                error: { code: 500, msg: "Something went wrong loading the page.", toDashboard: true }
+            });
         }
     }
 

@@ -12,7 +12,7 @@ import AlertDialogue from "./../../page-components/AlertDialogue";
 import GachaList from "./../../page-components/GachaList";
 
 // Importing actions/required methods
-import { updateSession } from "../../../actions/loginHelpers";
+import { checkAndUpdateSession } from "../../../actions/helpers";
 import { getUserByUsername } from "../../../actions/userhelpers";
 import { getGachasByCreator } from "../../../actions/gachaHelpers";
 
@@ -44,13 +44,13 @@ class Profile extends BaseReactComponent {
 
     async componentDidMount() {
         /**TODO: redirect back to login if session is not there */
-        const readSessRes = await updateSession();
-        if (readSessRes) {
-            if (readSessRes.currUser) {
-                this.setState({
-                    currUser: readSessRes.currUser
-                }, this.fetchUser);
-            }
+        try {
+            this._isMounted = true;
+            this._isMounted && await checkAndUpdateSession.bind(this)(this.fetchUser);
+        } catch (err) {
+            this._isMounted && this.setState({
+                error: { code: 500, msg: "Something went wrong.", toLogin: true }
+            });
         }
     }
 

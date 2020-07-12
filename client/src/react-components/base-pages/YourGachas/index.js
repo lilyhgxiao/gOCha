@@ -42,12 +42,21 @@ class YourGachas extends BaseReactComponent {
     }
 
     async componentDidMount() {
-        this._isMounted = true;
-        this._isMounted && await checkAndUpdateSession.bind(this)(this.fetchYrGachas);
+        try {
+            this._isMounted = true;
+            this._isMounted && await checkAndUpdateSession.bind(this)(this.fetchYrGachas);
+        } catch (err) {
+            this._isMounted && this.setState({
+                error: { code: 500, msg: "Something went wrong.", toLogin: true }
+            });
+        }
     }
 
     componentWillUnmount () {
         this._isMounted = false;
+        this.setState = (state,callback)=>{
+            return;
+        };
     }
 
     fetchYrGachas = async () => {
