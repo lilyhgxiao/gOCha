@@ -3,11 +3,22 @@ import { uid } from "react-uid";
 
 import CharaLink from "./../CharaLink";
 
-/* Component for the List of Students */
+import "./styles.css";
+
+/**TODO: get new placeholder for icon */
+import icon_placeholder from './../../../images/dashboard_placeholder.jpg';
+
 class CharaList extends React.Component {
-    // Access the global state paths required by your component
-    // using filterState. filterState puts these state paths on
-    // this.state
+
+    showErrorDialogue = () => {
+        const { page } = this.props;
+
+        page.setState({
+            alert: {
+                text: ["There was an error loading this character. Please try reloading the page."]
+            }
+        });
+    }
 
     render() {
         // the filtered states are now on this.state
@@ -17,7 +28,11 @@ class CharaList extends React.Component {
             <div className="charaListContainer">
                 <ul className="charaListUL">
                     { charaList.map((chara) => {
-                        return (
+                        return ( chara === null ?
+                            <div className="errorRetrvChara" onClick={this}>
+                                <img className="charaLinkIcon" src={icon_placeholder} alt={"Error"} />
+                                <div className="charaLinkName">Error</div>
+                            </div> :
                             <CharaLink className="invCharaLink" key = { uid(chara) }
                             chara={chara}
                             handleCharaLinkClick={handleCharaLinkClick}/>

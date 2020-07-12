@@ -7,7 +7,7 @@ import Login from "./react-components/base-pages/Login";
 import Signup from "./react-components/base-pages/Signup";
 import ErrorPage from "./react-components/base-pages/ErrorPage";
 import Dashboard from "./react-components/base-pages/Dashboard";
-import Inventory from "./react-components/base-pages/Inventory";
+import Collection from "./react-components/base-pages/Collection";
 import YourGachas from "./react-components/base-pages/YourGachas";
 import FavGachas from "./react-components/base-pages/FavGachas";
 import GachaSummon from "./react-components/base-pages/GachaSummon";
@@ -23,7 +23,7 @@ import { readSession } from "./actions/loginHelpers";
 
 import "./App.css";
 
-import { loginURL, signupURL, dashboardURL } from "./constants";
+import { loginURL, signupURL, dashboardURL, collectionURL } from "./constants";
 
 class App extends BaseReactComponent {
     // Access the global state paths required by your component
@@ -48,7 +48,7 @@ class App extends BaseReactComponent {
                     <Route path={signupURL} exact component={Signup} />
                     <Route path="/error" exact component={ErrorPage} />
                     <Route path={dashboardURL} exact component={Dashboard} />
-                    <Route path="/inventory" exact component={Inventory} />
+                    <Route path={collectionURL} exact component={Collection} />
                     <Route path="/yourGachas" exact component={YourGachas} />
                     <Route path="/favourites" exact component={FavGachas} />
                     <Route path="/summon/info/:id" render={(props => <GachaSummon key={props.match.params.id} {...props}/>)} />

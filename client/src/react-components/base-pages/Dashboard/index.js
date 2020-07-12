@@ -20,7 +20,7 @@ import { getCharaById } from "../../../actions/charaHelpers";
 import dashboard_placeholder from './../../../images/dashboard_placeholder.jpg';
 
 //Importing constants
-import { dashboardURL } from "../../../constants";
+import { dashboardURL, errorURL, collectionURL } from "../../../constants";
 
 /**TODO: implement random character selection for cover pic */
 
@@ -98,7 +98,7 @@ class Dashboard extends BaseReactComponent {
         if (error) {
             return (
                 <Redirect push to={{
-                    pathname: "/error",
+                    pathname: errorURL,
                     state: { error: error }
                 }} />
             );
@@ -132,7 +132,7 @@ class Dashboard extends BaseReactComponent {
                             </div>
                         </div>
                         <div className="dashboardBottomMenu">
-                            <Link className="dashboardInventory" to={'./inventory'}>Inventory</Link>
+                            <Link className="dashboardInventory" to={collectionURL}>Collection</Link>
                             <Link className="dashboardOwnGachas" to={'./yourGachas'}>Your Gachas</Link>
                             <Link className="dashboardFavGachas" to={'./favourites'}>Favourites</Link>
                         </div>

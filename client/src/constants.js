@@ -45,3 +45,21 @@ exports.userFolder = "user_images/";
 exports.loginURL = "/";
 exports.signupURL = "/signup";
 exports.dashboardURL = "/dashboard";
+exports.errorURL = "/error";
+exports.collectionURL = "/collection";
+exports.gachasURL = "/gachas";
+exports.favouritesURL = "/favourites";
+exports.smnInfoURL = "/summon/info/";
+exports.smnResultURL = "/summon/result/";
+exports.createGachaURL = "/create/gacha";
+exports.editGachaURL = "/edit/gacha/";
+exports.createCharaURL = "/create/chara";
+exports.editCharaURL = "/edit/chara/";
+exports.profileURL = "/profile/";
+exports.editAccURL = "/edit/acc/";
+
+//collection page constants
+exports.charasPerPage = 20;
+
+//page num nav constants
+exports.pageRange = 5;

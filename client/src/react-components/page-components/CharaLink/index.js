@@ -3,8 +3,6 @@ import React from "react";
 import "./styles.css";
 
 //images
-/**TODO: get new placeholder for icon */
-import icon_placeholder from './../../../images/dashboard_placeholder.jpg';
 /**TODO: handle when chara  or chara properties is empty */
 
 class CharaLink extends React.Component {

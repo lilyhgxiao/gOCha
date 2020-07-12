@@ -13,7 +13,7 @@ import starFrag_placeholder from './../../../images/starFrag_placeholder.png';
 import silvers_placeholder from './../../../images/silvers_placeholder.png';
 
 //Importing constants
-import { loginURL } from "../../../constants";
+import { loginURL, dashboardURL, collectionURL } from "../../../constants";
 
 /* The Header Component */
 class Header extends React.Component {
@@ -71,7 +71,7 @@ class Header extends React.Component {
                 <div className="header">
                     <div className="headerLinks">
                         <div className="headerLine1">
-                            <Link className="hdrLogo" to={'/dashboard'}>
+                            <Link className="hdrLogo" to={dashboardURL}>
                                 <input
                                     type='image'
                                     className="logo"
@@ -101,7 +101,7 @@ class Header extends React.Component {
 
                         <div className ="headerLine2"> 
                             <Link className="hdr2Link" to={'/dashboard'}>Home</Link>   
-                            <Link className="hdr2Link" to={'/inventory'}>Inventory</Link>  
+                            <Link className="hdr2Link" to={collectionURL}>Collection</Link>  
                             <Link className="hdr2Link" to={'/yourGachas'}>Your Gachas</Link>  
                             <Link className="hdr2Link" to={'/favourites'}>Favourites</Link>  
                             <Link className="hdr2Link" to={'/news'}>News</Link> 

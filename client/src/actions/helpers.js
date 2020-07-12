@@ -59,14 +59,17 @@ export const checkAndUpdateSession = async function (callback) {
             this.setState({
                 error: { code: readSessRes.status, msg: readSessRes.msg, toLogin: true }
             });
+            return false;
         } else {
             this.setState({
                 error: { code: 500, msg: "Something went wrong and your session has expired." +
                     "Please log in again.", toLogin: true }
             });
+            return false;
         }
     }
     this._isMounted && this.setState({
         currUser: readSessRes.currUser
     }, callback);
+    return true;
 }
