@@ -1,0 +1,22 @@
+.gachaStatsTableContainer {
+    margin-bottom: 30px;
+}
+
+table.gachaStatsTable, tr.gachaStatsTable {
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+th.gachaStatsTableLeft, td.gachaStatsTableLeft {
+    border: 1px solid black;
+    border-collapse: collapse;
+    width: 400px;
+}
+
+th.gachaStatsTableRight, td.gachaStatsTableRight {
+    border: 1px solid black;
+    border-collapse: collapse;
+    width: 90px;
+}

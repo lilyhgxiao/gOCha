@@ -1,6 +1,5 @@
 /*  Full Dashboard component */
 import React from "react";
-import { uid } from "react-uid";
 import { Redirect } from 'react-router';
 
 import "./styles.css";
@@ -12,6 +11,7 @@ import BaseReactComponent from "../../other/BaseReactComponent";
 import UploadPic from "./../../page-components/UploadPic";
 import NameInput from "./../../page-components/NameInput";
 import DescInput from "./../../page-components/DescInput";
+import GachaStatsTable from "./../../page-components/GachaStatsTable";
 import AlertDialogue from "./../../page-components/AlertDialogue";
 
 // Importing actions/required methods
@@ -229,7 +229,6 @@ class CreateGacha extends BaseReactComponent {
     }
 
     render() {
-        const { history } = this.props;
         const { currUser, alert, coverPic, iconPic, name, desc, stats, toEdit, toSummon, toId } = this.state;
 
         if (toEdit) {
@@ -251,9 +250,7 @@ class CreateGacha extends BaseReactComponent {
         return (
             <div className="App">
                 {/* Header component. */}
-                <Header username={currUser ? currUser.username: ""} 
-                    starFrags={currUser ? currUser.starFrags: 0} 
-                    silvers={currUser ? currUser.silvers : 0}/>
+                <Header currUser={currUser}/>
 
                 <div className="mainBodyContainer">
                     { alert ? 
@@ -276,41 +273,9 @@ class CreateGacha extends BaseReactComponent {
                                 <DescInput name={"desc"} value={desc} onChange={this.handleInputChange} 
                                     placeholder={"Describe your Gacha (optional)"} maxValueLength={maxGachaDescLength}/>
                             </div>
-                            <div className="gachaStatsTableContainer">
-                                <table className="gachaStatsTable">
-                                    <tbody>
-                                        <tr className="gachaStatsTable">
-                                            <th className="gachaStatsTableLeft">Stats</th>
-                                            <th className="gachaStatsTableRight"></th>
-                                        </tr>
-                                        {stats.map((stat, index) => {
-                                            return (<tr className="gachaStatsTable" key={uid(index)}>
-                                                <td className="gachaStatsTableLeft">
-                                                    <input className="statsInput"
-                                                        name={'stats[' + index + ']'}
-                                                        value={stats[index]}
-                                                        index={index}
-                                                        onChange={this.handleStatInputChange}
-                                                        type="text"
-                                                        placeholder={"Stat " + (index + 1).toString() + " Name (required)"} />
-                                                </td>
-                                                <td className="gachaStatsTableRight">
-                                                    <button className="deleteStatButton" onClick={this.deleteStat} index={index}>Delete Stat</button>
-                                                </td>
-                                            </tr>);
-                                        })}
-                                        {   stats.length < 10 ?
-                                            <tr className="gachaStatsTable">
-                                                <td className="gachaStatsTableLeft">
-                                                    <button className="addStatButton" onClick={this.addStat}>Add Stat</button>
-                                                </td>
-                                                <td className="gachaStatsTableRight"></td>
-                                            </tr> : null
-                                        }
-                                        
-                                    </tbody>
-                                </table>
-                            </div>
+                            <GachaStatsTable oldStats={[]} newStats={stats} handleOldStatInputChange={null} 
+                                handleNewStatInputChange={this.handleStatInputChange} addStat={this.addStat}
+                                deleteOldStat={null} deleteNewStat={this.deleteStat}/>
                             <button className="gachaSaveButton" onClick={this.validateInput}>Save</button>
                         </div>
                     </div>
