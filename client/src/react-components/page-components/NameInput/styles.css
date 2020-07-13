@@ -1,0 +1,20 @@
+.nameContainer {
+    margin: 30px 40px 20px 40px;
+}
+
+.nameInput {
+    font-size: 30px;
+    color: #235789;
+    width: 690px;
+}
+
+.charCount {
+    text-align: right;
+    margin-right: 10px;
+}
+
+.charCountRed {
+    text-align: right;
+    color: red;
+    margin-right: 10px;
+}

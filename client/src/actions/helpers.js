@@ -89,6 +89,14 @@ export const processError = function (res, toDashboard, toLogin) {
     });
 }
 
+export const resizeMainContainer = function (className) {
+    const mainBodyContainer = document.querySelector(".mainBodyContainer");
+    const containerStyle = window.getComputedStyle(document.querySelector(className));
+
+    const newHeight = parseInt(containerStyle.height) + parseInt(containerStyle.marginTop) * 3;
+    mainBodyContainer.style.height = newHeight.toString() + "px";
+}
+
 export const summon = async function (gacha) {
     if (this.state.currUser.starFrags < summonCost) {
         this._isMounted && this.setState({

@@ -10,9 +10,11 @@ import "./../../../App.css"
 import Header from "./../../page-components/Header";
 import BaseReactComponent from "../../other/BaseReactComponent";
 import UploadPic from "./../../page-components/UploadPic";
+import NameInput from "./../../page-components/NameInput";
 import AlertDialogue from "./../../page-components/AlertDialogue";
 
 // Importing actions/required methods
+import { checkAndUpdateSession } from "../../../actions/helpers";
 import { updateSession } from "../../../actions/loginHelpers";
 import { createNewGacha } from "../../../actions/gachaHelpers";
 
@@ -21,27 +23,31 @@ import { createNewGacha } from "../../../actions/gachaHelpers";
 import dotted_line_box from './../../../images/dotted_line_box_placeholder.png';
 
 //Importing constants
-import { maxGachaDescLength, maxGachaNameLength, minGachaNameLength } from "../../../constants";
+import { createGachaURL, editGachaURL, smnInfoURL, maxGachaDescLength, maxGachaNameLength, 
+    minGachaNameLength } from "../../../constants";
 
 class CreateGacha extends BaseReactComponent {
 
-    state = {
-        alert: null,
-        coverPic: dotted_line_box,
-        coverPicRaw: null,
-        iconPic: dotted_line_box,
-        iconPicRaw: null,
-        name: "",
-        desc: "",
-        stats: [],
-        toEdit: false,
-        toSummon: false,
-        toId: null
-    }
+    _isMounted = false;
 
     constructor(props) {
         super(props);
-        this.props.history.push("/create/gacha");
+        this.props.history.push(createGachaURL);
+
+        this.state = {
+            coverPic: dotted_line_box,
+            coverPicRaw: null,
+            iconPic: dotted_line_box,
+            iconPicRaw: null,
+            name: "",
+            desc: "",
+            stats: [],
+            toEdit: false,
+            toSummon: false,
+            toId: null,
+            error: null,
+            alert: null
+        };
     }
 
     filterState({ currUser }) {
@@ -49,15 +55,22 @@ class CreateGacha extends BaseReactComponent {
     }
 
     async componentDidMount() {
-        /**TODO: redirect back to login if session is not there */
-        const readSessRes = await updateSession();
-        if (readSessRes) {
-            if (readSessRes.currUser) {
-                this.setState({
-                    currUser: readSessRes.currUser
-                }, this.resizeMainContainer);
-            }
+        try {
+            this._isMounted = true;
+            this._isMounted && await checkAndUpdateSession.bind(this)(this.resizeMainContainer);
+        } catch (err) {
+            this._isMounted && this.setState({
+                error: { code: 500, msg: "Something went wrong and your session has expired." +
+                    "Please log in again.", toLogin: true }
+            });
         }
+    }
+
+    componentWillUnmount () {
+        this._isMounted = false;
+        this.setState = (state,callback)=>{
+            return;
+        };
     }
 
     handleInputChange = (event) => {
@@ -66,7 +79,7 @@ class CreateGacha extends BaseReactComponent {
         const name = target.name;
     
         // 'this' is bound to the component in this arrow function.
-        this.setState({
+        this._isMounted && this.setState({
           [name]: value  // [name] sets the object property name to the value of the 'name' variable.
         });
     }
@@ -79,7 +92,7 @@ class CreateGacha extends BaseReactComponent {
 
         stats[index] = value;
     
-        this.setState({
+        this._isMounted && this.setState({
           stats: stats 
         });
     }
@@ -97,7 +110,7 @@ class CreateGacha extends BaseReactComponent {
 
         stats.push("");
 
-        this.setState({
+        this._isMounted && this.setState({
             stats: stats
         }, this.resizeMainContainer);
     }
@@ -111,101 +124,96 @@ class CreateGacha extends BaseReactComponent {
             stats.splice(index, 1);
         }
         
-        this.setState({
+        this._isMounted && this.setState({
             stats: stats
         }, this.resizeMainContainer);
     }
     
-    /**TODO: resize main container...? */
     validateInput = async () => {
         const { name, desc, stats, coverPicRaw, iconPicRaw, currUser } = this.state;
         let success = true;
         const msg = [];
-        //validate gacha name length
-        if (name.length < minGachaNameLength) {
-            msg.push("Your gacha name is too short.");
-            msg.push(<br/>)
-            msg.push("It must be between " + minGachaNameLength + " and " + maxGachaNameLength + " characters.");
-            msg.push(<br/>)
+        if (name.length < minGachaNameLength) { //validate gacha name length
+            msg.concat(["Your gacha name is too short.", <br/>, "It must be between " + minGachaNameLength + 
+                " and " + maxGachaNameLength + " characters.", <br/>]);
             success = false;
         } 
         if (maxGachaNameLength - name.length < 0) {
-            msg.push("Your gacha name is too long.");
-            msg.push(<br/>)
-            msg.push("It must be between " + minGachaNameLength + " and " + maxGachaNameLength + " characters.");
-            msg.push(<br/>)
+            msg.concat(["Your gacha name is too long.", <br/>, "It must be between " + minGachaNameLength + 
+                " and " + maxGachaNameLength + " characters.", <br/>]);
             success = false;
         } 
-        //validate gacha desc length
-        if (maxGachaDescLength - desc.length < 0) {
-            msg.push("Your description is too long.");
-            msg.push(<br/>)
-            msg.push("It must be under " + maxGachaDescLength + " characters.");
-            msg.push(<br/>)
+        if (maxGachaDescLength - desc.length < 0) { //validate gacha desc length
+            msg.concat(["The description is too long.", <br/>, "It must be under " + maxGachaDescLength + 
+                " characters.", <br/>]);
             success = false;
         }
-        //validate if pictures uploaded or not
-        if (coverPicRaw === null) {
-            msg.push("Please upload a cover picture.");
-            msg.push(<br/>)
+        if (coverPicRaw === null) { //validate if pictures uploaded or not
+            msg.concat(["Please upload a cover picture.", <br/>]);
             success = false;
         }
         if (iconPicRaw === null) {
-            msg.push("Please upload an icon.");
-            msg.push(<br/>)
+            msg.concat(["Please upload an icon.", <br/>]);
             success = false;
         }
         //validate stat names are not blank
-        let i;
-        for (i = 0; i < stats.length; i++) {
+        for (let i = 0; i < stats.length; i++) {
             if (!(/\S/.test(stats[i]))) {
-                msg.push("Please don't leave any stat names blank.");
-                msg.push(<br/>)
-                msg.push("Delete them if needed.");
-                msg.push(<br/>)
+                msg.concat(["Please don't leave any stat names blank.", <br/>], "Delete them if needed.", <br/>);
                 success = false;
                 break;
-            }   
+            }
         }
         if (success === true) {
-            const createGachaBody = {
-                name: name,
-                desc: desc,
-                stats: stats,
-                creator: currUser._id,
-                coverPic: coverPicRaw,
-                iconPic: iconPicRaw
-            };
-            /**TODO: handle if create gacha fails */
-            const createGachaRes = await createNewGacha(createGachaBody);
-            if (createGachaRes) {
-                if (createGachaRes.gacha) {
-                    this.setState({
-                        alert: {
-                            title: "Gacha created successfully!",
-                            text: ["Would you like to edit it right away?"],
-                            yesNo: true,
-                            handleYes: this.redirectGacha.bind(this, createGachaRes.gacha._id),
-                            handleNo: this.redirectGacha.bind(this, createGachaRes.gacha._id),
-                            yesText: "Go to Edit",
-                            noText: "Go to Summon"
-                        }
-                    });
-                }
-            }
+            this.createGacha();
         } else {
-            this.setState({
+            this._isMounted && this.setState({
                 alert: {
                     title: "Could not create Gacha",
                     text: msg
                 }
             });
         }
+    }
 
+    createGacha = async () => {
+        const { name, desc, stats, coverPicRaw, iconPicRaw, currUser } = this.state;
+        const createGachaBody = {
+            name: name,
+            desc: desc,
+            stats: stats,
+            creator: currUser._id,
+            coverPic: coverPicRaw,
+            iconPic: iconPicRaw
+        };
+        const createGachaRes = await createNewGacha(createGachaBody);
+        if (!createGachaRes || !createGachaRes.gacha) {
+            const msg = (createGachaRes && createGachaRes.msg) ?
+                ["There was an error creating the gacha: "].concat(createGachaRes.msg) :
+                ["There was an error creating the gacha."];
+            msg.concat([<br />, "Please try again."])
+            this._isMounted && this.setState({
+                alert: {
+                    title: "Oops!",
+                    text: msg
+                }
+            });
+        }
+        this._isMounted && this.setState({
+            alert: {
+                title: "Gacha created successfully!",
+                text: ["Would you like to edit it right away?"],
+                yesNo: true,
+                handleYes: this.redirectGacha.bind(this, createGachaRes.gacha._id),
+                handleNo: this.redirectGacha.bind(this, createGachaRes.gacha._id),
+                yesText: "Go to Edit",
+                noText: "Go to Summon"
+            }
+        });
     }
 
     redirectEdit = (id) => {
-        this.setState({
+        this._isMounted && this.setState({
             alert: null,
             toEdit: true,
             toId: id
@@ -213,20 +221,10 @@ class CreateGacha extends BaseReactComponent {
     }
 
     redirectGacha = (id) => {
-        this.setState({
+        this._isMounted && this.setState({
             alert: null,
             toSummon: true,
             toId: id
-        });
-    }
-
-    createAlertDialogue = () => {
-        this.setState({
-            alert: {
-                title: "Yep",
-                yesNo: true,
-                image: {src: dotted_line_box, alt:"Dashboard Placeholder"}
-            }
         });
     }
 
@@ -237,7 +235,7 @@ class CreateGacha extends BaseReactComponent {
         if (toEdit) {
             return (
                 <Redirect push to={{
-                    pathname: "/edit/gacha/" + toId
+                    pathname: editGachaURL + toId
                 }} />
             );
         }
@@ -245,7 +243,7 @@ class CreateGacha extends BaseReactComponent {
         if (toSummon) {
             return (
                 <Redirect push to={{
-                    pathname: "/summon/" + toId
+                    pathname: smnInfoURL + toId
                 }} />
             );
         }
@@ -265,18 +263,8 @@ class CreateGacha extends BaseReactComponent {
                     <div className="mainBody">
                         <div className="createGachaContainer">
                             <div className="pageSubtitle">Create New Gacha</div>
-                            <div className="gachaNameContainer">
-                                <input className="gachaNameInput"
-                                    name='name'
-                                    value={this.state.name}
-                                    onChange={this.handleInputChange}
-                                    type="text"
-                                    placeholder="Name (required)" />
-                                {maxGachaNameLength - name.length > 0 ?
-                                    <div className="nameCharCount">{maxGachaNameLength - name.length}</div> :
-                                    <div className="nameCharCountRed">{maxGachaNameLength - name.length}</div>
-                                }
-                            </div>
+                            <NameInput name={"name"} value={name} onChange={this.handleInputChange} 
+                                placeholder={"Name (required)"} maxNameLength={maxGachaNameLength}/>
                             <div className="createGachaCoverPicContainer">
                                 <UploadPic parent={this} cover={true} src={coverPic}/>
                             </div>

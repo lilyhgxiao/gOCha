@@ -24,7 +24,8 @@ import { readSession } from "./actions/loginHelpers";
 import "./App.css";
 
 import { loginURL, signupURL, errorURL, dashboardURL, collectionURL, 
-    gachasURL, favouritesURL, smnInfoURL, smnResultURL } from "./constants";
+    gachasURL, favouritesURL, smnInfoURL, smnResultURL, createGachaURL, editGachaURL, 
+    createCharaURL, editCharaURL, profileURL, editAccURL } from "./constants";
 
 class App extends BaseReactComponent {
     // Access the global state paths required by your component
@@ -52,14 +53,21 @@ class App extends BaseReactComponent {
                     <Route path={collectionURL} exact component={Collection} />
                     <Route path={gachasURL} exact component={YourGachas} />
                     <Route path={favouritesURL} exact component={FavGachas} />
-                    <Route path={smnInfoURL + ":id"} render={(props => <GachaSummon key={props.match.params.id} {...props}/>)} />
-                    <Route path={smnResultURL + ":id"} render={(props => <GachaSmnResult key={props.match.params.id} {...props}/>)} />
-                    <Route path="/create/gacha" exact component={CreateGacha} />
-                    <Route path="/edit/gacha/:id" render={(props => <EditGacha key={props.match.params.id} {...props}/>)} />
-                    <Route path="/create/chara/:id" render={(props => <CreateChara key={props.match.params.id} {...props}/>)} />
-                    <Route path="/edit/chara/:id" render={(props => <EditChara key={props.match.params.id} {...props}/>)} />
-                    <Route path="/profile/:username" render={(props => <Profile key={props.match.params.username} {...props}/>)} />
-                    <Route path="/edit/profile/:username" render={(props => <EditProfile key={props.match.params.username} {...props}/>)} />
+                    <Route path={smnInfoURL + ":id"} render={(props => 
+                        <GachaSummon key={props.match.params.id} {...props}/>)} />
+                    <Route path={smnResultURL + ":id"} render={(props => 
+                        <GachaSmnResult key={props.match.params.id} {...props}/>)} />
+                    <Route path={createGachaURL} exact component={CreateGacha} />
+                    <Route path={editGachaURL + ":id"} render={(props => 
+                        <EditGacha key={props.match.params.id} {...props}/>)} />
+                    <Route path={createCharaURL + ":id"} render={(props => 
+                        <CreateChara key={props.match.params.id} {...props}/>)} />
+                    <Route path={editCharaURL + ":id"} render={(props => 
+                        <EditChara key={props.match.params.id} {...props}/>)} />
+                    <Route path={profileURL + ":username"} render={(props => 
+                        <Profile key={props.match.params.username} {...props}/>)} />
+                    <Route path={editAccURL + ":username"} render={(props => 
+                        <EditProfile key={props.match.params.username} {...props}/>)} />
                 </Switch>
             </BrowserRouter>
         );
