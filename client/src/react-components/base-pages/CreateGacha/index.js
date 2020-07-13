@@ -11,11 +11,11 @@ import Header from "./../../page-components/Header";
 import BaseReactComponent from "../../other/BaseReactComponent";
 import UploadPic from "./../../page-components/UploadPic";
 import NameInput from "./../../page-components/NameInput";
+import DescInput from "./../../page-components/DescInput";
 import AlertDialogue from "./../../page-components/AlertDialogue";
 
 // Importing actions/required methods
 import { checkAndUpdateSession } from "../../../actions/helpers";
-import { updateSession } from "../../../actions/loginHelpers";
 import { createNewGacha } from "../../../actions/gachaHelpers";
 
 //images
@@ -264,7 +264,7 @@ class CreateGacha extends BaseReactComponent {
                         <div className="createGachaContainer">
                             <div className="pageSubtitle">Create New Gacha</div>
                             <NameInput name={"name"} value={name} onChange={this.handleInputChange} 
-                                placeholder={"Name (required)"} maxNameLength={maxGachaNameLength}/>
+                                placeholder={"Name (required)"} maxValueLength={maxGachaNameLength}/>
                             <div className="createGachaCoverPicContainer">
                                 <UploadPic parent={this} cover={true} src={coverPic}/>
                             </div>
@@ -273,18 +273,8 @@ class CreateGacha extends BaseReactComponent {
                                     <UploadPic parent={this} cover={false} src={iconPic}/>
                                     <div className="gachaNamePreview">{name}</div>
                                 </div>
-                                <div className="gachaDescContainer">
-                                    <textarea className="gachaDescInput"
-                                        name='desc'
-                                        value={this.state.desc}
-                                        onChange={this.handleInputChange}
-                                        type="text"
-                                        placeholder="Describe your Gacha (optional)" />
-                                    {maxGachaDescLength - desc.length > 0 ?
-                                        <div className="descCharCount">{maxGachaDescLength - desc.length}</div> :
-                                        <div className="descCharCountRed">{maxGachaDescLength - desc.length}</div>
-                                    }
-                                </div>
+                                <DescInput name={"desc"} value={desc} onChange={this.handleInputChange} 
+                                    placeholder={"Describe your Gacha (optional)"} maxValueLength={maxGachaDescLength}/>
                             </div>
                             <div className="gachaStatsTableContainer">
                                 <table className="gachaStatsTable">

@@ -8,12 +8,12 @@
     width: 690px;
 }
 
-.charCount {
+.nameCharCount {
     text-align: right;
     margin-right: 10px;
 }
 
-.charCountRed {
+.nameCharCountRed {
     text-align: right;
     color: red;
     margin-right: 10px;

@@ -1,0 +1,22 @@
+.descContainer {
+    display: inline-block;
+    margin: 5px 0px 0px 0px;
+    vertical-align: top;
+}
+
+.descInput {
+    vertical-align: top;
+    font-size: 15px;
+    height: 170px;
+    width: 550px;
+    resize: none;
+}
+
+.descCharCount {
+    text-align: right;
+}
+
+.descCharCountRed {
+    text-align: right;
+    color: red;
+}

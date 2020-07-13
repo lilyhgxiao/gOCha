@@ -2,27 +2,6 @@
     margin-top: 20px;
 }
 
-.gachaNameContainer {
-    margin: 30px 40px 20px 40px;
-}
-
-.gachaNameInput {
-    font-size: 30px;
-    color: #235789;
-    width: 690px;
-}
-
-.nameCharCount {
-    text-align: right;
-    margin-right: 10px;
-}
-
-.nameCharCountRed {
-    text-align: right;
-    color: red;
-    margin-right: 10px;
-}
-
 .createGachaCoverPicContainer {
     text-align: center;
 }
@@ -50,28 +29,6 @@
     overflow: hidden;
     width: 110px;
     height: 67px;
-}
-
-.gachaDescContainer {
-    display: inline-block;
-    margin: 5px 0px 0px 0px;
-    vertical-align: top;
-}
-
-.gachaDescInput {
-    vertical-align: top;
-    font-size: 15px;
-    height: 170px;
-    width: 550px;
-}
-
-.descCharCount {
-    text-align: right;
-}
-
-.descCharCountRed {
-    text-align: right;
-    color: red;
 }
 
 .gachaStatsTableContainer {
