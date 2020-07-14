@@ -9,6 +9,10 @@ import CharaEditList from "./../CharaEditList";
 /**TODO: get new placeholder for icon */
 import icon_placeholder from './../../../images/dashboard_placeholder.jpg';
 /**TODO: handle when chara  or chara properties is empty */
+//Importing constants
+import {
+    createCharaURL
+} from "../../../constants";
 
 class CharaEditLink extends React.Component {
     state = {
@@ -52,7 +56,7 @@ class CharaEditLink extends React.Component {
         if (toNewChara) {
             return (
                 <Redirect push to={{
-                    pathname: "/create/chara/" + gacha._id
+                    pathname: createCharaURL + gacha._id
                 }} />
             );
         }

@@ -27,9 +27,8 @@ import { getAllCharasInGacha, deleteCharaById } from "../../../actions/charaHelp
 import dotted_line_box from './../../../images/dotted_line_box_placeholder.png';
 
 //Importing constants
-import { editGachaURL, smnInfoURL, maxGachaDescLength, maxGachaNameLength, 
-    minGachaNameLength, 
-    charaFolder} from "../../../constants";
+import { editGachaURL, smnInfoURL, createCharaURL, maxGachaDescLength, 
+    maxGachaNameLength, minGachaNameLength } from "../../../constants";
 
 /**TODO: add delete gacha */
 

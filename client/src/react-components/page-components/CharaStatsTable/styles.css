@@ -1,0 +1,9 @@
+.charaStatsTable {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table.charaStatsTable, table.charaStatsTable tr, table.charaStatsTable tr th, table.charaStatsTable tr td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}

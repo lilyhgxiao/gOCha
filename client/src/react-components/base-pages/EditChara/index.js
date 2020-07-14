@@ -10,6 +10,8 @@ import "./../../../App.css"
 import Header from "./../../page-components/Header";
 import BaseReactComponent from "../../other/BaseReactComponent";
 import UploadPic from "../../page-components/UploadPic";
+import NameInput from "./../../page-components/NameInput";
+import DescInput from "./../../page-components/DescInput";
 import AlertDialogue from "../../page-components/AlertDialogue";
 import StatDisplay from "../../page-components/StatDisplay";
 import StarRarityDisplay from "../../page-components/StarRarityDisplay";

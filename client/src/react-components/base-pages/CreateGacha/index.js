@@ -24,8 +24,8 @@ import dotted_line_box from './../../../images/dotted_line_box_placeholder.png';
 
 //Importing constants
 import {
-    createGachaURL, editGachaURL, smnInfoURL, maxGachaDescLength, maxGachaNameLength,
-    minGachaNameLength
+    createGachaURL, editGachaURL, smnInfoURL, errorURL, maxGachaDescLength, 
+    maxGachaNameLength, minGachaNameLength
 } from "../../../constants";
 
 class CreateGacha extends BaseReactComponent {
@@ -203,6 +203,7 @@ class CreateGacha extends BaseReactComponent {
                         text: msg
                     }
                 });
+                return;
             }
             this._isMounted && this.setState({
                 alert: {
@@ -243,7 +244,17 @@ class CreateGacha extends BaseReactComponent {
     }
 
     render() {
-        const { currUser, alert, coverPic, iconPic, name, desc, stats, toEdit, toSummon, toId } = this.state;
+        const { currUser, coverPic, iconPic, name, desc, stats, toEdit, toSummon, toId, 
+            alert, error } = this.state;
+
+        if (error) {
+            return (
+                <Redirect push to={{
+                    pathname: errorURL,
+                    state: { error: error }
+                }} />
+            );
+        }
 
         if (toEdit) {
             return (

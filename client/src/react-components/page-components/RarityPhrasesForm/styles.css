@@ -1,0 +1,19 @@
+.rarityPhrasesTable {
+    display: inline-block;
+}
+
+.rarityPhrasesTable th {
+    display: inline-block;
+    vertical-align: top;
+    text-align: right;
+    margin-right: 20px;
+    width: 150px;
+}
+
+.rarityPhrasesTable td {
+    display: inline-block;
+    vertical-align: middle;
+    text-align: left;
+    margin-right: 20px;
+    width: 550px;
+}

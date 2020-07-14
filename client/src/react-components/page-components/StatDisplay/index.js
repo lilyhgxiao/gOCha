@@ -15,7 +15,12 @@ class StatDisplay extends React.Component {
 
 		if (edit) {
 			const stats = page.state.stats;
-			stats[index].value = value + 1;
+			if (stats[index].value !== value + 1) {
+				stats[index].value = value + 1;
+			} else {
+				stats[index].value = 0;
+			}
+			
 			page.setState({
 				stats: stats
 			});
