@@ -50,7 +50,7 @@ class CharaEditLink extends React.Component {
         let charaList;
         if (chara.rarity === 3) {
             charaList = page.state.threeStars.filter(charaOnList => charaOnList._id.toString() !== chara._id.toString());
-            charasToRemove.push(chara._id);
+            charasToRemove.push(chara);
             page.setState({
                 charasToRemove: charasToRemove,
                 threeStars: charaList,
@@ -58,7 +58,7 @@ class CharaEditLink extends React.Component {
             });
         } else if (chara.rarity === 4) {
             charaList = page.state.fourStars.filter(charaOnList => charaOnList._id.toString() !== chara._id.toString());
-            charasToRemove.push(chara._id);
+            charasToRemove.push(chara);
             page.setState({
                 charasToRemove: charasToRemove,
                 fourStars: charaList,
@@ -66,7 +66,7 @@ class CharaEditLink extends React.Component {
             });
         } else {
             charaList = page.state.fiveStars.filter(charaOnList => charaOnList._id.toString() !== chara._id.toString());
-            charasToRemove.push(chara._id);
+            charasToRemove.push(chara);
             page.setState({
                 charasToRemove: charasToRemove,
                 fiveStars: charaList,

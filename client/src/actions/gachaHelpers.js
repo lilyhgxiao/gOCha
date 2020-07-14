@@ -115,6 +115,8 @@ export const createNewGacha = async (body) => {
                 if (!uploadRes.coverPic && !uploadRes.iconPic) msg.push(" and ");
                 if (!uploadRes.iconPic) msg.push("icon image");
                 msg.push(". Please reupload the image in the edit page.");
+                return { status: postRes.status, msg: msg, err: null,
+                    gacha: patchRes.gacha };
             }
 
             const patchRes = await fetchPatchGacha(gacha._id, uploadRes);
