@@ -203,29 +203,29 @@ class CreateChara extends BaseReactComponent {
     validateInput = async () => {
         const { name, desc, welcomePhrase, summonPhrase } = this.state;
         let success = true;
-        const msg = [];
+        let msg = [];
         if (name.length < minCharaNameLength) { //validate chara name length
-            msg.concat(["Your character name is too short.", <br />, "It must be between " + minCharaNameLength +
+            msg = msg.concat(["Your character name is too short.", <br />, "It must be between " + minCharaNameLength +
                 " and " + maxCharaNameLength + " characters.", <br />]);
             success = false;
         }
         if (maxCharaNameLength - name.length < 0) {
-            msg.concat(["Your character name is too long.", <br />, "It must be between " + minCharaNameLength +
+            msg = msg.concat(["Your character name is too long.", <br />, "It must be between " + minCharaNameLength +
                 " and " + maxCharaNameLength + " characters.", <br />]);
             success = false;
         }
         if (maxCharaDescLength - desc.length < 0) { //validate chara desc length
-            msg.concat(["The description is too long.", <br />, "It must be under " + maxCharaDescLength +
+            msg = msg.concat(["The description is too long.", <br />, "It must be under " + maxCharaDescLength +
                 " characters.", <br />]);
             success = false;
         }
         if (maxWelcPhrLength - welcomePhrase.length < 0) { //validate chara welcome phrase length
-            msg.concat(["The welcome phrase is too long.", <br />, "It must be under " + maxWelcPhrLength +
+            msg = msg.concat(["The welcome phrase is too long.", <br />, "It must be under " + maxWelcPhrLength +
                 " characters.", <br />]);
             success = false;
         }
         if (maxSummPhrLength - summonPhrase.length < 0) { //validate chara summon phrase length
-            msg.concat(["The welcome phrase is too long.", <br />, "It must be under " + maxSummPhrLength +
+            msg = msg.concat(["The welcome phrase is too long.", <br />, "It must be under " + maxSummPhrLength +
                 " characters.", <br />]);
             success = false;
         }
@@ -244,10 +244,10 @@ class CreateChara extends BaseReactComponent {
 
     editChara = async () => {
         let success = true;
-        const msg = [];
+        let msg = [];
         const { name, desc, stats, rarity, welcomePhrase, summonPhrase, coverPicRaw, iconPicRaw, 
             chara } = this.state;
-
+            
         try {
             const editCharaBody = {
                 name: name,
@@ -263,9 +263,9 @@ class CreateChara extends BaseReactComponent {
             const patchCharaReq = await editChara(chara._id, editCharaBody);
             if (!patchCharaReq || !patchCharaReq.chara) {
                 if (patchCharaReq && patchCharaReq.msg) {
-                    msg.concat(["Failed to edit chara: " + patchCharaReq.msg, <br/>]);
+                    msg = msg.concat(["Failed to edit chara: " + patchCharaReq.msg, <br/>]);
                 } else {
-                    msg.concat(["Failed to edit chara.", <br/>]);
+                    msg = msg.concat(["Failed to edit chara.", <br/>]);
                 }
                 success = false;
             }

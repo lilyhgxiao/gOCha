@@ -241,25 +241,25 @@ class EditGacha extends BaseReactComponent {
     validateInput = async () => {
         const { name, desc, newStats, oldStats } = this.state;
         let success = true;
-        const msg = [];
+        let msg = [];
         if (name.length < minGachaNameLength) {
-            msg.concat(["Your gacha name is too short.", <br/>, "It must be between " + minGachaNameLength + 
+            msg = msg.concat(["Your gacha name is too short.", <br/>, "It must be between " + minGachaNameLength + 
                 " and " + maxGachaNameLength + " characters.", <br/>]);
             success = false;
         } 
         if (maxGachaNameLength - name.length < 0) {
-            msg.concat(["Your gacha name is too long.", <br/>, "It must be between " + minGachaNameLength + 
+            msg = msg.concat(["Your gacha name is too long.", <br/>, "It must be between " + minGachaNameLength + 
                 " and " + maxGachaNameLength + " characters.", <br/>]);
             success = false;
         } 
         if (maxGachaDescLength - desc.length < 0) {
-            msg.concat(["The description is too long.", <br/>, "It must be under " + maxGachaDescLength + 
+            msg = msg.concat(["The description is too long.", <br/>, "It must be under " + maxGachaDescLength + 
                 " characters.", <br/>]);
             success = false;
         }
         for (let i = 0; i < newStats.length; i++) {
             if (!(/\S/.test(newStats[i]))) {
-                msg.concat(["Please don't leave any stat names blank.", <br/>], "Delete them if needed.", <br/>);
+                msg = msg.concat(["Please don't leave any stat names blank.", <br/>], "Delete them if needed.", <br/>);
                 success = false;
                 break;
             }   
@@ -267,7 +267,7 @@ class EditGacha extends BaseReactComponent {
         if (success === true) {
             for (let i = 0; i < oldStats.length; i++) {
                 if (!(/\S/.test(oldStats[i].name))) {
-                    msg.concat(["Please don't leave any stat names blank.", <br/>], "Delete them if needed.", <br/>);
+                    msg = msg.concat(["Please don't leave any stat names blank.", <br/>], "Delete them if needed.", <br/>);
                     success = false;
                     break;
                 }   
@@ -288,7 +288,7 @@ class EditGacha extends BaseReactComponent {
 
     editGacha = async () => {
         let success = true;
-        const msg = [];
+        let msg = [];
         const { name, desc, active, coverPicRaw, iconPicRaw, gacha } = this.state;
 
         try {
@@ -303,9 +303,9 @@ class EditGacha extends BaseReactComponent {
             const patchGachaReq = await editGacha(gacha._id, editGachaBody);
             if (!patchGachaReq || !patchGachaReq.gacha) {
                 if (patchGachaReq && patchGachaReq.msg) {
-                    msg.concat(["Failed to edit gacha: " + patchGachaReq.msg, <br/>]);
+                    msg = msg.concat(["Failed to edit gacha: " + patchGachaReq.msg, <br/>]);
                 } else {
-                    msg.concat(["Failed to edit gacha.", <br/>]);
+                    msg = msg.concat(["Failed to edit gacha.", <br/>]);
                 }
                 success = false;
             }
@@ -313,7 +313,7 @@ class EditGacha extends BaseReactComponent {
             const editStats = await this.editStats();
             success = editStats.success && success;
             if (!editStats.success) {
-                msg.concat(["There was an error editing the following stats: ", <br/>]);
+                msg = msg.concat(["There was an error editing the following stats: ", <br/>]);
                 editStats.failedStats.forEach(stat => msg.push(stat.name + ", "));
                 msg.push(<br/>)
             }
@@ -321,7 +321,7 @@ class EditGacha extends BaseReactComponent {
             const removeCharas = await this.removeCharas();
             success = removeCharas.success && success;
             if (!removeCharas.success) {
-                msg.concat(["There was an error removing the following characters: ", <br/>])
+                msg = msg.concat(["There was an error removing the following characters: ", <br/>])
                 removeCharas.failedCharas.forEach(chara => msg.push(chara.name + ", "));
                 msg.push(<br/>);
             }
@@ -355,7 +355,7 @@ class EditGacha extends BaseReactComponent {
         let success = true;
         const editStatsReqs = [];
         const deleteStats = [];
-        const statsToEdit = [];
+        let statsToEdit = [];
         let checkStat;
         
         const failedStats = [];
@@ -372,11 +372,11 @@ class EditGacha extends BaseReactComponent {
                 }
             }
             if (deleteStats.length > 0) {
-                statsToEdit.concat(deleteStats);
+                statsToEdit = statsToEdit.concat(deleteStats);
                 editStatsReqs.push(await deleteStatsOnGacha(gacha._id, { stats: deleteStats }));
             }
             if (newStats.length > 0) {
-                statsToEdit.concat(newStats);
+                statsToEdit = statsToEdit.concat(newStats);
                 editStatsReqs.push(await addStatsToGacha(gacha._id, { stats: newStats }));
             }
     

@@ -4,20 +4,36 @@ import "./styles.css";
 
 // Importing components
 
-
 //images
 /**TODO: replace image placeholders */
 import dotted_line_box from './../../../images/dotted_line_box_placeholder.png';
 
 class UploadPic extends React.Component {
 
-    state = {
-        isHovering: false,
-        preview: dotted_line_box
-    };
+    _isMounted = false;
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            isHovering: false,
+            preview: dotted_line_box
+        };
+    }
+
+    componentDidMount () {
+        this._isMounted = true;
+    }
+
+    componentWillUnmount () {
+        this._isMounted = false;
+        this.setState = (state, callback) => {
+            return;
+        };
+    }
 
     handleMouseHover = () => {
-        this.setState(this.toggleHoverState);
+        this._isMounted && this.setState(this.toggleHoverState);
     }
     
     toggleHoverState = (state) => {
@@ -32,25 +48,21 @@ class UploadPic extends React.Component {
         const nameRaw = name + "Raw";
         const { parent } = this.props;
 
-        console.log(name)
-        if (target.files) {
-            if (target.files.length) {
-                if (!target.files[0].name.match(/.(jpg|jpeg|png)$/i)) {
-                    parent.setState({
-                        alert: {
-                            title: "Oops!",
-                            text: ["What you just uploaded wasn't an image!"]
-                        }
-                    });
-                } else {
-                    const url = URL.createObjectURL(event.target.files[0])
-                    console.log(url)
-                    console.log(target.files[0])
-                    parent.setState({
-                        [name]: url,
-                        [nameRaw]: target.files[0]
-                    });
-                }
+        if (target.files && target.files.length) {
+            if (!target.files[0].name.match(/.(jpg|jpeg|png)$/i)) {
+                parent.setState({
+                    alert: {
+                        title: "Oops!",
+                        text: ["What you just uploaded wasn't an image!"]
+                    }
+                });
+            } else {
+                const url = URL.createObjectURL(event.target.files[0])
+
+                parent._isMounted && parent.setState({
+                    [name]: url,
+                    [nameRaw]: target.files[0]
+                });
             }
         }
     }

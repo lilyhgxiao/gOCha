@@ -136,34 +136,30 @@ class CreateGacha extends BaseReactComponent {
     validateInput = async () => {
         const { name, desc, stats, coverPicRaw, iconPicRaw } = this.state;
         let success = true;
-        const msg = [];
+        let msg = [];
         if (name.length < minGachaNameLength) { //validate gacha name length
-            msg.concat(["Your gacha name is too short.", <br />, "It must be between " + minGachaNameLength +
+            msg = msg.concat(["Your gacha name is too short.", <br />, "It must be between " + minGachaNameLength +
                 " and " + maxGachaNameLength + " characters.", <br />]);
             success = false;
         }
         if (maxGachaNameLength - name.length < 0) {
-            msg.concat(["Your gacha name is too long.", <br />, "It must be between " + minGachaNameLength +
+            msg = msg.concat(["Your gacha name is too long.", <br />, "It must be between " + minGachaNameLength +
                 " and " + maxGachaNameLength + " characters.", <br />]);
             success = false;
         }
         if (maxGachaDescLength - desc.length < 0) { //validate gacha desc length
-            msg.concat(["The description is too long.", <br />, "It must be under " + maxGachaDescLength +
+            msg = msg.concat(["The description is too long.", <br />, "It must be under " + maxGachaDescLength +
                 " characters.", <br />]);
             success = false;
         }
-        if (coverPicRaw === null) { //validate if pictures uploaded or not
-            msg.concat(["Please upload a cover picture.", <br />]);
-            success = false;
-        }
-        if (iconPicRaw === null) {
-            msg.concat(["Please upload an icon.", <br />]);
+        if (coverPicRaw === null && iconPicRaw === null) { //validate if pictures uploaded or not
+            msg = msg.concat(["Please upload a cover or icon picture.", <br />]);
             success = false;
         }
         //validate stat names are not blank
         for (let i = 0; i < stats.length; i++) {
             if (!(/\S/.test(stats[i]))) {
-                msg.concat(["Please don't leave any stat names blank.", <br />], "Delete them if needed.", <br />);
+                msg = msg.concat(["Please don't leave any stat names blank.", <br />], "Delete them if needed.", <br />);
                 success = false;
                 break;
             }
@@ -181,8 +177,18 @@ class CreateGacha extends BaseReactComponent {
     }
 
     createGacha = async () => {
-        const { name, desc, stats, coverPicRaw, iconPicRaw, currUser } = this.state;
+        const { name, desc, stats, currUser } = this.state;
+        let { coverPicRaw, iconPicRaw } = this.state;
+        let msg = [];
         try {
+            if (coverPicRaw && !iconPicRaw) {
+                iconPicRaw = coverPicRaw;
+                console.log("Note: An icon was not uploaded, so the cover picture will be used instead.")
+                msg = msg.concat(["Note: An icon was not uploaded, so the cover picture will be used instead.", <br/>]);
+            } else if (iconPicRaw && !coverPicRaw) {
+                coverPicRaw = iconPicRaw;
+                msg = msg.concat(["Note: A cover picture was not uploaded, so the icon will be used instead.", <br/>]);
+            }
             const createGachaBody = {
                 name: name,
                 desc: desc,
@@ -193,10 +199,10 @@ class CreateGacha extends BaseReactComponent {
             };
             const createGachaRes = await createNewGacha(createGachaBody);
             if (!createGachaRes || !createGachaRes.gacha) {
-                const msg = (createGachaRes && createGachaRes.msg) ?
-                    ["There was an error creating the gacha: "].concat(createGachaRes.msg) :
-                    ["There was an error creating the gacha."];
-                msg.concat([<br />, "Please try again."])
+                msg = msg.concat((createGachaRes && createGachaRes.msg) ?
+                    ["There was an error creating the gacha: " + createGachaRes.msg] :
+                    ["There was an error creating the gacha."]);
+                msg = msg.concat([<br />, "Please try again."])
                 this._isMounted && this.setState({
                     alert: {
                         title: "Oops!",
@@ -208,7 +214,7 @@ class CreateGacha extends BaseReactComponent {
             this._isMounted && this.setState({
                 alert: {
                     title: "Gacha created successfully!",
-                    text: ["Would you like to edit it right away?"],
+                    text: msg.concat(["Would you like to edit it right away?"]),
                     yesNo: true,
                     handleYes: this.redirectGacha.bind(this, createGachaRes.gacha._id),
                     handleNo: this.redirectGacha.bind(this, createGachaRes.gacha._id),

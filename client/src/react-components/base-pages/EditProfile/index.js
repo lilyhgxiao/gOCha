@@ -120,9 +120,9 @@ class EditProfile extends BaseReactComponent {
     validateProfileInput = () => {
         const { bio } = this.state;
         let success = true;
-        const msg = [];
+        let msg = [];
         if (bio.length > maxUserBioLength) {
-            msg.concat(["Your bio is too long.", <br />, "It must be under " +
+            msg = msg.concat(["Your bio is too long.", <br />, "It must be under " +
                 maxUserBioLength + " characters.", <br />]);
             success = false;
         }
@@ -140,7 +140,7 @@ class EditProfile extends BaseReactComponent {
 
     editProfile = async () => {
         let success = true;
-        const msg = [];
+        let msg = [];
         const { bio, iconPicRaw, user } = this.state;
 
         try {
@@ -152,9 +152,9 @@ class EditProfile extends BaseReactComponent {
             const patchUserReq = await editUser(user._id, editProfileBody);
             if (!patchUserReq.user) {
                 if (patchUserReq && patchUserReq.msg) {
-                    msg.concat(["Failed to edit user: " + patchUserReq.msg, <br />]);
+                    msg = msg.concat(["Failed to edit user: " + patchUserReq.msg, <br />]);
                 } else {
-                    msg.concat(["Failed to edit user.", <br />]);
+                    msg = msg.concat(["Failed to edit user.", <br />]);
                 }
                 success = false;
             }
@@ -199,21 +199,21 @@ class EditProfile extends BaseReactComponent {
     validatePassInput = async () => {
         let success = true;
         const { oldPassword, newPassword, confirmPassword } = this.state;
-        const msg = [];
+        let msg = [];
         try {
             // if the user exists, make sure their password is correct
             const checkOldPass = await this.comparePass(oldPassword);
             if (!checkOldPass) {
-                msg.concat(["The old password is not correct.", <br />]);
+                msg = msg.concat(["The old password is not correct.", <br />]);
                 success = false;
             }
             if (newPassword.length < minPassLength || newPassword.length > maxPassLength) {
-                msg.concat(["The password must be between " + minPassLength + " and " +
+                msg = msg.concat(["The password must be between " + minPassLength + " and " +
                     maxPassLength + " characters.", <br />]);
                 success = false;
             }
             if (newPassword !== confirmPassword) {
-                msg.concat(["The new password and confirm password do not match.", <br />]);
+                msg = msg.concat(["The new password and confirm password do not match.", <br />]);
                 success = false;
             }
 
@@ -240,7 +240,7 @@ class EditProfile extends BaseReactComponent {
 
     changePassword = async () => {
         let success = true;
-        const msg = [];
+        let msg = [];
         const { user, newPassword } = this.state;
 
         try {
@@ -251,9 +251,9 @@ class EditProfile extends BaseReactComponent {
             const patchUserReq = await editUser(user._id, editPasswordBody);
             if (!patchUserReq.user) {
                 if (patchUserReq && patchUserReq.msg) {
-                    msg.concat(["Failed to edit user: " + patchUserReq.msg, <br />]);
+                    msg = msg.concat(["Failed to edit user: " + patchUserReq.msg, <br />]);
                 } else {
-                    msg.concat(["Failed to edit user.", <br />]);
+                    msg = msg.concat(["Failed to edit user.", <br />]);
                 }
                 success = false;
             }

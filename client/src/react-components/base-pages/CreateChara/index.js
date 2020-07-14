@@ -149,38 +149,38 @@ class CreateChara extends BaseReactComponent {
     validateInput = async () => {
         const { name, desc, welcomePhrase, summonPhrase, coverPicRaw, iconPicRaw } = this.state;
         let success = true;
-        const msg = [];
+        let msg = [];
         if (name.length < minCharaNameLength) { //validate chara name length
-            msg.concat(["Your character name is too short.", <br />, "It must be between " + minCharaNameLength +
+            msg = msg.concat(["Your character name is too short.", <br />, "It must be between " + minCharaNameLength +
                 " and " + maxCharaNameLength + " characters.", <br />]);
             success = false;
         }
         if (maxCharaNameLength - name.length < 0) {
-            msg.concat(["Your character name is too long.", <br />, "It must be between " + minCharaNameLength +
+            msg = msg.concat(["Your character name is too long.", <br />, "It must be between " + minCharaNameLength +
                 " and " + maxCharaNameLength + " characters.", <br />]);
             success = false;
         }
         if (maxCharaDescLength - desc.length < 0) { //validate chara desc length
-            msg.concat(["The description is too long.", <br />, "It must be under " + maxCharaDescLength +
+            msg = msg.concat(["The description is too long.", <br />, "It must be under " + maxCharaDescLength +
                 " characters.", <br />]);
             success = false;
         }
         if (maxWelcPhrLength - welcomePhrase.length < 0) { //validate chara welcome phrase length
-            msg.concat(["The welcome phrase is too long.", <br />, "It must be under " + maxWelcPhrLength +
+            msg = msg.concat(["The welcome phrase is too long.", <br />, "It must be under " + maxWelcPhrLength +
                 " characters.", <br />]);
             success = false;
         }
         if (maxSummPhrLength - summonPhrase.length < 0) { //validate chara summon phrase length
-            msg.concat(["The welcome phrase is too long.", <br />, "It must be under " + maxSummPhrLength +
+            msg = msg.concat(["The welcome phrase is too long.", <br />, "It must be under " + maxSummPhrLength +
                 " characters.", <br />]);
             success = false;
         }
         if (coverPicRaw === null) { //validate if pictures uploaded or not
-            msg.concat(["Please upload a cover picture.", <br />]);
+            msg = msg.concat(["Please upload a cover picture.", <br />]);
             success = false;
         }
         if (iconPicRaw === null) {
-            msg.concat(["Please upload an icon.", <br />]);
+            msg = msg.concat(["Please upload an icon.", <br />]);
             success = false;
         }
         if (success === true) {
@@ -197,8 +197,18 @@ class CreateChara extends BaseReactComponent {
 
     createChara = async () => {
         const { name, desc, stats, currUser, rarity, welcomePhrase, summonPhrase,
-            coverPicRaw, iconPicRaw, gacha } = this.state;
+            gacha } = this.state;
+        let { coverPicRaw, iconPicRaw } = this.state;
+        let msg = [];
         try {
+            if (coverPicRaw && !iconPicRaw) {
+                iconPicRaw = coverPicRaw;
+                console.log("Note: An icon was not uploaded, so the cover picture will be used instead.")
+                msg = msg.concat(["Note: An icon was not uploaded, so the cover picture will be used instead.", <br/>]);
+            } else if (iconPicRaw && !coverPicRaw) {
+                coverPicRaw = iconPicRaw;
+                msg = msg.concat(["Note: A cover picture was not uploaded, so the icon will be used instead.", <br/>]);
+            }
             const createCharaBody = {
                 name: name,
                 desc: desc,
@@ -212,10 +222,10 @@ class CreateChara extends BaseReactComponent {
             };
             const createCharaRes = await createNewChara(gacha._id, createCharaBody);
             if (!createCharaRes || !createCharaRes.chara) {
-                const msg = (createCharaRes && createCharaRes.msg) ?
-                    ["There was an error creating the character: "].concat(createCharaRes.msg) :
-                    ["There was an error creating the character."];
-                msg.concat([<br />, "Please try again."])
+                msg = msg.concat((createCharaRes && createCharaRes.msg) ?
+                    ["There was an error creating the character: " + createCharaRes.msg] :
+                    ["There was an error creating the character."]);
+                msg = msg.concat([<br />, "Please try again."])
                 this._isMounted && this.setState({
                     alert: {
                         title: "Oops!",
