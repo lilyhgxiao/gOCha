@@ -116,6 +116,7 @@ class GachaSmnResult extends BaseReactComponent {
     addCharaToInv = async (locationState) => {
         try {
             const { currUser } = this.state;
+            
             const charaToAdd = locationState ? locationState.rolledCharacter : this.state.rolledCharacter;
             const charaToCompare = { _id: charaToAdd._id, gacha: charaToAdd.gacha, creator: charaToAdd.creator };
             const compareResult = currUser.inventory.findIndex(charaInInv => {
@@ -210,7 +211,8 @@ class GachaSmnResult extends BaseReactComponent {
         const { gacha } = this.state;
         //remove the alert
         this._isMounted && this.setState({
-            alert: null
+            alert: null,
+            alreadyHave: false
         });
     
         try {
