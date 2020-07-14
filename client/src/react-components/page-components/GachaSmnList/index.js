@@ -7,13 +7,7 @@ import GachaSmnListTable from "./../GachaSmnListTable";
 
 //images
 /**TODO: replace placeholder images */
-import main_placeholder from './../../../images/dashboard_placeholder.jpg';
 import exit_icon from './../../../images/exit.png';
-import edit_icon from './../../../images/edit.png';
-
-// Importing actions/required methods
-import { getAllCharasInGacha } from "../../../actions/charaHelpers";
-import { uid } from "react-uid";
 
 //Importing constants
 import { fiveStarChance, fourStarChance, threeStarChance } from "../../../constants";

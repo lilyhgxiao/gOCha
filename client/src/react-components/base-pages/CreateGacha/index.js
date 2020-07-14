@@ -134,7 +134,7 @@ class CreateGacha extends BaseReactComponent {
     }
 
     validateInput = async () => {
-        const { name, desc, stats, coverPicRaw, iconPicRaw, currUser } = this.state;
+        const { name, desc, stats, coverPicRaw, iconPicRaw } = this.state;
         let success = true;
         const msg = [];
         if (name.length < minGachaNameLength) { //validate gacha name length

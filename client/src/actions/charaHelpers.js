@@ -1,4 +1,4 @@
-import { setState, convertJSON, errorMatch } from "./helpers";
+import { errorMatch } from "./helpers";
 
 import { uploadPicsForNewObj, deleteFile, replaceFile } from "./fileHelpers";
 

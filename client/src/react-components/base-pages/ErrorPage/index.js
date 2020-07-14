@@ -41,10 +41,9 @@ class ErrorPage extends BaseReactComponent {
     async componentDidMount() {
         try {
             const locationState = this.props.location.state;
-            let success = false;
 
             this._isMounted = true;
-            this._isMounted && (success = await checkAndUpdateSession.bind(this)(this.fetchInv));
+            this._isMounted && (await checkAndUpdateSession.bind(this)(this.fetchInv));
 
             if (locationState && locationState.error) {
                 this._isMounted && this.setState({
@@ -67,7 +66,6 @@ class ErrorPage extends BaseReactComponent {
     }
 
     render() {
-        const { history } = this.props;
         const { currUser, error } = this.state;
 
         return (

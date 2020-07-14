@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from 'react-router-dom';
 
 import "./styles.css";
 
@@ -8,8 +7,6 @@ import "./styles.css";
 
 //images
 /**TODO: replace image placeholders */
-import icon_placeholder from './../../../images/dashboard_placeholder.jpg';
-import edit_icon from './../../../images/edit.png';
 import dotted_line_box from './../../../images/dotted_line_box_placeholder.png';
 
 class UploadPic extends React.Component {

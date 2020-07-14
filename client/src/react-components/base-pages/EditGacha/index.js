@@ -1,6 +1,5 @@
 /*  Full Dashboard component */
 import React from "react";
-import { uid } from "react-uid";
 import { Redirect } from 'react-router';
 
 import "./styles.css";
@@ -27,7 +26,7 @@ import { getAllCharasInGacha, deleteCharaById } from "../../../actions/charaHelp
 import dotted_line_box from './../../../images/dotted_line_box_placeholder.png';
 
 //Importing constants
-import { editGachaURL, smnInfoURL, createCharaURL, maxGachaDescLength, 
+import { editGachaURL, smnInfoURL, maxGachaDescLength, 
     maxGachaNameLength, minGachaNameLength } from "../../../constants";
 
 /**TODO: add delete gacha */

@@ -147,7 +147,7 @@ export const summon = async function (gacha) {
         }
     }
     //if all retries used up, reload gacha information
-    if (retries == 0 && !rolledCharacter) {
+    if (retries === 0 && !rolledCharacter) {
         this._isMounted && this.setState({
             alert: {
                 title: "Oh no!",

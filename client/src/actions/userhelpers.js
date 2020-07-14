@@ -1,6 +1,6 @@
-import { setState, setEmptyState, convertJSON, coverFileName, iconFileName, errorMatch } from "./helpers";
+import { setState, setEmptyState, errorMatch } from "./helpers";
 
-import { uploadFile, deleteFile, replaceFile } from "./fileHelpers";
+import { deleteFile, replaceFile } from "./fileHelpers";
 
 import { s3URL, userFolder } from "./../constants";
 

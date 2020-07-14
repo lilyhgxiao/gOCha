@@ -7,9 +7,8 @@ const fetch = require('node-fetch');
 /**TODO: get rid of most console.logs */
 
 export const uploadFile = async (file, fileName) => {
-
     let url = "http://localhost:3001/generate-put-url?";
-    //const url = "/generate-put-url?Key=${encodeURIComponent(file.name)}&ContentType=${encodeURIComponent(file.type)}"
+    //let url = "/generate-put-url?";
 
     url += "Key=" + encodeURIComponent(fileName);
     url +=  "&ContentType=" + encodeURIComponent(file.type);
@@ -46,7 +45,7 @@ export const uploadFile = async (file, fileName) => {
 
 export const deleteFile = async (fileName) => {
     let url = "http://localhost:3001/delete-object?";
-    //const url = "/generate-put-url?Key=${encodeURIComponent(file.name)}&ContentType=${encodeURIComponent(file.type)}"
+    //const url = "/delete-object?""
 
     url += "Key=" + encodeURIComponent(fileName);
 
@@ -66,10 +65,13 @@ export const deleteFile = async (fileName) => {
 }
 
 /**TODO: fix up this function and test it */
-export const getFile = async (fileName) => {
+export const getFile = async (file, fileName) => {
     /**TODO: fix url */
-    const url = "http://localhost:3001/generate-get-url?Key=${encodeURIComponent(fileName)}&ContentType=${encodeURIComponent(file.type)}"
-    //const url = "/generate-get-url?Key=${encodeURIComponent(file.name)}&ContentType=${encodeURIComponent(file.type)}"
+    let url = "http://localhost:3001/generate-get-url?"
+    //const url = "/generate-get-url?"
+    
+    url += "Key=" + encodeURIComponent(fileName);
+    url +=  "&ContentType=" + encodeURIComponent(file.type);
 
     try {
         const res = await fetch(url, {
@@ -128,7 +130,7 @@ export const uploadPicsForNewObj = (folder, id, body) => {
 
 export const replaceFile = async (pic, id, folder, cover) => {
     let coverOrIcon = cover ? "coverPic" : "iconPic";
-    let reg =  new RegExp(`${s3URL}${folder}[a-f\d0-9]{24}_${coverOrIcon}_v[0-9]+\.[a-z]+`, "i");
+    let reg =  new RegExp(`${s3URL}${folder}[a-f0-9]{24}_${coverOrIcon}_v[0-9]+[a-z]+`, "i");
     let newFilename;
     if (pic.oldURL.match(reg) !== null) {
         const oldVer = parseInt(pic.oldURL.substring(pic.oldURL.lastIndexOf("_v") + 2, pic.oldURL.lastIndexOf(".")));

@@ -3,12 +3,8 @@ import { Link } from 'react-router-dom';
 
 import "./styles.css";
 
-// Importing components
-import BaseReactComponent from "../../other/BaseReactComponent";
-
 //images
 /**TODO: replace placeholder images */
-import icon_placeholder from './../../../images/dashboard_placeholder.jpg';
 import edit_icon from './../../../images/edit.png';
 
 //Importing constants
@@ -36,7 +32,7 @@ class GachaLink extends React.Component {
 
         return (
             <div className="gachaLinkContainer" onMouseEnter={this.handleMouseHover} onMouseLeave={this.handleMouseHover}>
-                { isHovering && currUser._id == gacha.creator ?
+                { isHovering && currUser._id.toString() === gacha.creator.toString() ?
                     <Link to={editGachaURL + gacha._id}>
                         <input
                             className="gachaLinkEditButton"

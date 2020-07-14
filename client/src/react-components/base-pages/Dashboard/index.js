@@ -37,7 +37,8 @@ class Dashboard extends BaseReactComponent {
             error: null,
             mainPic: dashboard_placeholder,
             welcomePhrase: null,
-            chara: null
+            chara: null,
+            toChara: false
         };    
     }
 
@@ -85,6 +86,12 @@ class Dashboard extends BaseReactComponent {
         }
     }
 
+    toChara = () => {
+        this.state.chara && this._isMounted && this.setState({
+            toChara: true
+        });
+    }
+
     /**TODO: delete this */
     createAlertDialogue = () => {
         this.setState({
@@ -100,8 +107,16 @@ class Dashboard extends BaseReactComponent {
     }
 
     render() {
-        const { history } = this.props;
-        const { currUser, alert, error, welcomePhrase, mainPic, chara } = this.state;
+        const { currUser, alert, error, welcomePhrase, mainPic, chara, toChara } = this.state;
+
+        if (toChara) {
+            return (
+                <Redirect push to={{
+                    pathname: collectionURL,
+                    state: { showChara: chara }
+                }} />
+            );
+        }
 
         if (error) {
             return (
@@ -128,7 +143,7 @@ class Dashboard extends BaseReactComponent {
                         { welcomePhrase ?
                             <div className="dashboardWelcPhrase">{ welcomePhrase }</div> : null
                         }
-                        <img className="dashboardMainPic" src={mainPic} alt='Dashboard Main'/>
+                        <img className="dashboardMainPic" src={mainPic} alt='Dashboard Main' onClick={this.toChara}/>
                         <div className="dashboardTopMenu">
                             <div className="currencyDisplay">Star Fragments: {currUser ? currUser.starFrags: 0}</div>
                             <div className="currencyDisplay">Silvers: {currUser ? currUser.silvers : 0}</div>

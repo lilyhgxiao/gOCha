@@ -6,9 +6,8 @@ import AlertDialogue from "./../../page-components/AlertDialogue";
 
 // Importing actions/required methods
 //import { updateLoginForm, login } from "../../actions/user";
-import { login, logout, updateLoginForm } from "../../../actions/loginHelpers"
+import { login } from "../../../actions/loginHelpers"
 import { checkAndUpdateSession } from "../../../actions/helpers";
-import { getState } from "statezero";
 
 /**TODO: replace placeholder images */
 import logo from './../../../images/logo_placeholder.png';
@@ -139,8 +138,6 @@ class Login extends React.Component {
             );
         }
 
-        /*Render */
-        /**TODO: add alertdialogue */
         return (
             <div className='center'>
                 { alert ? 

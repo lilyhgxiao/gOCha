@@ -119,8 +119,14 @@ class CharaEditLink extends React.Component {
             <table className="charaEditLinkContainer">
                 <tbody>
                     <tr>
-                        <td onClick={this.handleClick}><img className="charaEditLinkIcon" src={chara.iconPic} alt={chara.name + " Icon"} /></td>
-                        <td onClick={this.handleClick}><div className="charaEditLinkName">{chara.name}</div></td>
+                        <td onClick={this.handleClick}>
+                            <img className="charaEditLinkIcon" 
+                            src={chara ? chara.iconPic : icon_placeholder} 
+                            alt={(chara ? chara.name : "Character") + " Icon"} />
+                        </td>
+                        <td onClick={this.handleClick}>
+                            <div className="charaEditLinkName">{chara ? chara.name : "Character Name"}</div>
+                        </td>
                         {   canDelete ?
                             <td><button onClick={this.handleDeleteClick}>Delete</button></td> : null
                         }

@@ -1,6 +1,6 @@
-import { setState, convertJSON, coverFileName, iconFileName, errorMatch } from "./helpers";
+import { errorMatch } from "./helpers";
 
-import { uploadFile, deleteFile, replaceFile, uploadPicsForNewObj } from "./fileHelpers";
+import { deleteFile, replaceFile, uploadPicsForNewObj } from "./fileHelpers";
 
 import { s3URL, gachaFolder } from "./../constants";
 
@@ -116,7 +116,7 @@ export const createNewGacha = async (body) => {
                 if (!uploadRes.iconPic) msg.push("icon image");
                 msg.push(". Please reupload the image in the edit page.");
                 return { status: postRes.status, msg: msg, err: null,
-                    gacha: patchRes.gacha };
+                    gacha: postRes.gacha };
             }
 
             const patchRes = await fetchPatchGacha(gacha._id, uploadRes);

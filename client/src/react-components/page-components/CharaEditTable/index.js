@@ -5,10 +5,6 @@ import "./styles.css";
 
 import CharaEditList from "./../CharaEditList";
 
-//images
-/**TODO: get new placeholder for icon */
-import icon_placeholder from './../../../images/dashboard_placeholder.jpg';
-/**TODO: handle when chara  or chara properties is empty */
 //Importing constants
 import {
     createCharaURL

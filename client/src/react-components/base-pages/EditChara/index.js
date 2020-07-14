@@ -1,6 +1,5 @@
 /*  Full Dashboard component */
 import React from "react";
-import { uid } from "react-uid";
 import { Redirect } from 'react-router';
 
 import "./styles.css";
@@ -134,8 +133,7 @@ class CreateChara extends BaseReactComponent {
                 stats: stats,
                 rarity: chara.rarity,
                 welcomePhrase: chara.welcomePhrase,
-                summonPhrase: chara.summonPhrase,
-                stats: stats
+                summonPhrase: chara.summonPhrase
             }, this.fetchCharas);
 
         } catch (err) {
@@ -203,8 +201,7 @@ class CreateChara extends BaseReactComponent {
     }
     
     validateInput = async () => {
-        const { name, desc, stats, rarity, welcomePhrase, summonPhrase, coverPicRaw, 
-            iconPicRaw, currUser } = this.state;
+        const { name, desc, welcomePhrase, summonPhrase } = this.state;
         let success = true;
         const msg = [];
         if (name.length < minCharaNameLength) { //validate chara name length

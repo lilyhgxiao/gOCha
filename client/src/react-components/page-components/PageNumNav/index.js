@@ -51,6 +51,7 @@ class PageNumNav extends React.Component {
                                 {" ... "}
                             </span>);
                         }
+                        return (null);
                     }
                 })}
             </div>

@@ -6,10 +6,6 @@ class CharaPhraseInput extends React.Component {
 
     _isMounted = false;
 
-    constructor(props) {
-        super(props);
-    }
-
     componentDidMount () {
         this._isMounted = true;
     }

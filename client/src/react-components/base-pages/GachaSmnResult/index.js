@@ -24,8 +24,6 @@ import { smnResultURL, smnInfoURL, errorURL, summonCost, threeStarSilvers, fourS
 //images
 /**TODO: replace placeholder images */
 import main_placeholder from './../../../images/dashboard_placeholder.jpg';
-import exit_icon from './../../../images/exit.png';
-import edit_icon from './../../../images/edit.png';
 
 class GachaSmnResult extends BaseReactComponent {
 
@@ -161,9 +159,8 @@ class GachaSmnResult extends BaseReactComponent {
             case 3: return threeStarSilvers;
             case 4: return fourStarSilvers;
             case 5: return fiveStarSilvers;
+            default: return 0;
         }
-        console.log("charaToAdd has an invalid rarity.")
-        return 0;
     }
 
     handleSummonClick = async () => {
@@ -269,11 +266,14 @@ class GachaSmnResult extends BaseReactComponent {
                             null
                         }
                     <div className="mainBody">
-                        {isLoaded ?
+                        {isLoaded && chara ?
                             <div className="charaSmnContainer">
                                 <div className="charaSmnSubtitle">Congratulations! You've summoned</div>
                                 <div className="charaSmnTitle">{chara.name}</div>
-                                <img className="charaSmnCoverPic" src={chara.coverPic} alt={chara.name + ' Picture'} />
+                                <img className="charaSmnCoverPic" 
+                                    src={(chara.coverPic && chara.coverPic !== "") ? 
+                                        chara.coverPic : main_placeholder} 
+                                    alt={chara.name + ' Picture'} />
                                 <StarRarityDisplay rarity={chara.rarity} />
                                 {chara.summonPhrase ?
                                     <div className="charaSmnPhrase">{chara.summonPhrase}</div> :

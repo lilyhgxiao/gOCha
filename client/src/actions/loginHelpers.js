@@ -1,6 +1,4 @@
-import { setState, setEmptyState } from "./helpers";
-// getState is used to get the value of a state path
-import { getState } from "statezero";
+import { setEmptyState } from "./helpers";
 
 const fetch = require('node-fetch');
 
