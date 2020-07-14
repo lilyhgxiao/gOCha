@@ -21,7 +21,8 @@ import { getGachasByCreator } from "../../../actions/gachaHelpers";
 /**TODO: replace placeholder images */
 import dashboard_placeholder from './../../../images/dashboard_placeholder.jpg';
 
-/**TODO: implement random character selection for cover pic */
+//Importing constants
+import { profileURL, editAccURL, errorURL, gachasPerPage } from "../../../constants";
 
 class Profile extends BaseReactComponent {
 
@@ -35,7 +36,7 @@ class Profile extends BaseReactComponent {
 
     constructor(props) {
         super(props);
-        this.props.history.push("/profile/" + props.match.params.username);
+        this.props.history.push(profileURL + props.match.params.username);
     }
 
     filterState({ currUser }) {
@@ -43,7 +44,6 @@ class Profile extends BaseReactComponent {
     }
 
     async componentDidMount() {
-        /**TODO: redirect back to login if session is not there */
         try {
             this._isMounted = true;
             this._isMounted && await checkAndUpdateSession.bind(this)(this.fetchUser);
@@ -86,15 +86,12 @@ class Profile extends BaseReactComponent {
     }
 
     render() {
-        const { history } = this.props;
         const { currUser, alert, user, gachaList, isUserLoaded, isGachaLoaded } = this.state;
 
         return (
             <div className="App">
                 {/* Header component. */}
-                <Header username={currUser ? currUser.username: ""} 
-                    starFrags={currUser ? currUser.starFrags: 0} 
-                    silvers={currUser ? currUser.silvers : 0}/>
+                <Header currUser={currUser}/>
 
                 <div className="mainBodyContainer">
                     { alert ? 
@@ -104,7 +101,7 @@ class Profile extends BaseReactComponent {
                     <div className="mainBody">
                         <div className="editProfileButtonContainer">
                             { isUserLoaded && user.username === currUser.username ?
-                                <Link to={"/edit/profile/" + user.username}>
+                                <Link to={editAccURL + user.username}>
                                     <button className="editProfileButton">Edit Profile</button> 
                                 </Link> : null
                             }
@@ -112,11 +109,13 @@ class Profile extends BaseReactComponent {
                         <img className="profilePic" src={isUserLoaded ? dashboard_placeholder : dashboard_placeholder} alt='Profile Pic'/>
                         <div className="profileUsername">{isUserLoaded ? user.username : "Username" }</div>
                         <div className="profileBio">{isUserLoaded ? user.bio : "Bio Goes Here" }</div>
+                        <div className="theirGachasTitle">{isUserLoaded ? user.username + "'s Gachas" : "Their Gachas"}</div>
                         <div>
                             {   isGachaLoaded ?
                                 <GachaList 
                                 gachaList={gachaList}
-                                newLink={false}/> : 
+                                newLink={false}
+                                currUser={currUser}/> : 
                                 null
                             }
                         </div>

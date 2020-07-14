@@ -12,13 +12,14 @@ import BaseReactComponent from "../../other/BaseReactComponent";
 import UploadPic from "../../page-components/UploadPic";
 import NameInput from "./../../page-components/NameInput";
 import DescInput from "./../../page-components/DescInput";
+import RarityPhrasesForm from "./../../page-components/RarityPhrasesForm";
+import CharaStatsTable from "./../../page-components/CharaStatsTable";
 import AlertDialogue from "../../page-components/AlertDialogue";
-import StatDisplay from "../../page-components/StatDisplay";
 import StarRarityDisplay from "../../page-components/StarRarityDisplay";
 import CharaEditTable from "../../page-components/CharaEditTable";
 
 // Importing actions/required methods
-import { updateSession } from "../../../actions/loginHelpers";
+import { checkAndUpdateSession, processError } from "../../../actions/helpers";
 import { getCharaById, editChara, getAllCharasInGacha } from "../../../actions/charaHelpers";
 import { getGachaById } from "../../../actions/gachaHelpers";
 import { getUserById } from "../../../actions/userhelpers";
@@ -28,38 +29,40 @@ import { getUserById } from "../../../actions/userhelpers";
 import dotted_line_box from './../../../images/dotted_line_box_placeholder.png';
 
 //Importing constants
-import { maxCharaDescLength, maxCharaNameLength, minCharaNameLength, maxWelcPhrLength, maxSummPhrLength } from "../../../constants";
-import { forEach } from "lodash-es";
+import { editCharaURL, editGachaURL, errorURL, maxCharaDescLength, maxCharaNameLength, 
+    minCharaNameLength, maxWelcPhrLength, maxSummPhrLength } from "../../../constants";
 
-/**TODO: add navigation back to edit gacha page */
 /**TODO: add delete character */
 
 class CreateChara extends BaseReactComponent {
 
-    state = {
-        alert: null,
-        coverPic: dotted_line_box,
-        coverPicRaw: null,
-        iconPic: dotted_line_box,
-        iconPicRaw: null,
-        name: "",
-        desc: "",
-        stats: [],
-        rarity: 3,
-        welcomePhrase: "",
-        summonPhrase: "",
-        chara: null,
-        gacha: null,
-        threeStars: [],
-        fourStars: [],
-        fiveStars: [],
-        toEdit: false,
-        isCharaLoaded: false
-    }
+    _isMounted = false;
 
     constructor(props) {
         super(props);
-        this.props.history.push("/edit/chara/" + props.match.params.id);
+        this.props.history.push(editCharaURL + props.match.params.id);
+
+        this.state = {
+            coverPic: dotted_line_box,
+            coverPicRaw: null,
+            iconPic: dotted_line_box,
+            iconPicRaw: null,
+            name: "",
+            desc: "",
+            stats: [],
+            rarity: 3,
+            welcomePhrase: "",
+            summonPhrase: "",
+            chara: null,
+            gacha: null,
+            threeStars: [],
+            fourStars: [],
+            fiveStars: [],
+            toEdit: false,
+            isCharaLoaded: false,
+            alert: null,
+            error: null
+        }
     }
 
     filterState({ currUser }) {
@@ -67,15 +70,24 @@ class CreateChara extends BaseReactComponent {
     }
 
     async componentDidMount() {
-        /**TODO: redirect back to login if session is not there */
-        const readSessRes = await updateSession();
-        if (readSessRes) {
-            if (readSessRes.currUser) {
-                this.setState({
-                    currUser: readSessRes.currUser
-                }, this.fetchCharaGachaInfo);
-            }
+        try {
+            this._isMounted = true;
+            this._isMounted && await checkAndUpdateSession.bind(this)(this.fetchCharaGachaInfo);
+        } catch (err) {
+            this._isMounted && this.setState({
+                error: {
+                    code: 500, msg: "Something went wrong and your session has expired." +
+                        "Please log in again.", toLogin: true
+                }
+            });
         }
+    }
+
+    componentWillUnmount() {
+        this._isMounted = false;
+        this.setState = (state, callback) => {
+            return;
+        };
     }
 
     fetchCharaGachaInfo = async () => {
@@ -84,27 +96,33 @@ class CreateChara extends BaseReactComponent {
         try {
             const getChara = await getCharaById(id);
             if (!getChara || !getChara.chara) {
-                console.log("Failed to get chara " + id);
+                this._isMounted && processError.bind(this)(getChara, true, false);
                 return;
             }
             const chara = getChara.chara;
             const getCreator = await getUserById(chara.creator);
             if (!getCreator || !getCreator.user) {
-                console.log("Failed to get creator " + chara.creator);
+                this._isMounted && processError.bind(this)(getCreator, true, false);
                 return;
             }
             const creator = getCreator.user;
             if (creator._id.toString() !== this.state.currUser._id.toString()) {
-                //do not have permission. redirect to 401 error page
+                this._isMounted && this.setState({
+                    error: {
+                        code: 401,
+                        msg: ["Sorry, you don't have permission to edit this character."],
+                        toDashboard: true
+                    }
+                });
                 return;
             }
             const getGacha = await getGachaById(chara.gacha);
             if (!getGacha || !getGacha.gacha) {
-                console.log("Failed to get gacha " + id);
+                this._isMounted && processError.bind(this)(getGacha, true, false);
                 return;
             }
             const gacha = getGacha.gacha;
-            const stats = await this.addMissingStats(chara.stats, gacha.stats);
+            const stats = this.addMissingStats(chara.stats, gacha.stats);
 
             this.setState({
                 chara: chara,
@@ -121,31 +139,39 @@ class CreateChara extends BaseReactComponent {
             }, this.fetchCharas);
 
         } catch (err) {
-            console.log("Error in fetchGachaInfo: " + err);
+            console.log("Error in fetchCharaGachaInfo: " + err);
+            this._isMounted && this.setState({
+                error: { code: 500, msg: "Something went wrong loading the page.", toDashboard: true }
+            });
         }
     }
 
     fetchCharas = async () => {
         const { gacha } = this.state;
-        const getAllCharasRes = await getAllCharasInGacha(gacha._id);
-        if (!getAllCharasRes || !getAllCharasRes.charas) {
-            console.log("Failed to get charas of gacha.")
-            return;
-        }
+        try {
+            const getAllCharasRes = await getAllCharasInGacha(gacha._id);
+            if (!getAllCharasRes || !getAllCharasRes.charas) {
+                this._isMounted && processError.bind(this)(getAllCharasRes, true, false);
+                return;
+            }
 
-        this.setState({
-            threeStars: getAllCharasRes.charas.filter(chara => chara.rarity === 3),
-            fourStars: getAllCharasRes.charas.filter(chara => chara.rarity === 4),
-            fiveStars: getAllCharasRes.charas.filter(chara => chara.rarity === 5),
-            isLoaded: true
-        ,}, this.resizeMainContainer);
+            this._isMounted && this.setState({
+                threeStars: getAllCharasRes.charas.filter(chara => chara.rarity === 3),
+                fourStars: getAllCharasRes.charas.filter(chara => chara.rarity === 4),
+                fiveStars: getAllCharasRes.charas.filter(chara => chara.rarity === 5),
+                isLoaded: true
+            ,}, this.resizeMainContainer);
+        } catch (err) {
+            console.log("Error in fetchCharas: " + err);
+            this._isMounted && this.setState({
+                error: { code: 500, msg: "Something went wrong loading the page.", toDashboard: true }
+            });
+        }
+        
     }
 
-    addMissingStats = async (charaStats, gachaStats) => {
+    addMissingStats = (charaStats, gachaStats) => {
         const statsToReturn = JSON.parse(JSON.stringify(charaStats));
-
-        console.log(statsToReturn);
-        console.log(gachaStats);
         
         let checkStat;
         gachaStats.forEach(gachaStat => {
@@ -163,7 +189,7 @@ class CreateChara extends BaseReactComponent {
         const name = target.name;
     
         // 'this' is bound to the component in this arrow function.
-        this.setState({
+        this._isMounted && this.setState({
           [name]: value  // [name] sets the object property name to the value of the 'name' variable.
         });
     }
@@ -176,49 +202,34 @@ class CreateChara extends BaseReactComponent {
         mainBodyContainer.style.height = newHeight.toString() + "px";
     }
     
-    /**TODO: resize main container...? */
     validateInput = async () => {
         const { name, desc, stats, rarity, welcomePhrase, summonPhrase, coverPicRaw, 
             iconPicRaw, currUser } = this.state;
         let success = true;
         const msg = [];
-        //validate chara name length
-        if (name.length < minCharaNameLength) {
-            msg.push("Your character name is too short.");
-            msg.push(<br/>)
-            msg.push("It must be between " + minCharaNameLength + " and " + maxCharaNameLength + " characters.");
-            msg.push(<br/>)
+        if (name.length < minCharaNameLength) { //validate chara name length
+            msg.concat(["Your character name is too short.", <br />, "It must be between " + minCharaNameLength +
+                " and " + maxCharaNameLength + " characters.", <br />]);
             success = false;
-        } 
+        }
         if (maxCharaNameLength - name.length < 0) {
-            msg.push("Your character name is too long.");
-            msg.push(<br/>)
-            msg.push("It must be between " + minCharaNameLength + " and " + maxCharaNameLength + " characters.");
-            msg.push(<br/>)
-            success = false;
-        } 
-        //validate chara desc length
-        if (maxCharaDescLength - desc.length < 0) {
-            msg.push("Your description is too long.");
-            msg.push(<br/>)
-            msg.push("It must be under " + maxCharaDescLength + " characters.");
-            msg.push(<br/>)
+            msg.concat(["Your character name is too long.", <br />, "It must be between " + minCharaNameLength +
+                " and " + maxCharaNameLength + " characters.", <br />]);
             success = false;
         }
-        //validate chara welcome phrase length
-        if (maxWelcPhrLength - welcomePhrase.length < 0) {
-            msg.push("The welcome phrase is too long.");
-            msg.push(<br/>)
-            msg.push("It must be under " + maxWelcPhrLength + " characters.");
-            msg.push(<br/>)
+        if (maxCharaDescLength - desc.length < 0) { //validate chara desc length
+            msg.concat(["The description is too long.", <br />, "It must be under " + maxCharaDescLength +
+                " characters.", <br />]);
             success = false;
         }
-        //validate chara summon phrase length
-        if (maxSummPhrLength - summonPhrase.length < 0) {
-            msg.push("The summon phrase is too long.");
-            msg.push(<br/>)
-            msg.push("It must be under " + maxWelcPhrLength + " characters.");
-            msg.push(<br/>)
+        if (maxWelcPhrLength - welcomePhrase.length < 0) { //validate chara welcome phrase length
+            msg.concat(["The welcome phrase is too long.", <br />, "It must be under " + maxWelcPhrLength +
+                " characters.", <br />]);
+            success = false;
+        }
+        if (maxSummPhrLength - summonPhrase.length < 0) { //validate chara summon phrase length
+            msg.concat(["The welcome phrase is too long.", <br />, "It must be under " + maxSummPhrLength +
+                " characters.", <br />]);
             success = false;
         }
         if (success === true) {
@@ -236,74 +247,106 @@ class CreateChara extends BaseReactComponent {
 
     editChara = async () => {
         let success = true;
+        const msg = [];
         const { name, desc, stats, rarity, welcomePhrase, summonPhrase, coverPicRaw, iconPicRaw, 
-            currUser, chara } = this.state;
+            chara } = this.state;
 
-        const editCharaBody = {
-            name: name,
-            desc: desc,
-            stats: stats,
-            rarity: rarity,
-            welcomePhrase: welcomePhrase,
-            summonPhrase: summonPhrase
-        };
-        if (coverPicRaw) editCharaBody.coverPic = { oldURL: chara.coverPic, raw: coverPicRaw };
-        if (iconPicRaw) editCharaBody.iconPic = { oldURL: chara.iconPic, raw: iconPicRaw };
-
-        const patchCharaReq = await editChara(chara._id, editCharaBody);
-        /**TODO: handle response */
-        if (!patchCharaReq || !patchCharaReq.chara) {
-            console.log(patchCharaReq)
-            console.log("something went wrong")
-            success = false;
-            return;
-        }
-        if (success) {
-            this.setState({
-                alert: {
-                    title: "Chara saved successfully!",
-                    text: ["Would you like to go back to the edit gacha page?"],
-                    yesNo: true,
-                    yesText: "Go back to Edit Gacha",
-                    noText: "Stay here",
-                    handleYes: this.redirectEdit
+        try {
+            const editCharaBody = {
+                name: name,
+                desc: desc,
+                stats: stats,
+                rarity: rarity,
+                welcomePhrase: welcomePhrase,
+                summonPhrase: summonPhrase
+            };
+            if (coverPicRaw) editCharaBody.coverPic = { oldURL: chara.coverPic, raw: coverPicRaw };
+            if (iconPicRaw) editCharaBody.iconPic = { oldURL: chara.iconPic, raw: iconPicRaw };
+    
+            const patchCharaReq = await editChara(chara._id, editCharaBody);
+            if (!patchCharaReq || !patchCharaReq.chara) {
+                if (patchCharaReq && patchCharaReq.msg) {
+                    msg.concat(["Failed to edit chara: " + patchCharaReq.msg, <br/>]);
+                } else {
+                    msg.concat(["Failed to edit chara.", <br/>]);
                 }
-            });
-        } else {
-            this.setState({
+                success = false;
+            }
+            if (success) {
+                this._isMounted && this.setState({
+                    alert: {
+                        title: "Chara saved successfully!",
+                        text: ["Would you like to go back to the edit gacha page?"],
+                        yesNo: true,
+                        yesText: "Go back to Edit Gacha",
+                        noText: "Stay here",
+                        handleYes: this.redirectEdit
+                    }
+                });
+            } else {
+                this._isMounted && this.setState({
+                    alert: {
+                        title: "Something went wrong...",
+                        text: msg
+                    }
+                });
+            }
+        } catch (err) {
+            this._isMounted && this.setState({
                 alert: {
-                    text: ["Something went wrong..."]
+                    title: "Oops!",
+                    text: ["There was an error editing the character. Please try again."]
                 }
             });
         }
     }
 
+    handleBackToGacha = () => {
+        this._isMounted && this.setState({
+            alert: {
+                title: "Back to Edit Gacha?",
+                text: ["Any unsaved changes will be lost."],
+                yesNo: true,
+                handleYes: this.redirectEdit,
+                yesText: "Go to Edit Gacha",
+                noText: "Cancel"
+            }
+        });
+    }
+
     redirectEdit = () => {
-        this.setState({
+        this._isMounted && this.setState({
             alert: null,
             toEdit: true
         });
     }
 
     render() {
-        const { history } = this.props;
-        const { currUser, alert, chara, gacha, coverPic, iconPic, name, desc, stats, rarity, 
-            welcomePhrase, summonPhrase, threeStars, fourStars, fiveStars, toEdit } = this.state;
+        const { currUser, gacha, coverPic, iconPic, name, desc, stats, rarity, 
+            welcomePhrase, summonPhrase, threeStars, fourStars, fiveStars, toEdit, 
+            alert, error } = this.state;
 
-        if (toEdit) {
-            return (
-                <Redirect push to={{
-                    pathname: "/edit/gacha/" + chara.gacha
-                }} />
-            );
-        }
+            if (error) {
+                return (
+                    <Redirect push to={{
+                        pathname: errorURL,
+                        state: { error: error }
+                    }} />
+                );
+            }
+    
+            if (toEdit) {
+                return (
+                    <Redirect push to={{
+                        pathname: editGachaURL + gacha._id
+                    }} />
+                );
+            }
 
         return (
             <div className="App">
                 {/* Header component. */}
-                <Header username={currUser ? currUser.username: ""} 
-                    starFrags={currUser ? currUser.starFrags: 0} 
-                    silvers={currUser ? currUser.silvers : 0}/>
+                <Header currUser={currUser}/>
 
                 <div className="mainBodyContainer">
                     { alert ? 
@@ -313,18 +356,8 @@ class CreateChara extends BaseReactComponent {
                     <div className="mainBody">
                         <div className="editCharaContainer">
                             <div className="pageSubtitle">Create New Chara</div>
-                            <div className="charaNameContainer">
-                                <input className="charaNameInput"
-                                    name='name'
-                                    value={name}
-                                    onChange={this.handleInputChange}
-                                    type="text"
-                                    placeholder="Name (required)" />
-                                {maxCharaNameLength - name.length > 0 ?
-                                    <div className="nameCharCount">{maxCharaNameLength - name.length}</div> :
-                                    <div className="nameCharCountRed">{maxCharaNameLength - name.length}</div>
-                                }
-                            </div>
+                            <NameInput name={"name"} value={name} onChange={this.handleInputChange}
+                                placeholder={"Name (required)"} maxValueLength={maxCharaNameLength} />
                             <div className="editCharaCoverPicContainer">
                                 <UploadPic parent={this} cover={true} src={coverPic}/>
                                 <StarRarityDisplay rarity={rarity}/>
@@ -334,84 +367,13 @@ class CreateChara extends BaseReactComponent {
                                     <UploadPic parent={this} cover={false} src={iconPic}/>
                                     <div className="charaNamePreview">{name}</div>
                                 </div>
-                                <div className="charaDescContainer">
-                                    <textarea className="charaDescInput"
-                                        name='desc'
-                                        value={desc}
-                                        onChange={this.handleInputChange}
-                                        type="text"
-                                        placeholder="Describe this character (optional)" />
-                                    {maxCharaDescLength - desc.length > 0 ?
-                                        <div className="descCharCount">{maxCharaDescLength - desc.length}</div> :
-                                        <div className="descCharCountRed">{maxCharaDescLength - desc.length}</div>
-                                    }
-                                </div>
+                                <DescInput name={"desc"} value={desc} onChange={this.handleInputChange}
+                                    placeholder={"Describe this character (optional)"} maxValueLength={maxCharaDescLength} />
                             </div>
-                            <div className="rarityPhrasesContainer">
-                                <table className="rarityPhrasesTable">
-                                    <tbody>
-                                        <tr>
-                                            <th>Rarity</th>
-                                            <td><select className="raritySelect" 
-                                                value={rarity} 
-                                                name={"rarity"} 
-                                                onChange={this.handleInputChange}>
-                                                    <option value={3}>3</option>
-                                                    <option value={4}>4</option>
-                                                    <option value={5}>5</option>
-                                                </select>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Welcome Phrase</th>
-                                            <td>
-                                                <textarea className="charaPhraseInput"
-                                                    name='welcomePhrase'
-                                                    value={welcomePhrase}
-                                                    onChange={this.handleInputChange}
-                                                    type="text"
-                                                    placeholder="Their phrase when a character appears on the dashboard." />
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Summon Phrase</th>
-                                            <td>
-                                                <textarea className="charaPhraseInput"
-                                                    name='summonPhrase'
-                                                    value={summonPhrase}
-                                                    onChange={this.handleInputChange}
-                                                    type="text"
-                                                    placeholder="Their phrase when a character is summoned." />
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div className="charaStatsTableContainer">
-                                {stats.length > 0 ?
-                                    <div>
-                                        <div>Stats</div>
-                                        <table className="editCharaStatsTable">
-                                            <tbody>
-                                                {stats.map((stat, index) => {
-                                                    return (
-                                                        <tr key={uid(stat)}>
-                                                            <th>{stat.name}</th>
-                                                            <td>
-                                                                <StatDisplay value={stat.value}
-                                                                    edit={true}
-                                                                    index={index}
-                                                                    page={this} />
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })
-                                                }
-                                            </tbody>
-                                        </table>
-                                    </div> : null
-                                }
-                            </div>
+                            <RarityPhrasesForm rarity={rarity} welcomePhrase={welcomePhrase} summonPhrase={summonPhrase} 
+                                onChange={this.handleInputChange}/>
+                            <CharaStatsTable page={this} stats={stats}/>
+                            <button className="backToGachaButton" onClick={this.handleBackToGacha}>Back to Edit Gacha</button>
                             <button className="charaSaveButton" onClick={this.validateInput}>Save</button>
                             <CharaEditTable page={this} 
                                 gacha={gacha} 

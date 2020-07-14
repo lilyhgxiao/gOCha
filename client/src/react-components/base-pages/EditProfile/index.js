@@ -20,7 +20,7 @@ import { getUserByUsername, editUser, deleteUser } from "../../../actions/userhe
 //images
 /**TODO: replace placeholder images */
 import dashboard_placeholder from './../../../images/dashboard_placeholder.jpg';
-import { maxUserBioLength, minPassLength, maxPassLength } from "../../../constants";
+import { editAccURL, maxUserBioLength, minPassLength, maxPassLength } from "../../../constants";
 
 const bcrypt = require('bcryptjs')
 
@@ -41,7 +41,7 @@ class EditProfile extends BaseReactComponent {
 
     constructor(props) {
         super(props);
-        this.props.history.push("/edit/profile/" + props.match.params.username);
+        this.props.history.push(editAccURL + props.match.params.username);
     }
 
     filterState({ currUser }) {

@@ -32,8 +32,6 @@ import {
     minCharaNameLength, maxWelcPhrLength, maxSummPhrLength
 } from "../../../constants";
 
-
-/**TODO: add navigation back to edit gacha page */
 class CreateChara extends BaseReactComponent {
 
     _isMounted = false;
