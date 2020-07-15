@@ -50,7 +50,7 @@ class AlertDialogue extends React.Component {
     }
 
     handleChoice = (handleFunction) => {
-        const {checkbox, inputOn} = this.props;
+        const {checkbox, inputOn} = this.props.alert;
         const {checked, inputText} = this.state;
 
         if (inputOn) {

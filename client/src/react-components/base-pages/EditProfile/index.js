@@ -314,7 +314,8 @@ class EditProfile extends BaseReactComponent {
                         text: ["This action cannot be reversed.", <br />,
                             "You will lose your inventory, favourite gacha list, and other user information. Any " +
                             "gachas and characters you have created will also be lost, including from the inventories of other users.",
-                            <br />, <br />, "Delete your account anyway?"],
+                            <br />, <br />, "Delete your account anyway?", <br/>,
+                            "(Please check the box to confirm.)"],
                         checkbox: true,
                         checkboxText: ["I understand, delete my account."],
                         okText: "Delete",

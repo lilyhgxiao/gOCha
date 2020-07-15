@@ -17,7 +17,8 @@ import CharaEditTable from "./../../page-components/CharaEditTable";
 
 // Importing actions/required methods
 import { checkAndUpdateSession, processError } from "../../../actions/helpers";
-import { getGachaById, editGacha, addStatsToGacha, updateStatsOnGacha, deleteStatsOnGacha } from "../../../actions/gachaHelpers";
+import { getGachaById, editGacha, addStatsToGacha, updateStatsOnGacha, 
+    deleteStatsOnGacha, deleteGachaById } from "../../../actions/gachaHelpers";
 import { getUserById } from "../../../actions/userhelpers";
 import { getAllCharasInGacha, deleteCharaById } from "../../../actions/charaHelpers";
 
@@ -26,7 +27,7 @@ import { getAllCharasInGacha, deleteCharaById } from "../../../actions/charaHelp
 import dotted_line_box from './../../../images/dotted_line_box_placeholder.png';
 
 //Importing constants
-import { editGachaURL, smnInfoURL, maxGachaDescLength, 
+import { editGachaURL, gachasURL, maxGachaDescLength, 
     maxGachaNameLength, minGachaNameLength } from "../../../constants";
 
 /**TODO: add delete gacha */
@@ -55,7 +56,7 @@ class EditGacha extends BaseReactComponent {
             fiveStars: [],
             charasToRemove: [],
             active: false,
-            toSummon: false,
+            toYourGachas: false,
             dontShowDeleteWarning: false,
             alert: null,
             error: null
@@ -329,7 +330,10 @@ class EditGacha extends BaseReactComponent {
             if (success) {
                 this._isMounted && this.setState({
                     alert: {
-                        title: "Gacha saved successfully!"
+                        title: "Gacha saved successfully!",
+                        text: ["Keep editing?"],
+                        yesNo: true,
+                        handleNo: this.redirectYourGachas 
                     }
                 });
             } else {
@@ -421,21 +425,76 @@ class EditGacha extends BaseReactComponent {
         return {success, failedCharas};
     }
 
-    redirectGacha = (id) => {
+    handleDeleteClick = () => {
+        this._isMounted && this.setState({
+            alert: {
+                title: "Delete this gacha?",
+                text: ["Any characters created through this gacha will be deleted, including " + 
+                    "from the inventories of other users.", <br/>, <br/>, "Delete this gacha anyway?", <br/>,
+                    "(Please check the box to confirm.)"],
+                yesNo: true,
+                yesText: "Delete",
+                noText: "Cancel",
+                handleYes: this.deleteGacha,
+                checkbox: true,
+                checkboxText: ["I understand, delete the gacha."],
+            }
+        });
+    }
+
+    deleteGacha = async (checked) => {
+        const { gacha } = this.state;
+        if (checked) {
+            try {
+                const deleteGacha = await deleteGachaById(gacha._id);
+                if (!deleteGacha || !deleteGacha.gacha) {
+                    this._isMounted && this.setState({
+                        alert: {
+                            text: ["Something went wrong..."]
+                        }
+                    });
+                } else {
+                    this._isMounted && this.setState({
+                        alert: {
+                            title: "Successfully deleted the gacha.",
+                            text: ["Going back to the gacha list..."],
+                            handleOk: this.redirectYourGachas
+                        }
+                    });
+                }
+            } catch (err) {
+                this._isMounted && this.setState({
+                    alert: {
+                        title: "Oops!",
+                        text: ["There was an error deleting the gacha. Please try again."]
+                    }
+                });
+            }
+        } else {
+            this._isMounted && this.setState({
+                alert: {
+                    title: "Could not delete the gacha",
+                    text: ["Please check the confirmation checkbox."]
+                }
+            });
+        }
+    }
+
+    redirectYourGachas = () => {
         this.setState({
             alert: null,
-            toSummon: true
+            toYourGachas: true
         });
     }
 
     render() {
         const { currUser, gacha, alert, coverPic, iconPic, name, desc, oldStats, newStats, 
-            toSummon, active, threeStars, fourStars, fiveStars } = this.state;
+            toYourGachas, active, threeStars, fourStars, fiveStars } = this.state;
 
-        if (toSummon) {
+        if (toYourGachas) {
             return (
                 <Redirect push to={{
-                    pathname: smnInfoURL + gacha._id
+                    pathname: gachasURL
                 }} />
             );
         }
@@ -481,6 +540,8 @@ class EditGacha extends BaseReactComponent {
                                 fiveStars={fiveStars} 
                                 canDelete={true}/>
                             <button className="gachaSaveButton" onClick={this.validateInput}>Save</button>
+                            <br />
+                            <button className="gachaDeleteButton" onClick={this.handleDeleteClick}>Delete Gacha</button>
                         </div>
                     </div>
                 </div>

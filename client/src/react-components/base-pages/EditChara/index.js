@@ -19,7 +19,7 @@ import CharaEditTable from "../../page-components/CharaEditTable";
 
 // Importing actions/required methods
 import { checkAndUpdateSession, processError } from "../../../actions/helpers";
-import { getCharaById, editChara, getAllCharasInGacha } from "../../../actions/charaHelpers";
+import { getCharaById, editChara, getAllCharasInGacha, deleteCharaById } from "../../../actions/charaHelpers";
 import { getGachaById } from "../../../actions/gachaHelpers";
 import { getUserById } from "../../../actions/userhelpers";
 
@@ -273,7 +273,7 @@ class CreateChara extends BaseReactComponent {
                 this._isMounted && this.setState({
                     alert: {
                         title: "Chara saved successfully!",
-                        text: ["Would you like to go back to the edit gacha page?"],
+                        text: ["Go back to the gacha edit page or keep editing this character?"],
                         yesNo: true,
                         yesText: "Go back to Edit Gacha",
                         noText: "Stay here",
@@ -309,6 +309,61 @@ class CreateChara extends BaseReactComponent {
                 noText: "Cancel"
             }
         });
+    }
+
+    handleDeleteClick = () => {
+        this._isMounted && this.setState({
+            alert: {
+                title: "Delete this character?",
+                text: ["All information on this character will be lost, and they will be removed " + 
+                    "from the inventories of other users.", <br/>, <br/>, "Delete this character anyway?", <br/>,
+                    "(Please check the box to confirm.)"],
+                yesNo: true,
+                yesText: "Delete",
+                noText: "Cancel",
+                handleYes: this.deleteChara,
+                checkbox: true,
+                checkboxText: ["I understand, delete the gacha."],
+            }
+        });
+    }
+
+    deleteChara = async (checked) => {
+        const { chara } = this.state;
+        if (checked) {
+            try {
+                const deleteChara = await deleteCharaById(chara._id);
+                if (!deleteChara || !deleteChara.chara) {
+                    this._isMounted && this.setState({
+                        alert: {
+                            text: ["Something went wrong..."]
+                        }
+                    });
+                } else {
+                    this._isMounted && this.setState({
+                        alert: {
+                            title: "Successfully deleted the character.",
+                            text: ["Going back to the edit gacha page..."],
+                            handleOk: this.redirectEdit
+                        }
+                    });
+                }
+            } catch (err) {
+                this._isMounted && this.setState({
+                    alert: {
+                        title: "Oops!",
+                        text: ["There was an error deleting the character. Please try again."]
+                    }
+                });
+            }
+        } else {
+            this._isMounted && this.setState({
+                alert: {
+                    title: "Could not delete the character",
+                    text: ["Please check the confirmation checkbox."]
+                }
+            });
+        }
     }
 
     redirectEdit = () => {
@@ -372,6 +427,8 @@ class CreateChara extends BaseReactComponent {
                             <CharaStatsTable page={this} stats={stats}/>
                             <button className="backToGachaButton" onClick={this.handleBackToGacha}>Back to Edit Gacha</button>
                             <button className="charaSaveButton" onClick={this.validateInput}>Save</button>
+                            <br />
+                            <button className="charaDeleteButton" onClick={this.handleDeleteClick}>Delete Character</button>
                             <CharaEditTable page={this} 
                                 gacha={gacha} 
                                 threeStars={threeStars} 

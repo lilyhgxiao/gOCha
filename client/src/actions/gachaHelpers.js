@@ -260,3 +260,35 @@ export const deleteStatsOnGacha = async (id, body) => {
         return { status: null, gacha: null, msg: "Failed to delete stats on gacha.", err: err };
     }
 }
+
+export const deleteGachaById = async (id) => {
+    const url = "http://localhost:3001/gachas/" + id
+    //const url = "/gachas/" + id 
+
+    try {
+        const res = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            credentials: "include",
+        });
+        const json = await res.json();
+        let msg = errorMatch(res);
+        let deleteCoverPic;
+        let deleteIconPic;
+        if (json.gacha && json.gacha.coverPic && json.gacha.coverPic !== "") {
+            deleteCoverPic = await deleteFile(json.gacha.coverPic.replace(s3URL, ""));
+        }
+        if (json.gacha && json.gacha.iconPic && json.gacha.iconPic !== "") {
+            deleteIconPic = await deleteFile(json.gacha.iconPic.replace(s3URL, ""));
+        }
+        return { status: res.status, gacha: json.gacha, msg: msg, err: json.err,
+            deleteCoverPic: deleteCoverPic, deleteIconPic: deleteIconPic };
+    } catch (err) {
+        console.log('fetch failed, ', err);
+        return { status: null, gacha: null, msg: "Failed to delete Gacha.", err: err,
+            deleteCoverPic: null, deleteIconPic: null };
+    }
+}
