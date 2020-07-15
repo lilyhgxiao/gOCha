@@ -1,4 +1,4 @@
-/*  Inventory component */
+/*  GachaSmnResult component */
 import React from "react";
 import { Link } from 'react-router-dom';
 import { Redirect } from 'react-router';
@@ -117,7 +117,7 @@ class GachaSmnResult extends BaseReactComponent {
             
             const charaToAdd = locationState ? locationState.rolledCharacter : this.state.rolledCharacter;
             const charaToCompare = { _id: charaToAdd._id, gacha: charaToAdd.gacha, creator: charaToAdd.creator };
-            const compareResult = currUser.inventory.findIndex(charaInInv => {
+            const compareResult = currUser.collec.findIndex(charaInInv => {
                 const charaInInvTemp = { _id: charaInInv._id, gacha: charaInInv.gacha, creator: charaInInv.creator };
                 return (JSON.stringify(charaInInvTemp) === JSON.stringify(charaToCompare));
             });

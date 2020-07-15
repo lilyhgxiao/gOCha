@@ -1,4 +1,4 @@
-/*  Inventory component */
+/*  Collection component */
 import React from "react";
 import { Redirect } from 'react-router';
 
@@ -80,8 +80,8 @@ class Collection extends BaseReactComponent {
         const charaReqs = [];
         const currUser = this.state.currUser;
         let i;
-        for (i = 0; i < currUser.inventory.length; i++) {
-            charaReqs.push(getCharaById(currUser.inventory[i]._id));
+        for (i = 0; i < currUser.collec.length; i++) {
+            charaReqs.push(getCharaById(currUser.collec[i]._id));
         }
 
         Promise.all(charaReqs).then(res => {

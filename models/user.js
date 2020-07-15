@@ -85,7 +85,7 @@ const UserSchema = new mongoose.Schema({
 		type: Array,
 		default: []
 	},
-	inventory: { //id list of user's owned characters
+	collec: { //id list of user's owned characters
 		type: [ CharaMiniSchema ],
 		default: []
 	},
@@ -277,7 +277,7 @@ exports.updateUserInfo = async function(req, res) {
 		if (req.body.silvers) user.silvers = req.body.silvers;
 		if (req.body.lastLoginDate) user.lastLoginDate = req.body.lastLoginDate;
 		if (req.body.favGachas) user.favGachas = req.body.favGachas;
-		if (req.body.inventory) user.inventory = req.body.inventory;
+		if (req.body.collec) user.collec = req.body.collec;
 		if (req.body.bio) user.bio = req.body.bio;
 
 		//save the user
@@ -439,7 +439,7 @@ exports.pushUserInfo = async function(req, res) {
 		//clean request body
 		const updateQuery = {};
 		if (req.body.favGachas) updateQuery.favGachas = req.body.favGachas;
-		if (req.body.inventory) updateQuery.inventory = req.body.inventory;
+		if (req.body.collec) updateQuery.collec = req.body.collec;
 
 		//update user
 		const result = await User.findByIdAndUpdate(id, {$push: updateQuery}, {new: true}).exec();
@@ -488,7 +488,7 @@ exports.pullUserInfo = async function(req, res) {
 		//clean request body
 		const updateQuery = {};
 		if (req.body.favGachas) updateQuery.favGachas = req.body.favGachas;
-		if (req.body.inventory) updateQuery.inventory = req.body.inventory;
+		if (req.body.collec) updateQuery.collec = req.body.collec;
 
 		//update user
 		const result = await User.findByIdAndUpdate(id, {$pull: updateQuery}, {new: true}).exec();
@@ -505,7 +505,7 @@ exports.pullUserInfo = async function(req, res) {
 exports.deleteUser = async function(req, res) {
 	if (!req.session.user) {
 		res.status(401).send({ user: null, gachasDeleted: null, charasDeleted: null, 
-			usersUpdated: { inventory: null, favGachas: null },
+			usersUpdated: { collec: null, favGachas: null },
             err: "deleteUser failed: session can't be found"}); //send 401 unauthorized error if not logged in
 		return;
 	}
@@ -514,7 +514,7 @@ exports.deleteUser = async function(req, res) {
     //check for a valid mongodb id
     if (!ObjectID.isValid(id)) {
 		res.status(404).send({ user: null, gachasDeleted: null, charasDeleted: null, 
-			usersUpdated: { inventory: null, favGachas: null },
+			usersUpdated: { collec: null, favGachas: null },
 			err: "deleteUser failed: mongodb id not valid"}); //send 404 not found error if id is invalid
 		return;
 	}
@@ -525,14 +525,14 @@ exports.deleteUser = async function(req, res) {
 		//if user doesn't exist, return 404
 		if (!user) {
 			res.status(404).send({ user: null, gachasDeleted: null, charasDeleted: null, 
-				usersUpdated: { inventory: null, favGachas: null },
+				usersUpdated: { collec: null, favGachas: null },
 				err: "deleteUser failed: could not find user"});
 			return;
 		}
 		//if current user on session does not match user to be edited, AND the user is not an admin
 		if (user._id.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
 			res.status(401).send({ user: null, gachasDeleted: null, charasDeleted: null, 
-				usersUpdated: { inventory: null, favGachas: null },
+				usersUpdated: { collec: null, favGachas: null },
 				err: "deleteUser failed: user does not have permissions"});
 			return;
 		}
@@ -543,10 +543,10 @@ exports.deleteUser = async function(req, res) {
 		const gacha = await gachaModel.Gacha.deleteMany({creator: id}).exec();
 		//remove all characters this user created
 		const chara = await charaModel.Chara.deleteMany({creator: id}).exec();
-		//remove all characters this user created in the inventory of all users
+		//remove all characters this user created in the collec of all users
 		/**TODO: find a way to add star fragments to the users */
-		const usersInventory = await User.updateMany({"inventory.creator": id }, 
-			{ $pull: {"inventory": { "creator": id }} }).exec();
+		const usersInventory = await User.updateMany({"collec.creator": id }, 
+			{ $pull: {"collec": { "creator": id }} }).exec();
 		//remove all gachas this user created in the favourite gachas of all users
 		const usersFavGachas = await User.updateMany({"favGachas.creator": id }, 
 			{ $pull: {"favGachas": { "creator": id }} }).exec();
@@ -556,13 +556,13 @@ exports.deleteUser = async function(req, res) {
 			gachasDeleted: gacha, 
 			charasDeleted: chara,
 			usersUpdated: {
-				inventory: usersInventory, 
+				collec: usersInventory, 
 				favGachas: usersFavGachas}
 			});
 
 	} catch(err) {
 		res.status(500).send({ user: null, gachasDeleted: null, charasDeleted: null, 
-			usersUpdated: { inventory: null, favGachas: null },
+			usersUpdated: { collec: null, favGachas: null },
 			err: "deleteUser failed: " + err});
 	}
 };
@@ -599,9 +599,9 @@ async function checkIfCharaValid(chara) {
 	});
 }
 
-function checkIfInInventory(chara, inventory) {
+function checkIfInInventory(chara, collec) {
 	const charaToCompare = { _id: chara._id, gacha: chara.gacha, creator: chara.creator };
-	const compareResult = inventory.findIndex(charaInInv => {
+	const compareResult = collec.findIndex(charaInInv => {
 		const charaInInvTemp = { _id: charaInInv._id, gacha: charaInInv.gacha, creator: charaInInv.creator };
 		return (JSON.stringify(charaInInvTemp) === JSON.stringify(charaToCompare));
 	});
@@ -620,7 +620,7 @@ function cleanNewUserBody(req) {
 	userBody.silvers = req.body.silvers || defaultSilvers;
 	userBody.bio = req.body.bio || "";
 	userBody.favGachas = req.body.favGachas || [];
-	userBody.inventory = req.body.inventory || [];
+	userBody.collec = req.body.collec || [];
 	userBody.lastLoginDate = req.body.lastLoginDate || new Date();
 
     return userBody;
@@ -637,15 +637,15 @@ async function prepareSummon(req, user) {
 	}
 	if (req.body.chara) {
 		//check if the user already has the character or not.
-		const inventory = [];
+		const collec = [];
 		let validCharaCheck;
 		if (typeof req.body.chara[0] !== 'undefined') {
 			let i;
 			for (i = 0; i < req.body.chara.length; i++) {
 				validCharaCheck = await checkIfCharaValid(req.body.chara[i]);
 				if (validCharaCheck.valid === true) {
-					if (checkIfInInventory(req.body.chara[i], user.inventory) === -1) {
-						inventory.push({
+					if (checkIfInInventory(req.body.chara[i], user.collec) === -1) {
+						collec.push({
 							_id: req.body.chara[i]._id,
 							creator: req.body.chara[i].creator,
 							gacha: req.body.chara[i].gacha
@@ -656,10 +656,10 @@ async function prepareSummon(req, user) {
 				}
 			}
 		} else {
-			if (checkIfInInventory(req.body.chara, user.inventory) === -1) {
+			if (checkIfInInventory(req.body.chara, user.collec) === -1) {
 				validCharaCheck = await checkIfCharaValid(req.body.chara);
 				if (validCharaCheck.valid === true) {
-					inventory.push({
+					collec.push({
 						_id: req.body.chara._id,
 						creator: req.body.chara.creator,
 						gacha: req.body.chara.gacha
@@ -673,7 +673,7 @@ async function prepareSummon(req, user) {
 					err: "summonChara not executed: user has chara" };
 			}
 		}
-		updateQuery.$push.inventory = inventory;
+		updateQuery.$push.collec = collec;
 	} else {
 		return { status: 400, 
 			err: "summonChara failed: body requires chara" };

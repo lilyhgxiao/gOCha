@@ -456,7 +456,7 @@ exports.deleteGacha = async function(req, res) {
     if (!req.session.user) {
         res.status(401).send({ gacha: null, charasDeleted: null, 
             err: "deleteGacha failed: session can't be found",
-            usersUpdated: { inventory: null, favGachas: null}
+            usersUpdated: { collec: null, favGachas: null}
         }); //send 401 unauthorized error if not logged in
         return;
     }
@@ -466,7 +466,7 @@ exports.deleteGacha = async function(req, res) {
     if (!ObjectID.isValid(id)) {
         res.status(404).send({ gacha: null, charasDeleted: null, 
             err: "deleteGacha failed: mongodb id not valid",
-            usersUpdated: { inventory: null, favGachas: null }
+            usersUpdated: { collec: null, favGachas: null }
         }); //send 404 not found error if id is invalid
         return;
     }
@@ -477,7 +477,7 @@ exports.deleteGacha = async function(req, res) {
         if (!gacha) {
             res.status(404).send({ gacha: null, charasDeleted: null, 
                 err: "deleteGacha failed: could not find gacha",
-                usersUpdated: { inventory: null, favGachas: null }
+                usersUpdated: { collec: null, favGachas: null }
             }); // could not find this gacha
             return;
         }
@@ -486,7 +486,7 @@ exports.deleteGacha = async function(req, res) {
         if (gacha.creator.toString() !== req.session.user._id.toString() && !req.session.user.isAdmin) {
             res.status(401).send({ gacha: null, charasDeleted: null, 
                 err: "deleteGacha failed: user does not have permissions",
-                usersUpdated: { inventory: null, favGachas: null }
+                usersUpdated: { collec: null, favGachas: null }
             }); // unauthorized
             return;
         }
@@ -498,8 +498,8 @@ exports.deleteGacha = async function(req, res) {
         const chara = await charaModel.Chara.deleteMany({gacha: id}).exec();
         //pull all characters belonging to the gacha from the inventories of users
         /**TODO: find a way to add star fragments to the users */
-        const usersInventory = await userModel.User.updateMany(
-            {"inventory.gacha": id }, { $pull: {"inventory": { "gacha": id }} }).exec();
+        const usersColl = await userModel.User.updateMany(
+            {"collec.gacha": id }, { $pull: {"collec": { "gacha": id }} }).exec();
         //pull gacha from all favGacha lists of users
         const usersFavGachas = await userModel.User.updateMany(
             {"favGachas._id": id }, { $pull: {"favGachas": { "_id": id }} }).exec();
@@ -507,14 +507,14 @@ exports.deleteGacha = async function(req, res) {
         //send result
         res.status(200).send({gacha: result, charasDeleted: chara, err: null,
             usersUpdated: {
-				inventory: usersInventory, 
+				collec: usersColl, 
                 favGachas: usersFavGachas
             }});
 
     } catch (err) {
         res.status(500).send({ gacha: null, charasDeleted: null, 
             err: "deleteGacha failed: " + err,
-            usersUpdated: { inventory: null, favGachas: null }
+            usersUpdated: { collec: null, favGachas: null }
         });
     }
 };

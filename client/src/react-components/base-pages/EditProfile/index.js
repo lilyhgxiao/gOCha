@@ -312,7 +312,7 @@ class EditProfile extends BaseReactComponent {
                     alert: {
                         title: "Are you sure?",
                         text: ["This action cannot be reversed.", <br />,
-                            "You will lose your inventory, favourite gacha list, and other user information. Any " +
+                            "You will lose your collection, favourite gacha list, and other user information. Any " +
                             "gachas and characters you have created will also be lost, including from the inventories of other users.",
                             <br />, <br />, "Delete your account anyway?", <br/>,
                             "(Please check the box to confirm.)"],

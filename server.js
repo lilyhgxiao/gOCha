@@ -161,7 +161,7 @@ app.patch('/users/pull/:id', user.pullUserInfo);
 //a PATCH route to change user currency
 app.patch('/users/incCurrency/:id', user.incCurrency);
 
-//a PATCH route to summon a character by deducting star frags and pushing a new character onto the inventory
+//a PATCH route to summon a character by deducting star frags and pushing a new character onto the collection
 app.patch('/users/summonChara/:id', user.summonChara);
 
 //a DELETE route to remove a user from the database

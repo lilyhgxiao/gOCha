@@ -67,10 +67,10 @@ class Dashboard extends BaseReactComponent {
 
     fetchRandChara = async () => {
         const { currUser } = this.state;
-        const numCharas = currUser.inventory.length;
+        const numCharas = currUser.collec.length;
         if (numCharas > 0) {
             const index = Math.floor(Math.random() * numCharas);
-            const randChara = currUser.inventory[index];
+            const randChara = currUser.collec[index];
             const getChara = await getCharaById(randChara._id);
             if (!getChara || !getChara.chara || !getChara.chara.coverPic || !getChara.chara.coverPic === ""){
                 this._isMounted && this.setState({
@@ -127,8 +127,6 @@ class Dashboard extends BaseReactComponent {
             );
         }
 
-        /**TODO: add link to inventory and character if you click on the main pic */
-
         return (
             <div className="App">
                 {/* Header component. */}
@@ -155,7 +153,7 @@ class Dashboard extends BaseReactComponent {
                             </div>
                         </div>
                         <div className="dashboardBottomMenu">
-                            <Link className="dashboardInventory" to={collectionURL}>Collection</Link>
+                            <Link className="dashboardCollection" to={collectionURL}>Collection</Link>
                             <Link className="dashboardOwnGachas" to={gachasURL}>Your Gachas</Link>
                             <Link className="dashboardFavGachas" to={favouritesURL}>Favourites</Link>
                         </div>

@@ -333,8 +333,8 @@ exports.deleteChara = async function(req, res) {
         const removedChara = await chara.remove(); //remove chara
 
         //pull character from the inventories of the users
-        const users = await userModel.User.updateMany({"inventory._id": removedChara._id }, 
-            { $pull: {"inventory": { "_id": removedChara._id } }, $inc: {"starFrags": summonCost} }).exec();
+        const users = await userModel.User.updateMany({"collec._id": removedChara._id }, 
+            { $pull: {"collec": { "_id": removedChara._id } }, $inc: {"starFrags": summonCost} }).exec();
 
         //send result
         res.status(200).send({chara: removedChara, usersUpdated: users, err: null});
