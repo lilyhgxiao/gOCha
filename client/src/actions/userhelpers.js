@@ -31,7 +31,7 @@ export const fetchNewUser = async (body) => {
 }
 
 export const fetchPatchUser = async (id, body) => {
-    const url = hostroot + "/users" + id;
+    const url = hostroot + "/users/" + id;
     //const url = "/users" + id;
 
     try {
@@ -136,7 +136,7 @@ export const editUser = async function (id, body) {
         }
 
         //patch res
-        const patchRes = await fetchNewUser(editBody);
+        const patchRes = await fetchPatchUser(id, editBody);
         if (patchRes.status !== 200 || patchRes.user === null) {
             msg.push(patchRes.msg);
             return { status: patchRes.status, msg: msg, 
