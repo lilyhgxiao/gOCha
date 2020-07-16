@@ -2,13 +2,13 @@ import { setState, setEmptyState, errorMatch } from "./helpers";
 
 import { deleteFile, replaceFile } from "./fileHelpers";
 
-import { s3URL, userFolder } from "./../constants";
+import { s3URL, userFolder, hostroot } from "./../constants";
 
 const fetch = require('node-fetch');
 
 /**TODO: delete most console.logs */
 export const fetchNewUser = async (body) => {
-    const url = "http://localhost:3001/users";
+    const url = hostroot + "/users";
     //const url = "/users";
 
     try {
@@ -31,7 +31,7 @@ export const fetchNewUser = async (body) => {
 }
 
 export const fetchPatchUser = async (id, body) => {
-    const url = "http://localhost:3001/users" + id;
+    const url = hostroot + "/users" + id;
     //const url = "/users" + id;
 
     try {
@@ -77,7 +77,7 @@ export const signup = async function (newUser) {
 }
 
 export const getUserById = async function (id) {
-    const url = "http://localhost:3001/users/id/" + id;
+    const url = hostroot + "/users/id/" + id;
     //const url = "/users/id/" + id;
 
     try {
@@ -92,7 +92,7 @@ export const getUserById = async function (id) {
 }
 
 export const getUserByUsername = async function (username) {
-    const url = "http://localhost:3001/users/username/" + username
+    const url = hostroot + "/users/username/" + username
     //const url = "/users/username/" + username 
 
     try {
@@ -107,7 +107,7 @@ export const getUserByUsername = async function (username) {
 }
 
 export const getUserByEmail = async function (email) {
-    const url = "http://localhost:3001/users/email/" + email
+    const url = hostroot + "/users/email/" + email
     //const url = "/users/email/" + email
 
     try {
@@ -159,7 +159,7 @@ export const editUser = async function (id, body) {
 }
 
 export const summonChara = async function (id, chara, cost) {
-    const url = "http://localhost:3001/users/summonChara/" + id;
+    const url = hostroot + "/users/summonChara/" + id;
     //const url = "/users/summonChara/" + id
 
     const body = {starFrags: cost * (-1), chara: {_id: chara._id, gacha: chara.gacha, creator: chara.creator}};
@@ -176,13 +176,11 @@ export const summonChara = async function (id, chara, cost) {
         });
         const json = await res.json();
         let msg = errorMatch(res);
-        console.log(json);
         if (res.status !== 200 || json.user === null) {
-            
-            return { status: res.status, user: null, msg: msg, err: json.err };
+            return { status: res.status, user: null, failedCharas: json.failedCharas, msg: msg, err: json.err };
         } else {
             setState("currUser", json.user);
-            return { status: res.status, user: json.user, msg: msg, err: null };
+            return { status: res.status, user: json.user, failedCharas: json.failedCharas, msg: msg, err: null };
         }
     } catch (err) {
         console.log('fetch failed, ', err);
@@ -191,7 +189,7 @@ export const summonChara = async function (id, chara, cost) {
 }
 
 export const incCurrency = async function (id, starFrags, silvers) {
-    const url = "http://localhost:3001/users/incCurrency/" + id;
+    const url = hostroot + "/users/incCurrency/" + id;
     //const url = "/users/incCurrency/" + id
 
     const body = {starFrags: starFrags, silvers: silvers};
@@ -220,7 +218,7 @@ export const incCurrency = async function (id, starFrags, silvers) {
 } 
 
 export const pushUserInfo = async function (id, body) {
-    const url = "http://localhost:3001/users/push/" + id;
+    const url = hostroot + "/users/push/" + id;
 
     try {
         const res = await fetch(url, {
@@ -247,7 +245,7 @@ export const pushUserInfo = async function (id, body) {
 }
 
 export const pullUserInfo = async function (id, body) {
-    const url = "http://localhost:3001/users/pull/" + id;
+    const url = hostroot + "/users/pull/" + id;
 
     try {
         const res = await fetch(url, {
@@ -274,12 +272,12 @@ export const pullUserInfo = async function (id, body) {
 }
 
 export const deleteUser = async function (id) {
-    const url = "http://localhost:3001/users/" + id;
+    const url = hostroot + "/users/" + id;
 
     try {
         //get all gachas and charas created by the user to delete their pictures from amazon s3
-        const getGachasURL = "http://localhost:3001/gachas/bycreator/" + id;
-        const getCharasURL = "http://localhost:3001/charas/bycreator/" + id;
+        const getGachasURL = hostroot + "/gachas/bycreator/" + id;
+        const getCharasURL = hostroot + "/charas/bycreator/" + id;
         const getGachasRes = await fetch(getGachasURL);
         const getCharasRes = await fetch(getCharasURL);
 

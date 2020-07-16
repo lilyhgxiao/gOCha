@@ -2,13 +2,12 @@ import { errorMatch } from "./helpers";
 
 import { uploadPicsForNewObj, deleteFile, replaceFile } from "./fileHelpers";
 
-import { s3URL, charaFolder } from "./../constants";
+import { s3URL, charaFolder, hostroot } from "./../constants";
 
 const fetch = require('node-fetch');
 
 export const getCharaById = async (id) => {
-    const url = "http://localhost:3001/charas/" + id
-    //const url = "/charas/" + id 
+    const url = hostroot + "/charas/" + id;
 
     try {
         const res = await fetch(url);
@@ -22,8 +21,7 @@ export const getCharaById = async (id) => {
 }
 
 export const getAllCharasInGacha = async (id) => {
-    const url = "http://localhost:3001/charas/ingacha/" + id
-    //const url = "/charas/ingacha/" + id 
+    const url = hostroot + "/charas/ingacha/" + id;
 
     try {
         const res = await fetch(url);
@@ -37,8 +35,7 @@ export const getAllCharasInGacha = async (id) => {
 }
 
 export const fetchNewChara = async (id, body) => {
-    const url = "http://localhost:3001/charas/" + id;
-    //const url = "/charas/" + id;
+    const url = hostroot + "/charas/" + id;
 
     try {
         const res = await fetch(url, {
@@ -60,8 +57,7 @@ export const fetchNewChara = async (id, body) => {
 }
 
 export const fetchPatchChara = async (id, body) => {
-    const url = "http://localhost:3001/charas/" + id;
-    //const url = "/charas/" + id;
+    const url = hostroot + "/charas/" + id;
 
     try {
         const res = await fetch(url, {
@@ -190,10 +186,8 @@ export const editChara = async (id, body) => {
 }
 
 export const deleteCharaById = async (id) => {
-    const url = "http://localhost:3001/charas/" + id
-    //const url = "/charas/" + id 
+    const url = hostroot + "/charas/" + id
 
-    /**TODO: delete the images of the characters from Amazon S3 */
     try {
         const res = await fetch(url, {
             method: 'DELETE',

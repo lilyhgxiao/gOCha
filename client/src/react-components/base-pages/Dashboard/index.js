@@ -93,17 +93,13 @@ class Dashboard extends BaseReactComponent {
     }
 
     /**TODO: delete this */
-    createAlertDialogue = () => {
-        this.setState({
+    notImplementedYet = () => {
+        this._isMounted && this.setState({
             alert: {
-                title: "Yep",
-                yesNo: true,
-                image: {src: dashboard_placeholder, alt:"Dashboard Placeholder"},
-                inputOn: true,
-                inputParameters: { type: "password", placeholder: "Placeholder!" },
-                checkbox: true
+                title: "Not Available",
+                text: ["This feature is not available yet. Please look forward to it :D"]
             }
-        })
+        });
     }
 
     render() {
@@ -145,7 +141,7 @@ class Dashboard extends BaseReactComponent {
                         <div className="dashboardTopMenu">
                             <div className="currencyDisplay">Star Fragments: {currUser ? currUser.starFrags: 0}</div>
                             <div className="currencyDisplay">Silvers: {currUser ? currUser.silvers : 0}</div>
-                            <div className="mailContainer" onClick={this.createAlertDialogue}> 
+                            <div className="mailContainer" onClick={this.notImplementedYet}> 
                                 <div className="mailNotif">3</div>
                                 <div className="mailIcon"> 
                                     Mail

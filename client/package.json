@@ -42,5 +42,8 @@
   },
   "resolutions": {
     "yargs-parser": "^13.1.2"
+  }, 
+  "engines": {
+    "node": "10.16.3"
   }
 }

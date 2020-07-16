@@ -63,3 +63,6 @@ exports.pageRange = 5;
 exports.charasPerPage = 20;
 exports.gachasPerPage = 19;
 exports.favGachasPerPage = 20;
+
+//for testing purposes
+exports.hostroot = "";

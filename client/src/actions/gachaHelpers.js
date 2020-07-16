@@ -2,15 +2,14 @@ import { errorMatch } from "./helpers";
 
 import { deleteFile, replaceFile, uploadPicsForNewObj } from "./fileHelpers";
 
-import { s3URL, gachaFolder } from "./../constants";
+import { s3URL, gachaFolder, hostroot } from "./../constants";
 
 const fetch = require('node-fetch');
 
 /**TODO: delete most console.logs */
 
 export const getGachaById = async (id) => {
-    const url = "http://localhost:3001/gachas/" + id
-    //const url = "/gachas/" + id 
+    const url = hostroot + "/gachas/" + id 
 
     try {
         const res = await fetch(url);
@@ -24,8 +23,7 @@ export const getGachaById = async (id) => {
 }
 
 export const getGachasByCreator = async (id) => {
-    const url = "http://localhost:3001/gachas/bycreator/" + id
-    //const url = "/gachas/" + id 
+    const url = hostroot + "/gachas/bycreator/" + id
 
     try {
         const res = await fetch(url);
@@ -39,8 +37,7 @@ export const getGachasByCreator = async (id) => {
 }
 
 export const fetchNewGacha = async (body) => {
-    const url = "http://localhost:3001/gachas";
-    //const url = "/gachas";
+    const url = hostroot + "/gachas";
 
     try {
         const res = await fetch(url, {
@@ -62,8 +59,7 @@ export const fetchNewGacha = async (body) => {
 }
 
 export const fetchPatchGacha = async (id, body) => {
-    const url = "http://localhost:3001/gachas/" + id;
-    //const url = "/gachas";
+    const url = hostroot + "/gachas/" + id;
 
     try {
         const res = await fetch(url, {
@@ -188,8 +184,7 @@ export const editGacha = async (id, body) => {
 
 /**TODO: add stat */
 export const addStatsToGacha = async (id, body) => {
-    const url = "http://localhost:3001/gachas/stats/new/" + id;
-    //const url = "/gachas/stats/new/" + id; 
+    const url = hostroot + "/gachas/stats/new/" + id;
 
     try {
         //patch res
@@ -213,8 +208,7 @@ export const addStatsToGacha = async (id, body) => {
 
 /**TODO: update stat */
 export const updateStatsOnGacha = async (id, body) => {
-    const url = "http://localhost:3001/gachas/stats/update/" + id;
-    //const url = "/gachas/stats/update/" + id; 
+    const url = hostroot + "/gachas/stats/update/" + id;
 
     try {
         //patch res
@@ -238,8 +232,7 @@ export const updateStatsOnGacha = async (id, body) => {
 
 /**TODO: delete stat */
 export const deleteStatsOnGacha = async (id, body) => {
-    const url = "http://localhost:3001/gachas/stats/delete/" + id;
-    //const url = "/gachas/stats/delete/" + id; 
+    const url = hostroot + "/gachas/stats/delete/" + id;
 
     try {
         //patch res
@@ -262,8 +255,7 @@ export const deleteStatsOnGacha = async (id, body) => {
 }
 
 export const deleteGachaById = async (id) => {
-    const url = "http://localhost:3001/gachas/" + id
-    //const url = "/gachas/" + id 
+    const url = hostroot + "/gachas/" + id
 
     try {
         const res = await fetch(url, {

@@ -118,7 +118,7 @@ class Header extends React.Component {
                             <div className="hdrCurrency">
                                 <img className="hdrCurrencyIcon" src={starFrag_placeholder} alt="StarFrag Placeholder"/>
                                 {currUser ? currUser.starFrags: 0}
-                                <button onClick={this.addStarFrags}>+</button>
+                                {currUser ? <button onClick={this.addStarFrags}>+</button> : null}
                             </div>
                             <div className="hdrCurrency">
                                 <img className="hdrCurrencyIcon" src={silvers_placeholder} alt="StarFrag Placeholder"/>
@@ -136,7 +136,9 @@ class Header extends React.Component {
                             <Link className="hdr2Link" to={collectionURL}>Collection</Link>  
                             <Link className="hdr2Link" to={gachasURL}>Your Gachas</Link>  
                             <Link className="hdr2Link" to={favouritesURL}>Favourites</Link>  
-                            <Link className="hdr2Link" to={'/news'}>News</Link> 
+                            { /* News not implemented yet
+                                <Link className="hdr2Link" to={'/news'}>News</Link> 
+                            */ }
                         </div>
                     </div>
                 </div>

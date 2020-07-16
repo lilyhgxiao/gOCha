@@ -1,12 +1,13 @@
 import { setEmptyState } from "./helpers";
 
+import { hostroot } from "./../constants";
+
 const fetch = require('node-fetch');
 
 /**TODO: get rid of most console.logs */
 
 export const readSession = async function () {
-    //const url = "/users/check-session";
-    const url = "http://localhost:3001/users/check-session";
+    const url = hostroot + "/users/check-session";
 
     try {
         const res = await fetch(url, { 
@@ -31,8 +32,7 @@ export const readSession = async function () {
 };
 
 export const updateSession = async function () {
-    //const url = "/users/update-session";
-    const url = "http://localhost:3001/users/update-session";
+    const url = hostroot + "/users/update-session";
 
     try {
         const res = await fetch(url, { 
@@ -61,8 +61,7 @@ export const updateSession = async function () {
 }
 
 export const login = async function (body) {
-    //const url = "/users/login";
-    const url = "http://localhost:3001/users/login";
+    const url = hostroot + "/users/login";
 
     // Send the request with fetch()
     try {
@@ -91,8 +90,7 @@ export const login = async function (body) {
 };
 
 export const logout = async function () {
-    //const url = "/users/logout";
-    const url = "http://localhost:3001/users/logout";
+    const url = hostroot + "/users/logout";
 
     try {
         const res = await fetch(url, { 

@@ -1,14 +1,13 @@
 import { coverFileName, iconFileName } from "./helpers";
 
-import { s3URL } from "./../constants";
+import { s3URL, hostroot } from "./../constants";
 
 const fetch = require('node-fetch');
 
 /**TODO: get rid of most console.logs */
 
 export const uploadFile = async (file, fileName) => {
-    let url = "http://localhost:3001/generate-put-url?";
-    //let url = "/generate-put-url?";
+    let url = hostroot + "/generate-put-url?";
 
     url += "Key=" + encodeURIComponent(fileName);
     url +=  "&ContentType=" + encodeURIComponent(file.type);
@@ -44,8 +43,7 @@ export const uploadFile = async (file, fileName) => {
 }
 
 export const deleteFile = async (fileName) => {
-    let url = "http://localhost:3001/delete-object?";
-    //const url = "/delete-object?""
+    let url = hostroot + "/delete-object?";
 
     url += "Key=" + encodeURIComponent(fileName);
 
@@ -66,9 +64,7 @@ export const deleteFile = async (fileName) => {
 
 /**TODO: fix up this function and test it */
 export const getFile = async (file, fileName) => {
-    /**TODO: fix url */
-    let url = "http://localhost:3001/generate-get-url?"
-    //const url = "/generate-get-url?"
+    let url = hostroot + "/generate-get-url?"
     
     url += "Key=" + encodeURIComponent(fileName);
     url +=  "&ContentType=" + encodeURIComponent(file.type);
