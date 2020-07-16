@@ -17,7 +17,7 @@ import starFrag_placeholder from './../../../images/starFrag_placeholder.png';
 import silvers_placeholder from './../../../images/silvers_placeholder.png';
 
 //Importing constants
-import { loginURL, errorURL, dashboardURL, collectionURL, gachasURL, favouritesURL } from "../../../constants";
+import { loginURL, errorURL, dashboardURL, collectionURL, gachasURL, favouritesURL, profileURL, editAccURL } from "../../../constants";
 
 /* The Header Component */
 class Header extends React.Component {
@@ -124,10 +124,10 @@ class Header extends React.Component {
                                 <img className="hdrCurrencyIcon" src={silvers_placeholder} alt="StarFrag Placeholder"/>
                                 {currUser ? currUser.silvers : 0}
                             </div>
-                            <Link className="hdrProfile" to={'/profile/' + (currUser ? currUser.username: "")}>
+                            <Link className="hdrProfile" to={profileURL + (currUser ? currUser.username: "")}>
                                 {currUser ? currUser.username: ""}
                             </Link>
-                            <Link className="hdrSettings" to={'/settings'}>Settings</Link>
+                            <Link className="hdrSettings" to={editAccURL}>Settings</Link>
                             <span className="hdrLogout" onClick={ this.logoutUser }>Log Out</span> 
                         </div>
 
