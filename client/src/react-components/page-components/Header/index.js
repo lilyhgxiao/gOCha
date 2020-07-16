@@ -127,7 +127,7 @@ class Header extends React.Component {
                             <Link className="hdrProfile" to={profileURL + (currUser ? currUser.username: "")}>
                                 {currUser ? currUser.username: ""}
                             </Link>
-                            <Link className="hdrSettings" to={editAccURL}>Settings</Link>
+                            <Link className="hdrSettings" to={editAccURL + (currUser ? currUser.username: "")}>Settings</Link>
                             <span className="hdrLogout" onClick={ this.logoutUser }>Log Out</span> 
                         </div>
 
