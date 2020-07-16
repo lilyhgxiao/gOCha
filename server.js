@@ -2,6 +2,8 @@
 "use strict";
 const log = console.log;
 
+require('dotenv').config();
+
 const constant = require("./client/src/constants");
 
 const express = require("express");
