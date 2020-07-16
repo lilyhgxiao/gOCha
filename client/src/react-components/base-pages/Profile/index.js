@@ -138,7 +138,7 @@ class Profile extends BaseReactComponent {
                             }
                         </div>
                         <img className="profilePic"
-                            src={isUserLoaded ? dashboard_placeholder : dashboard_placeholder}
+                            src={isUserLoaded && (user.iconPic && user.iconPic !== "")  ? user.iconPic : dashboard_placeholder}
                             alt='Profile Pic' />
                         <div className="profileUsername">
                             {isUserLoaded ? user.username : "Username"}
