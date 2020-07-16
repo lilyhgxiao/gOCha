@@ -124,6 +124,7 @@ class Signup extends React.Component {
         } else {
             try {
                 const userByUsername =  await getUserByUsername(this.state.username);
+                console.log(userByUsername);
                 if (userByUsername && userByUsername.user !== null) {
                     this._isMounted && this.setState({
                         alert: {
