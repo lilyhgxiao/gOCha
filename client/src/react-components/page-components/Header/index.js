@@ -7,13 +7,17 @@ import { logout } from "../../../actions/loginHelpers";
 import "./../../../App.css";
 import "./styles.css";
 
+// Importing actions/required methods
+import { processError } from "../../../actions/helpers";
+import { incCurrency } from "../../../actions/userhelpers";
+
 //images
 import logo from './../../../images/logo_placeholder.png';
 import starFrag_placeholder from './../../../images/starFrag_placeholder.png';
 import silvers_placeholder from './../../../images/silvers_placeholder.png';
 
 //Importing constants
-import { loginURL, dashboardURL, collectionURL, gachasURL, favouritesURL } from "../../../constants";
+import { loginURL, errorURL, dashboardURL, collectionURL, gachasURL, favouritesURL } from "../../../constants";
 
 /* The Header Component */
 class Header extends React.Component {
@@ -23,7 +27,8 @@ class Header extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            toLogin: false
+            toLogin: false,
+            error: null
         };
     }
 
@@ -48,6 +53,23 @@ class Header extends React.Component {
         }
     };
 
+    addStarFrags = async () => {
+        const { currUser } = this.props;
+
+        try {
+            const addRes = await incCurrency(currUser._id, 500, 0);
+            if (!addRes || !addRes.user) {
+                this._isMounted && processError.bind(this)(addRes, true, false);
+            }
+        } catch (err) {
+            this._isMounted && this.setState({
+                error: { code: 500, msg: "Something went wrong adding currency.", toDashboard: true }
+            });
+        }
+        
+
+    }
+
     /**TODO: search function to be coming? */
     search = () => {
 
@@ -56,12 +78,21 @@ class Header extends React.Component {
     render() {
         /**TODO: handle when props are empty */
         const { currUser } = this.props;
-        const { toLogin } = this.state;
+        const { toLogin, error } = this.state;
 
         if (toLogin) {
             return (
                 <Redirect push to={{
                     pathname: loginURL
+                }} />
+            );
+        }
+
+        if (error) {
+            return (
+                <Redirect push to={{
+                    pathname: errorURL,
+                    state: { error: error }
                 }} />
             );
         }
@@ -87,6 +118,7 @@ class Header extends React.Component {
                             <div className="hdrCurrency">
                                 <img className="hdrCurrencyIcon" src={starFrag_placeholder} alt="StarFrag Placeholder"/>
                                 {currUser ? currUser.starFrags: 0}
+                                <button onClick={this.addStarFrags}>+</button>
                             </div>
                             <div className="hdrCurrency">
                                 <img className="hdrCurrencyIcon" src={silvers_placeholder} alt="StarFrag Placeholder"/>
