@@ -1,5 +1,7 @@
 /* User model */
 'use strict';
+require('dotenv').config();
+
 const log = console.log
 
 const { minUserLength, maxUserLength, minEmailLength, minPassLength, 
@@ -12,6 +14,8 @@ const mongoose = require('mongoose')
 const { ObjectID } = require("mongodb");
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+
+const adminPass = process.env.ADMIN_PASS;
 
 /**TODO: change all id comparisons to use toString() */
 /**TODO: delete most console.log */
@@ -159,6 +163,11 @@ exports.createUser = async function(req, res) {
         res.status(400).send({ user: null, err: "createUser failed: user requires a password"});
         return;
 	} 
+	if (userBody.isAdmin && userBody.isAdmin === true && 
+		(!req.body.adminPass || (req.body.adminPass.toString() !== adminPass.toString()))) {
+		res.status(401).send({ user: null, err: "createUser failed: Tried to create admin with wrong adminPass"});
+		return;
+	}
 	const user = new User(userBody);
 
 	// Save the user
